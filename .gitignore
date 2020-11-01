@@ -88,3 +88,4 @@ lint/tmp/
 gradlew
 gradle.bat
 gradlew.bat
+gradle/
