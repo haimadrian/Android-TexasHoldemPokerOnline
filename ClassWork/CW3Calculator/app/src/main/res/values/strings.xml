@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CW3-Calculator</string>
+    <string name="divideByZero">Divide by zero</string>
+</resources>
