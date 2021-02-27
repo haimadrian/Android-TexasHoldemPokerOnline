@@ -29,6 +29,7 @@
 
         <Button
             android:id="@+id/button7"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -42,6 +43,7 @@
 
         <Button
             android:id="@+id/button8"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -55,6 +57,7 @@
 
         <Button
             android:id="@+id/button9"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -68,6 +71,7 @@
 
         <Button
             android:id="@+id/buttonMul"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -88,6 +92,7 @@
 
         <Button
             android:id="@+id/button4"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -101,6 +106,7 @@
 
         <Button
             android:id="@+id/button5"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -114,6 +120,7 @@
 
         <Button
             android:id="@+id/button6"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -127,6 +134,7 @@
 
         <Button
             android:id="@+id/buttonMinus"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -148,6 +156,7 @@
 
         <Button
             android:id="@+id/button1"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -161,6 +170,7 @@
 
         <Button
             android:id="@+id/button2"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -174,6 +184,7 @@
 
         <Button
             android:id="@+id/button3"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -187,6 +198,7 @@
 
         <Button
             android:id="@+id/buttonPlus"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -217,10 +229,12 @@
             android:layout_weight="1"
             android:onClick="funcClear"
             android:text="C"
-            android:textSize="30sp" />
+            android:textSize="30sp"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored" />
 
         <Button
             android:id="@+id/button0"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -234,6 +248,7 @@
 
         <Button
             android:id="@+id/buttonEquals"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"
@@ -247,6 +262,7 @@
 
         <Button
             android:id="@+id/buttonDiv"
+            style="@style/Widget.AppCompat.Button.Borderless.Colored"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="2dp"

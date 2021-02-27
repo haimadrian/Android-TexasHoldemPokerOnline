@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getLine() {
-        String out = outputText.getText().toString();
+        String out = outputText.getText().toString().trim();
         int indexOfNewLine = out.lastIndexOf(System.lineSeparator());
         if (indexOfNewLine >= 0) {
             out = out.substring(indexOfNewLine + System.lineSeparator().length());
@@ -75,6 +75,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         action = senderButton.getText().toString();
+
+        // If user clicks an operator right after clicking equals, copy the last result
+        if (outputText.getText().toString().endsWith(System.lineSeparator())) {
+            outputText.append(currOut);
+        }
         outputText.append(action);
     }
 
