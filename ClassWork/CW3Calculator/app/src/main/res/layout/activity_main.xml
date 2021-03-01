@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/backgroundColor"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -17,8 +18,154 @@
             android:id="@+id/outputText"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:background="@color/backgroundColor"
+            android:enabled="true"
+            android:fadeScrollbars="true"
             android:gravity="center|start"
-            android:textSize="42sp" />
+            android:maxLines="100"
+            android:paddingLeft="2dp"
+            android:paddingTop="2dp"
+            android:paddingRight="2dp"
+            android:paddingBottom="2dp"
+            android:scrollbarStyle="insideOverlay"
+            android:scrollbars="vertical"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#84FFFF"
+            android:textSize="36sp"
+            android:verticalScrollbarPosition="right" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/spinnerFunc"
+            style="@style/buttonFunctionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:dropDownSelector="@color/buttonColor"
+            android:spinnerMode="dropdown" />
+
+        <Spinner
+            android:id="@+id/spinnerTrigo"
+            style="@style/buttonFunctionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:dropDownSelector="@color/buttonColor"
+            android:spinnerMode="dropdown" />
+
+        <Button
+            android:id="@+id/buttonLeftParentheses"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/leftParentheses"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonRightParentheses"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/rightParentheses"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonSquare"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:onClick="onFunctionButtonClicked"
+            android:text="@string/square"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonSqrt"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:onClick="onFunctionButtonClicked"
+            android:text="@string/squareRoot"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonFactorial"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:onClick="onFunctionButtonClicked"
+            android:text="@string/factorial"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonDiv"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:onClick="onOperatorButtonClicked"
+            android:text="@string/divide"
+            android:textAllCaps="false" />
     </LinearLayout>
 
     <LinearLayout
@@ -29,59 +176,63 @@
 
         <Button
             android:id="@+id/button7"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="7"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:fontFamily="cursive"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/seven" />
 
         <Button
             android:id="@+id/button8"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="8"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:fontFamily="cursive"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/eight" />
 
         <Button
             android:id="@+id/button9"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="9"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:fontFamily="cursive"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/nine" />
 
         <Button
             android:id="@+id/buttonMul"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonActionFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcOperator"
-            android:text="*"
-            android:textSize="30sp" />
+            android:background="@color/buttonColor"
+            android:onClick="onOperatorButtonClicked"
+            android:text="@string/multiply"
+            android:textAllCaps="false" />
     </LinearLayout>
 
     <LinearLayout
@@ -92,59 +243,63 @@
 
         <Button
             android:id="@+id/button4"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="4"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:fontFamily="cursive"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/four" />
 
         <Button
             android:id="@+id/button5"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="5"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:fontFamily="cursive"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/five" />
 
         <Button
             android:id="@+id/button6"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="6"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:fontFamily="cursive"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/six" />
 
         <Button
             android:id="@+id/buttonMinus"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonActionFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcOperator"
-            android:text="-"
-            android:textSize="30sp" />
+            android:background="@color/buttonColor"
+            android:onClick="onOperatorButtonClicked"
+            android:text="@string/minus"
+            android:textAllCaps="false" />
 
     </LinearLayout>
 
@@ -156,59 +311,62 @@
 
         <Button
             android:id="@+id/button1"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="1"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/one" />
 
         <Button
             android:id="@+id/button2"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="2"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:longClickable="true"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/two" />
 
         <Button
             android:id="@+id/button3"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="3"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:longClickable="true"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/three" />
 
         <Button
             android:id="@+id/buttonPlus"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonActionFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcOperator"
-            android:text="+"
-            android:textSize="30sp" />
+            android:background="@color/buttonColor"
+            android:onClick="onOperatorButtonClicked"
+            android:text="@string/plus"
+            android:textAllCaps="false" />
 
     </LinearLayout>
 
@@ -220,58 +378,63 @@
 
         <Button
             android:id="@+id/buttonClear"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcClear"
-            android:text="C"
-            android:textSize="30sp"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored" />
+            android:background="@color/buttonColor"
+            android:fontFamily="cursive"
+            android:onClick="onClearButtonClicked"
+            android:text="@string/clrscr" />
 
         <Button
             android:id="@+id/button0"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcNumber"
-            android:text="0"
-            android:textSize="30sp" />
+            android:background="@color/buttonLightColor"
+            android:fontFamily="cursive"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/zero" />
+
+        <Button
+            android:id="@+id/buttonDot"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_weight="1"
+            android:background="@color/buttonColor"
+            android:onClick="onOperandButtonClicked"
+            android:text="@string/dot"
+            android:textAllCaps="false" />
 
         <Button
             android:id="@+id/buttonEquals"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
+            style="@style/buttonActionFont"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
+            android:layout_marginLeft="2dp"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
+            android:layout_marginRight="2dp"
             android:layout_marginBottom="2dp"
             android:layout_weight="1"
-            android:onClick="funcEquals"
-            android:text="="
-            android:textSize="30sp" />
+            android:background="@color/buttonColor"
+            android:onClick="onEqualsButtonClicked"
+            android:text="@string/equals"
+            android:textAllCaps="false" />
 
-        <Button
-            android:id="@+id/buttonDiv"
-            style="@style/Widget.AppCompat.Button.Borderless.Colored"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="2dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="2dp"
-            android:layout_marginBottom="2dp"
-            android:layout_weight="1"
-            android:onClick="funcOperator"
-            android:text="/"
-            android:textSize="30sp" />
     </LinearLayout>
 </LinearLayout>

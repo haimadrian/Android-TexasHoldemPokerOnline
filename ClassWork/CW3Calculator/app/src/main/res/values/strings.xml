@@ -1,4 +1,31 @@
 <resources>
-    <string name="app_name">CW3-Calculator</string>
-    <string name="divideByZero">Divide by zero</string>
+    <string name="app_name">Mamma Mia</string>
+    <string name="divideByZero">Divide by zero.</string>
+    <string name="notEligibleForNegative">\'%s\' is not eligible for that input.</string>
+    <string name="error">Error: %s.\n\n0</string>
+    <string name="leftParentheses">(</string>
+    <string name="rightParentheses">)</string>
+    <string name="square">x²</string>
+    <string name="squareRoot">√</string>
+    <string name="factorial">n!</string>
+    <string name="divide">÷</string>
+    <string name="seven">7</string>
+    <string name="eight">8</string>
+    <string name="nine">9</string>
+    <string name="multiply">×</string>
+    <string name="four">4</string>
+    <string name="five">5</string>
+    <string name="six">6</string>
+    <string name="minus">-</string>
+    <string name="one">1</string>
+    <string name="two">2</string>
+    <string name="three">3</string>
+    <string name="plus">+</string>
+    <string name="clrscr">C</string>
+    <string name="zero">0</string>
+    <string name="dot">.</string>
+    <string name="equals">=</string>
+    <string name="pi">π</string>
+    <string name="e">e</string>
+    <string name="infinity">∞</string>
 </resources>
