@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.example.calc.action.ActionContext;
 import com.example.calc.action.ActionType;
@@ -124,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
             // Context menu
             menu.add(Menu.NONE, 2, Menu.NONE, v.getId() == R.id.button2 ? "2" : "3");
             menu.add(Menu.NONE, 3, Menu.NONE, v.getId() == R.id.button2 ? getString(R.string.e) : getString(R.string.pi));
+            v.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.button_num_design, null));
         } catch (Throwable t) {
             setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
         }

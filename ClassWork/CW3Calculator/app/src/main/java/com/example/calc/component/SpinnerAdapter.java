@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.example.calc.R;
 
@@ -32,7 +33,8 @@ public class SpinnerAdapter extends ArrayAdapter<String> {
         View v = super.getView(position, convertView, parent);
 
         ((TextView) v).setTextAppearance(R.style.buttonFunctionFont);
-        v.setBackgroundColor(getContext().getResources().getColor(R.color.buttonColor, null));
+        //v.setBackgroundColor(getContext().getResources().getColor(R.color.buttonColor, null));
+        v.setBackground(ResourcesCompat.getDrawable(getContext().getResources(), R.drawable.button_action_design, null));
         if (title != null) {
             ((TextView) v).setText(title);
         }
@@ -45,7 +47,8 @@ public class SpinnerAdapter extends ArrayAdapter<String> {
         View v = super.getDropDownView(position, convertView, parent);
 
         ((TextView) v).setTextAppearance(R.style.buttonFunctionFont);
-        v.setBackgroundColor(getContext().getResources().getColor(R.color.buttonLightColor, null));
+        //v.setBackgroundColor(getContext().getResources().getColor(R.color.buttonLightColor, null));
+        v.setBackground(ResourcesCompat.getDrawable(getContext().getResources(), R.drawable.button_action_dropdown_design, null));
 
         return v;
     }
