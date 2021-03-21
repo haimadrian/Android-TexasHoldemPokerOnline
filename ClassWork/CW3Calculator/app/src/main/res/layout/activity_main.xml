@@ -6,13 +6,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/background_design"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".activities.MainActivity">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="0.5"
-        android:orientation="horizontal">
+        android:layout_weight="0.5">
 
         <TextView
             android:id="@+id/outputText"
@@ -33,408 +32,39 @@
             android:textColorHint="#84FFFF"
             android:textSize="36sp"
             android:verticalScrollbarPosition="right" />
-    </LinearLayout>
+
+        <Switch
+            android:id="@+id/modeSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:checked="false"
+            android:text="Scientific"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal">
+        android:layout_weight="0.5"
+        android:orientation="vertical">
 
-        <Spinner
-            android:id="@+id/spinnerFunc"
-            style="@style/buttonFunctionFont"
+        <FrameLayout
+            android:id="@+id/scientificLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:dropDownSelector="@drawable/button_action_design"
-            android:spinnerMode="dropdown" />
+            android:layout_weight="0.65">
 
-        <Spinner
-            android:id="@+id/spinnerTrigo"
-            style="@style/buttonFunctionFont"
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/fragmentsLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:dropDownSelector="@drawable/button_action_design"
-            android:spinnerMode="dropdown" />
+            android:layout_weight="0.35">
 
-        <Button
-            android:id="@+id/buttonLeftParentheses"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/leftParentheses"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/buttonRightParentheses"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/rightParentheses"
-            android:textAllCaps="false" />
-
+        </FrameLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/buttonSquare"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onFunctionButtonClicked"
-            android:text="@string/square"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/buttonSqrt"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onFunctionButtonClicked"
-            android:text="@string/squareRoot"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/buttonFactorial"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onFunctionButtonClicked"
-            android:text="@string/factorial"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/buttonDiv"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onOperatorButtonClicked"
-            android:text="@string/divide"
-            android:textAllCaps="false" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/button7"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:fontFamily="cursive"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/seven" />
-
-        <Button
-            android:id="@+id/button8"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:fontFamily="cursive"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/eight" />
-
-        <Button
-            android:id="@+id/button9"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:fontFamily="cursive"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/nine" />
-
-        <Button
-            android:id="@+id/buttonMul"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onOperatorButtonClicked"
-            android:text="@string/multiply"
-            android:textAllCaps="false" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/button4"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:fontFamily="cursive"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/four" />
-
-        <Button
-            android:id="@+id/button5"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:fontFamily="cursive"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/five" />
-
-        <Button
-            android:id="@+id/button6"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:fontFamily="cursive"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/six" />
-
-        <Button
-            android:id="@+id/buttonMinus"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onOperatorButtonClicked"
-            android:text="@string/minus"
-            android:textAllCaps="false" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/button1"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/one" />
-
-        <Button
-            android:id="@+id/button2"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:longClickable="true"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/two" />
-
-        <Button
-            android:id="@+id/button3"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:longClickable="true"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/three" />
-
-        <Button
-            android:id="@+id/buttonPlus"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onOperatorButtonClicked"
-            android:text="@string/plus"
-            android:textAllCaps="false" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/buttonClear"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:fontFamily="cursive"
-            android:onClick="onClearButtonClicked"
-            android:text="@string/clrscr" />
-
-        <Button
-            android:id="@+id/button0"
-            style="@style/buttonFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:fontFamily="cursive"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/zero" />
-
-        <Button
-            android:id="@+id/buttonDot"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_num_design"
-            android:onClick="onOperandButtonClicked"
-            android:text="@string/dot"
-            android:textAllCaps="false" />
-
-        <Button
-            android:id="@+id/buttonEquals"
-            style="@style/buttonActionFont"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginRight="1dp"
-            android:layout_marginBottom="1dp"
-            android:layout_weight="1"
-            android:background="@drawable/button_action_design"
-            android:onClick="onEqualsButtonClicked"
-            android:text="@string/equals"
-            android:textAllCaps="false" />
-
-    </LinearLayout>
 </LinearLayout>

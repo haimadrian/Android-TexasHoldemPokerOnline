@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".fragments.FragmentScientific">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/spinnerFunc"
+            style="@style/buttonFunctionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:dropDownSelector="@drawable/button_action_design"
+            android:spinnerMode="dropdown" />
+
+        <Spinner
+            android:id="@+id/spinnerTrigo"
+            style="@style/buttonFunctionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:dropDownSelector="@drawable/button_action_design"
+            android:spinnerMode="dropdown" />
+
+        <Button
+            android:id="@+id/buttonLeftParentheses"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:text="@string/leftParentheses"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonRightParentheses"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:text="@string/rightParentheses"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonSquare"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:text="@string/square"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonSqrt"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:text="@string/squareRoot"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonFactorial"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:text="@string/factorial"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonDiv"
+            style="@style/buttonActionFont"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginRight="1dp"
+            android:layout_marginBottom="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/button_action_design"
+            android:text="@string/divide"
+            android:textAllCaps="false" />
+    </LinearLayout>
+
+</LinearLayout>

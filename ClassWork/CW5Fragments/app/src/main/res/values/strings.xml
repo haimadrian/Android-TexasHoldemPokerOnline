@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">CW5Fragments</string>
+    <string name="hello_fragment_one">First Fragment</string>
+    <string name="hello_fragment_two">Second Fragment</string>
+</resources>

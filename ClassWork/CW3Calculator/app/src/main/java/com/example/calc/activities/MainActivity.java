@@ -1,34 +1,38 @@
-package com.example.calc;
+package com.example.calc.activities;
 
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
+import com.example.calc.R;
 import com.example.calc.action.ActionContext;
 import com.example.calc.action.ActionType;
 import com.example.calc.action.ArithmeticAction;
-import com.example.calc.component.SpinnerAdapter;
-
-import java.util.stream.Collectors;
+import com.example.calc.fragments.FragmentBasic;
+import com.example.calc.fragments.FragmentScientific;
 
 public class MainActivity extends AppCompatActivity {
+    private FragmentManager fragmentManager;
+    private FragmentTransaction fragmentTransaction;
 
-    TextView outputText;
-    Spinner spinnerFunc;
-    Spinner spinnerTrigo;
+    private TextView outputText;
     private String action = "";
     private double value;
+
+    private FragmentBasic basicFragment;
+    private FragmentScientific scientificFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,85 +42,26 @@ public class MainActivity extends AppCompatActivity {
         outputText = findViewById(R.id.outputText);
         outputText.setMovementMethod(new ScrollingMovementMethod());
 
-        spinnerFunc = findViewById(R.id.spinnerFunc);
-        spinnerFunc.setAdapter(new SpinnerAdapter("Func   ▼", this, android.R.layout.simple_spinner_dropdown_item, ActionType.listFunctions().stream().map(ActionType::getActionText).collect(Collectors.toList())));
-        spinnerTrigo = findViewById(R.id.spinnerTrigo);
-        spinnerTrigo.setAdapter(new SpinnerAdapter("Trigo  ▼", this, android.R.layout.simple_spinner_dropdown_item, ActionType.listTrigoFunctions().stream().map(ActionType::getActionText).collect(Collectors.toList())));
-
         value = 0;
         updateOutputValue();
-    }
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
+        // Start with basic fragment
+        fragmentManager = getSupportFragmentManager();
+        fragmentTransaction = fragmentManager.beginTransaction();
+        basicFragment = new FragmentBasic();
+        fragmentTransaction.add(R.id.fragmentsLayout, basicFragment).addToBackStack(null).commit();
+        fragmentTransaction = fragmentManager.beginTransaction();
+        scientificFragment = new FragmentScientific();
+        fragmentTransaction.add(R.id.scientificLayout, scientificFragment).addToBackStack(null).commit();
+        findViewById(R.id.scientificLayout).setVisibility(View.GONE);
 
-        // Register dropdown listener now, otherwise it listens during creation and runs even though user has not pressed anything.
-        spinnerFunc.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                try {
-                    // Index 0 is kept for the title
-                    if (position > 0 && position <= ActionType.listFunctions().size()) {
-                        doFunction(String.valueOf(parentView.getItemAtPosition(position)));
-
-                        // Clear selection, so we can select the same function again
-                        spinnerFunc.setSelection(0);
-                    }
-                } catch (Throwable t) {
-                    setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // Do nothing
-            }
-        });
-
-        spinnerTrigo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                try {
-                    if (position > 0 && position <= ActionType.listTrigoFunctions().size()) {
-                        // Index 0 is kept for the title
-                        doFunction(String.valueOf(parentView.getItemAtPosition(position)));
-
-                        // Clear selection, so we can select the same function again
-                        spinnerTrigo.setSelection(0);
-                    }
-                } catch (Throwable t) {
-                    setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // Do nothing
-            }
-        });
-
-        Button button2 = findViewById(R.id.button2);
-        Button button3 = findViewById(R.id.button3);
-
-        button2.setOnLongClickListener(view -> {
+        ((Switch)findViewById(R.id.modeSwitch)).setOnCheckedChangeListener(((buttonView, isChecked) -> {
             try {
-                registerForContextMenu(button2);
-                openContextMenu(button2);
-            } catch (Throwable t) {
-                setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
+                findViewById(R.id.scientificLayout).setVisibility(isChecked ? View.VISIBLE : View.GONE);
+            } catch (Exception e) {
+                Log.d("error", e.getMessage(), e);
             }
-            return true;
-        });
-        button3.setOnLongClickListener(view -> {
-            try {
-                registerForContextMenu(button3);
-                openContextMenu(button3);
-            } catch (Throwable t) {
-                setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
-            }
-            return true;
-        });
+        }));
     }
 
     @Override
@@ -136,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             String charToAppend = item.getTitle().toString();
             if (Character.isDigit(charToAppend.charAt(0))) {
-                onOperandButtonClicked(charToAppend.equals("2") ? findViewById(R.id.button2) : findViewById(R.id.button3));
+                onOperandButtonClicked(charToAppend.equals("2") ? basicFragment.getView().findViewById(R.id.button2) : basicFragment.getView().findViewById(R.id.button3));
             }
             // Pi or e
             else {
@@ -211,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         return Double.parseDouble(value);
     }
 
-    private void setErrorOutput(String textToSet) {
+    public void setErrorOutput(String textToSet) {
         outputText.setText(textToSet);
         if (!textToSet.endsWith(System.lineSeparator())) {
             outputText.append(System.lineSeparator());
@@ -420,7 +365,7 @@ public class MainActivity extends AppCompatActivity {
 
             // If there is already an action, calculate it before we can execute a function.
             if (!action.isEmpty()) {
-                onEqualsButtonClicked(findViewById(R.id.buttonEquals));
+                onEqualsButtonClicked(basicFragment.getView().findViewById(R.id.buttonEquals));
             }
 
             String currOut = getLine();
