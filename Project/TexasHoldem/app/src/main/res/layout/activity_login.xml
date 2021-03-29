@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/signInFragment"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/register"
+    android:orientation="vertical"
+    tools:context=".view.activity.LoginActivity">
+
+    <FrameLayout
+        android:id="@+id/loginFragmentsFrame"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/buttonQuit"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="32dp"
+        android:drawableStart="@drawable/close_24"
+        android:gravity="start|center_vertical"
+        android:onClick="onQuitButtonClicked"
+        android:text="@string/action_quit"
+        android:textSize="14sp"
+        app:iconGravity="start|textStart" />
+
+</LinearLayout>

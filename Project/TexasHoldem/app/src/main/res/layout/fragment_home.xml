@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    tools:context=".view.fragment.home.HomeFragment">
+
+    <ImageView
+        android:id="@+id/imageViewPc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:contentDescription="@string/play_against_bots"
+        android:paddingHorizontal="10dp"
+        android:src="@drawable/button_computer" />
+
+    <ImageView
+        android:id="@+id/imageViewNetwork"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:clickable="true"
+        android:contentDescription="@string/play_on_network"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="0dp"
+        android:src="@drawable/button_network" />
+</LinearLayout>

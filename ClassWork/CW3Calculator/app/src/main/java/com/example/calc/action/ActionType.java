@@ -1,6 +1,21 @@
 package com.example.calc.action;
 
-import com.example.calc.action.impl.*;
+import com.example.calc.action.impl.Abs;
+import com.example.calc.action.impl.Ceil;
+import com.example.calc.action.impl.Cos;
+import com.example.calc.action.impl.Cot;
+import com.example.calc.action.impl.Div;
+import com.example.calc.action.impl.Factorial;
+import com.example.calc.action.impl.Floor;
+import com.example.calc.action.impl.Ln;
+import com.example.calc.action.impl.Minus;
+import com.example.calc.action.impl.Mul;
+import com.example.calc.action.impl.Plus;
+import com.example.calc.action.impl.Rand;
+import com.example.calc.action.impl.Sin;
+import com.example.calc.action.impl.Square;
+import com.example.calc.action.impl.SquareRoot;
+import com.example.calc.action.impl.Tan;
 
 import java.util.Arrays;
 import java.util.List;

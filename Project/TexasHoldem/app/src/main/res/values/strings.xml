@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">Texas Holdem</string>
+
+    <!-- Strings related to login -->
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="prompt_username">Username</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_nickname">Nickname</string>
+    <string name="prompt_date_of_birth">Date of birth (yyyy-MM-dd)</string>
+    <string name="prompt_date_of_birth_auto_fill">Date of birth</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_sign_up">Sign Up</string>
+    <string name="action_quit">Quit</string>
+    <string name="welcome">"Welcome %s!"</string>
+    <string name="signing_in">"We are signing you in"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="invalid_birth_date">Not a valid birth date</string>
+    <string name="invalid_nickname">Not a valid nickname</string>
+    <string name="sign_in_failed">"Sign in failed"</string>
+    <string name="sign_up_failed">"Sign up failed"</string>
+
+    <!-- Strings related to navigation -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_desc">Texas Holdem Poker</string>
+    <string name="nav_header_user">%s (%s)</string>
+    <string name="menu_home">Home</string>
+    <string name="menu_settings">Preferences</string>
+    <string name="menu_about">About</string>
+    <string name="menu_sign_out">Sign Out</string>
+
+    <!-- Home fragment -->
+    <string name="play_against_bots">Play against bots</string>
+    <string name="play_on_network">Play on network</string>
+
+    <string name="action_check">Check</string>
+    <string name="action_call">Call</string>
+    <string name="action_raise">Raise</string>
+    <string name="action_fold">Fold</string>
+
+    <!-- About fragment. The &#160; is used as space. Otherwise whitespace characters are trimmed -->
+    <string name="by_haim_adrian">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;By Haim Adrian</string>
+    <string name="about_content">This application has been developed as a final project of Android1 course.\nTeacher: Efi Profus\nCollege: Holon Institute of Technology\nVersion: 1.0.0</string>
+
+    <!-- Play against PC -->
+    <string name="amount_of_bots">Amount of bots</string>
+    <string name="amount_of_coins">Amount of coins</string>
+    <string name="size_of_small_bet">Small bet</string>
+    <string name="size_of_big_bet">Big bet</string>
+    <string name="help">Help</string>
+</resources>

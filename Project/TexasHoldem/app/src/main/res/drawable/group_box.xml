@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="24dp"/>
+    <!-- Angle should be 45*n -->
+    <gradient android:startColor="@color/cardview_light_background"
+        android:centerColor="@color/light_blue_A200"
+        android:endColor="@color/cardview_light_background"
+        android:angle="225"  />
+    <stroke android:color="@color/black_overlay" android:width="1dp"/>
+</shape>
