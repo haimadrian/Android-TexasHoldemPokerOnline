@@ -1,5 +1,7 @@
 package com.example.calc.activities;
 
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -10,7 +12,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentManager;
@@ -24,6 +28,12 @@ import com.example.calc.fragments.FragmentBasic;
 import com.example.calc.fragments.FragmentScientific;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String SHARED_PREFERENCES_NAME = "calc-shared";
+
+    private static final String STORED_OUTPUT_KEY = "output";
+    private static final String STORED_ACTION_KEY = "action";
+    private static final String STORED_VALUE_KEY = "value";
+
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
 
@@ -34,29 +44,38 @@ public class MainActivity extends AppCompatActivity {
     private FragmentBasic basicFragment;
     private FragmentScientific scientificFragment;
 
+    public MainActivity() {
+        Log.d("Lifecycle", this.toString() + ".new");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("Lifecycle", this.toString() + ".onCreate");
         setContentView(R.layout.activity_main);
 
         outputText = findViewById(R.id.outputText);
         outputText.setMovementMethod(new ScrollingMovementMethod());
 
-        value = 0;
-        updateOutputValue();
+        // Set text to outputText based on saved instance state / shared preferences
+        initializeTextBasedOnSavedState(savedInstanceState);
 
         // Start with basic fragment
         fragmentManager = getSupportFragmentManager();
         fragmentTransaction = fragmentManager.beginTransaction();
         basicFragment = new FragmentBasic();
-        fragmentTransaction.add(R.id.fragmentsLayout, basicFragment).addToBackStack(null).commit();
+        fragmentTransaction.add(R.id.fragmentsLayout, basicFragment).commit();
         fragmentTransaction = fragmentManager.beginTransaction();
         scientificFragment = new FragmentScientific();
-        fragmentTransaction.add(R.id.scientificLayout, scientificFragment).addToBackStack(null).commit();
+        fragmentTransaction.add(R.id.scientificLayout, scientificFragment).commit();
         findViewById(R.id.scientificLayout).setVisibility(View.GONE);
 
         ((Switch)findViewById(R.id.modeSwitch)).setOnCheckedChangeListener(((buttonView, isChecked) -> {
             try {
+                Log.d("Event", this.toString() + ".onCheckedChange: Requesting orientation. isChecked=" + isChecked);
+                setRequestedOrientation(isChecked ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+                Log.d("Event", this.toString() + ".onCheckedChange: Setting fragment visibility");
                 findViewById(R.id.scientificLayout).setVisibility(isChecked ? View.VISIBLE : View.GONE);
             } catch (Exception e) {
                 Log.d("error", e.getMessage(), e);
@@ -64,8 +83,83 @@ public class MainActivity extends AppCompatActivity {
         }));
     }
 
+    /**
+     * Reads data from saved instance state and set it to data members.<br/>
+     * Saved instance state is used when we change screen orientation and the activity is re-created.<br/>
+     * When we first start-up, there is no saved instance state. In this case, we get the data from shared preferences.
+     * @param savedInstanceState The saved instance state.
+     */
+    private void initializeTextBasedOnSavedState(Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            Log.d("Lifecycle", this.toString() + ".onCreate: Saved instance is null");
+
+            SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
+            if (!sharedPreferences.contains(STORED_VALUE_KEY)) {
+                Log.d("Lifecycle", this.toString() + ".onCreate: No data in shared preferences");
+                value = 0;
+                action = "";
+                updateOutputValue();
+            } else {
+                Log.d("Lifecycle", this.toString() + ".onCreate: Loading data from shared preferences: " + sharedPreferences.getString(STORED_VALUE_KEY, "null"));
+                try {
+                    value = Double.parseDouble(sharedPreferences.getString(STORED_VALUE_KEY, "0"));
+                } catch (Exception e) {
+                    Log.e("Error", "Failed to read stored value from shared preferences. Value: " + sharedPreferences.getString(STORED_VALUE_KEY, "0"), e);
+                    value = 0;
+                }
+
+                outputText.setText(getValueText(false));
+                outputText.bringPointIntoView(outputText.length());
+            }
+
+            Toast.makeText(this, "Welcome!", Toast.LENGTH_LONG).show();
+        } else {
+            Log.d("Lifecycle", this.toString() + ".onCreate: Restoring saved instance state");
+            value = savedInstanceState.getDouble(STORED_VALUE_KEY, 0);
+            action = savedInstanceState.getString(STORED_ACTION_KEY, "");
+            outputText.setText(savedInstanceState.getString(STORED_OUTPUT_KEY, ""));
+            outputText.bringPointIntoView(outputText.length());
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d("Event", this.toString() + ".onSaveInstanceState");
+
+        outState.putString(STORED_OUTPUT_KEY, outputText.getText().toString());
+        outState.putString(STORED_ACTION_KEY, action);
+        outState.putDouble(STORED_VALUE_KEY, value);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d("Lifecycle", this.toString() + ".onDestroy");
+
+        String lastValue = getLine();
+        if (!lastValue.isEmpty()) {
+            double value;
+            try {
+                value = parseValue(lastValue);
+            } catch (Exception e) {
+                Log.e("Error", "Error has occurred while trying to get value to store", e);
+                value = 0;
+            }
+
+            // Save last value to disk so it will be available next time the app is launched
+            SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFERENCES_NAME, MODE_PRIVATE);
+            SharedPreferences.Editor sharedPrefsEditor = sharedPreferences.edit();
+            sharedPrefsEditor.putString(STORED_VALUE_KEY, String.valueOf(value));
+            sharedPrefsEditor.apply();
+
+            Log.d("Event", "Stored to shared preferences: " + value);
+        }
+    }
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        Log.d("Event", this.toString() + ".onCreateContextMenu");
         try {
             // Context menu
             menu.add(Menu.NONE, 2, Menu.NONE, v.getId() == R.id.button2 ? "2" : "3");
@@ -78,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        Log.d("Event", this.toString() + ".onContextItemSelected");
         try {
             String charToAppend = item.getTitle().toString();
             if (Character.isDigit(charToAppend.charAt(0))) {
@@ -94,6 +189,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return false;
+    }
+
+    @Override
+    public void onBackPressed() {
+        Log.d("Event", this.toString() + ".onBackPressed");
+        super.onBackPressed();
     }
 
     /**
@@ -210,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
      * @param view Sender button
      */
     public void onClearButtonClicked(View view) {
+        Log.d("Event", this.toString() + ".onClearButtonClicked");
         try {
             outputText.setText("");
             action = "";
@@ -226,6 +328,7 @@ public class MainActivity extends AppCompatActivity {
      * @param view Sender button
      */
     public void onEqualsButtonClicked(View view) {
+        Log.d("Event", this.toString() + ".onEqualsButtonClicked");
         try {
             String currOut = getLine();
 
@@ -263,6 +366,7 @@ public class MainActivity extends AppCompatActivity {
      * @param view Sender button, to get its text and append to output
      */
     public void onOperandButtonClicked(View view) {
+        Log.d("Event", this.toString() + ".onOperandButtonClicked");
         try {
             Button senderButton = (Button) view;
 
@@ -309,6 +413,7 @@ public class MainActivity extends AppCompatActivity {
      * @param view Sender button
      */
     public void onOperatorButtonClicked(View view) {
+        Log.d("Event", this.toString() + ".onOperatorButtonClicked");
         try {
             Button senderButton = (Button) view;
 
@@ -345,6 +450,7 @@ public class MainActivity extends AppCompatActivity {
      * @param view Sender button
      */
     public void onFunctionButtonClicked(View view) {
+        Log.d("Event", this.toString() + ".onFunctionButtonClicked");
         try {
             String actionText = ((TextView) view).getText().toString();
             doFunction(actionText);

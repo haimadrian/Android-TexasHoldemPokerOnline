@@ -1,12 +1,15 @@
 package com.example.calc.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.calc.R;
@@ -21,81 +24,129 @@ import java.util.stream.Collectors;
  * create an instance of this fragment.
  */
 public class FragmentScientific extends Fragment {
-    Spinner spinnerFunc;
-    Spinner spinnerTrigo;
+    private Spinner spinnerFunc;
+    private Spinner spinnerTrigo;
+    private boolean isInitialized;
 
     public FragmentScientific() {
         // Required empty public constructor
+        Log.d("Lifecycle", this.toString() + ".new");
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("Lifecycle", this.toString() + ".onCreate");
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d("Lifecycle", this.toString() + ".onCreateView");
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_scientific, container, false);
+        return inflater.inflate(R.layout.fragment_scientific, container, false);
+    }
 
-        MainActivity mainActivity = (MainActivity) getActivity();
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-        spinnerFunc = view.findViewById(R.id.spinnerFunc);
-        spinnerFunc.setAdapter(new SpinnerAdapter("Func   ▼", mainActivity, android.R.layout.simple_spinner_dropdown_item, ActionType.listFunctions().stream().map(ActionType::getActionText).collect(Collectors.toList())));
-        spinnerTrigo = view.findViewById(R.id.spinnerTrigo);
-        spinnerTrigo.setAdapter(new SpinnerAdapter("Trigo  ▼", mainActivity, android.R.layout.simple_spinner_dropdown_item, ActionType.listTrigoFunctions().stream().map(ActionType::getActionText).collect(Collectors.toList())));
+        if (!isInitialized) {
+            Log.d("Lifecycle", this.toString() + ".onViewCreated");
+            isInitialized = true;
+            MainActivity mainActivity = (MainActivity) getActivity();
 
-        // Register dropdown listener now, otherwise it listens during creation and runs even though user has not pressed anything.
-        spinnerFunc.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                try {
-                    // Index 0 is kept for the title
-                    if (position > 0 && position <= ActionType.listFunctions().size()) {
-                        mainActivity.doFunction(String.valueOf(parentView.getItemAtPosition(position)));
+            spinnerFunc = view.findViewById(R.id.spinnerFunc);
+            spinnerFunc.setAdapter(new SpinnerAdapter("Func   ▼", mainActivity, android.R.layout.simple_spinner_dropdown_item, ActionType.listFunctions().stream().map(ActionType::getActionText).collect(Collectors.toList())));
+            spinnerTrigo = view.findViewById(R.id.spinnerTrigo);
+            spinnerTrigo.setAdapter(new SpinnerAdapter("Trigo  ▼", mainActivity, android.R.layout.simple_spinner_dropdown_item, ActionType.listTrigoFunctions().stream().map(ActionType::getActionText).collect(Collectors.toList())));
 
-                        // Clear selection, so we can select the same function again
-                        spinnerFunc.setSelection(0);
-                    }
-                } catch (Throwable t) {
-                    mainActivity.setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
-                }
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // Do nothing
-            }
-        });
-
-        spinnerTrigo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                try {
-                    if (position > 0 && position <= ActionType.listTrigoFunctions().size()) {
+            // Register dropdown listener now, otherwise it listens during creation and runs even though user has not pressed anything.
+            spinnerFunc.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    try {
                         // Index 0 is kept for the title
-                        mainActivity.doFunction(String.valueOf(parentView.getItemAtPosition(position)));
+                        if (position > 0 && position <= ActionType.listFunctions().size()) {
+                            mainActivity.doFunction(String.valueOf(parentView.getItemAtPosition(position)));
 
-                        // Clear selection, so we can select the same function again
-                        spinnerTrigo.setSelection(0);
+                            // Clear selection, so we can select the same function again
+                            spinnerFunc.setSelection(0);
+                        }
+                    } catch (Throwable t) {
+                        mainActivity.setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
                     }
-                } catch (Throwable t) {
-                    mainActivity.setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
                 }
-            }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // Do nothing
-            }
-        });
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {
+                    // Do nothing
+                }
+            });
 
-        view.findViewById(R.id.buttonDiv).setOnClickListener(mainActivity::onOperatorButtonClicked);
-        view.findViewById(R.id.buttonSquare).setOnClickListener(mainActivity::onFunctionButtonClicked);
-        view.findViewById(R.id.buttonSqrt).setOnClickListener(mainActivity::onFunctionButtonClicked);
-        view.findViewById(R.id.buttonFactorial).setOnClickListener(mainActivity::onFunctionButtonClicked);
+            spinnerTrigo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                    try {
+                        if (position > 0 && position <= ActionType.listTrigoFunctions().size()) {
+                            // Index 0 is kept for the title
+                            mainActivity.doFunction(String.valueOf(parentView.getItemAtPosition(position)));
 
-        return view;
+                            // Clear selection, so we can select the same function again
+                            spinnerTrigo.setSelection(0);
+                        }
+                    } catch (Throwable t) {
+                        mainActivity.setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parentView) {
+                    // Do nothing
+                }
+            });
+
+            view.findViewById(R.id.buttonDiv).setOnClickListener(mainActivity::onOperatorButtonClicked);
+            view.findViewById(R.id.buttonSquare).setOnClickListener(mainActivity::onFunctionButtonClicked);
+            view.findViewById(R.id.buttonSqrt).setOnClickListener(mainActivity::onFunctionButtonClicked);
+            view.findViewById(R.id.buttonFactorial).setOnClickListener(mainActivity::onFunctionButtonClicked);
+        } else {
+            Log.d("Lifecycle", this.toString() + ".onViewCreated skipped");
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d("Lifecycle", this.toString() + ".onStart");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("Lifecycle", this.toString() + ".onResume");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("Lifecycle", this.toString() + ".onPause");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d("Lifecycle", this.toString() + ".onStop");
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d("Lifecycle", this.toString() + ".onDestroyView");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("Lifecycle", this.toString() + ".onDestroy");
     }
 }

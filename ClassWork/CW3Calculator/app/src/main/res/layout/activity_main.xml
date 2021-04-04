@@ -47,22 +47,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="0.5"
-        android:orientation="vertical">
-
-        <FrameLayout
-            android:id="@+id/scientificLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.65">
-
-        </FrameLayout>
+        android:orientation="horizontal">
 
         <FrameLayout
             android:id="@+id/fragmentsLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="0.35">
+        </FrameLayout>
 
+        <FrameLayout
+            android:id="@+id/scientificLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="0.65">
         </FrameLayout>
     </LinearLayout>
 
