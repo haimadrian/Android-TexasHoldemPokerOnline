@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="@layout/nav_header_main">
+
+    <group
+        android:id="@+id/navigationGroup"
+        android:checkableBehavior="single"
+        android:menuCategory="container">
+        <item
+            android:id="@+id/nav_standard"
+            android:icon="@drawable/ic_twotone_calculate_24"
+            android:title="@string/standard" />
+        <item
+            android:id="@+id/nav_science"
+            android:icon="@drawable/ic_twotone_science_24"
+            android:title="@string/scientific" />
+    </group>
+    <group
+        android:id="@+id/configGroup"
+        android:checkableBehavior="single"
+        android:menuCategory="container">
+        <item
+            android:id="@+id/nav_server"
+            android:checkable="true"
+            android:icon="@drawable/ic_twotone_cloud_24"
+            android:title="@string/server_mode"
+            app:actionViewClass="android.widget.Switch"
+            app:showAsAction="always" />
+    </group>
+    <group
+        android:id="@+id/systemGroup"
+        android:checkableBehavior="single"
+        android:menuCategory="system">
+        <item
+            android:id="@+id/nav_exit"
+            android:icon="@drawable/ic_baseline_close_24"
+            android:title="@string/exit" />
+    </group>
+</menu>

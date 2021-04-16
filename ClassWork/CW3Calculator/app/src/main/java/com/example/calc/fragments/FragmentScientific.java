@@ -105,7 +105,7 @@ public class FragmentScientific extends Fragment {
                 }
             });
 
-            view.findViewById(R.id.buttonDiv).setOnClickListener(mainActivity::onOperatorButtonClicked);
+            view.findViewById(R.id.buttonDot).setOnClickListener(mainActivity::onOperandButtonClicked);
             view.findViewById(R.id.buttonSquare).setOnClickListener(mainActivity::onFunctionButtonClicked);
             view.findViewById(R.id.buttonSqrt).setOnClickListener(mainActivity::onFunctionButtonClicked);
             view.findViewById(R.id.buttonFactorial).setOnClickListener(mainActivity::onFunctionButtonClicked);

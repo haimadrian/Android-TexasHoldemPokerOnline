@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    A default log4j2 configuration that will be used in case no one specified the log4j.configurationFile
+-->
+<Configuration status="info">
+    <Properties>
+        <Property name="baseLogDir">${sys:org.hit.android.haim.logdir}</Property>
+        <Property name="mainLogPattern">%d{DATE} %-5level [%threadName] %logger{1} - %msg%n%xThrowable</Property>
+    </Properties>
+    <Appenders>
+        <!-- All TRACE, DEBUG and INFO to System.out -->
+        <Console name="ConsoleOut" target="SYSTEM_OUT">
+            <PatternLayout pattern="${mainLogPattern}"/>
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="DENY" onMismatch="ACCEPT"/>
+            </Filters>
+        </Console>
+        <!-- All WARN, ERROR and FATAL to System.err -->
+        <Console name="ConsoleErr" target="SYSTEM_ERR">
+            <PatternLayout pattern="${mainLogPattern}"/>
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </Console>
+        <RollingRandomAccessFile name="mainLog" fileName="${baseLogDir}\main.log" filePattern="${baseLogDir}\archive\main-%i.log" immediateFlush="false">
+            <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10" fileIndex="min"/>
+        </RollingRandomAccessFile>
+        <!-- stdout logger template -->
+        <RollingRandomAccessFile name="stdoutlog" fileName="${baseLogDir}\stdout.log" filePattern="${baseLogDir}\archive\stdout-%i.log">
+            <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10" fileIndex="min"/>
+        </RollingRandomAccessFile>
+        <!-- stderr logger template -->
+        <RollingRandomAccessFile name="stderrlog" fileName="${baseLogDir}\stderr.log" filePattern="${baseLogDir}\archive\stderr-%i.log">
+            <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="10" fileIndex="min"/>
+        </RollingRandomAccessFile>
+    </Appenders>
+    <Loggers>
+        <Logger name="stdout" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleOut"/> <!-- See logs in console when running from intellij -->
+        </Logger>
+        <Logger name="stderr" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleErr"/> <!-- See logs in console when running from intellij -->
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="ConsoleOut"/>
+            <AppenderRef ref="ConsoleErr"/>
+        </Root>
+    </Loggers>
+</Configuration>

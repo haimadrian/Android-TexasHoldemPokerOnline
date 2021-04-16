@@ -1,67 +1,135 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_design"
-    android:orientation="vertical"
-    tools:context=".activities.MainActivity">
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="0.5">
-
-        <TextView
-            android:id="@+id/outputText"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/background_text_design"
-            android:enabled="true"
-            android:fadeScrollbars="true"
-            android:gravity="center|start"
-            android:maxLines="100"
-            android:paddingLeft="2dp"
-            android:paddingTop="2dp"
-            android:paddingRight="2dp"
-            android:paddingBottom="2dp"
-            android:scrollbarStyle="insideOverlay"
-            android:scrollbars="vertical"
-            android:textColor="#000000"
-            android:textColorHint="#84FFFF"
-            android:textSize="36sp"
-            android:verticalScrollbarPosition="right" />
-
-        <Switch
-            android:id="@+id/modeSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:checked="false"
-            android:text="Scientific"
-            android:textColor="#FFFFFF"
-            android:textSize="24sp" />
-    </FrameLayout>
+    android:background="@color/white"
+    android:fitsSystemWindows="false"
+    tools:context=".activities.MainActivity"
+    tools:openDrawer="start">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="0.5"
-        android:orientation="horizontal">
+        android:background="@drawable/background_design"
+        android:orientation="vertical"
+        tools:context=".activities.MainActivity">
 
-        <FrameLayout
-            android:id="@+id/fragmentsLayout"
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/app_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:background="@drawable/ic_ellipse_home_page"
+            android:elevation="4dp"
+            android:gravity="center"
+            android:theme="@style/Theme.Design.NoActionBar"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:subtitle=""
+            app:title=""
+            app:titleMargin="10dp"
+            app:titleTextAppearance="?android:attr/textAppearanceLarge"
+            app:titleTextColor="@color/black">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="-12dp"
+                android:layout_marginEnd="0dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="-12dp"
+                    android:layout_weight="0.87"
+                    android:elevation="2dp"
+                    android:onClick="onMenuClicked"
+                    android:src="@drawable/ic_twotone_menu_48" />
+
+                <TextView
+                    android:id="@+id/textViewName"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="-40dp"
+                    android:layout_weight="0.13"
+                    android:elevation="1dp"
+                    android:gravity="center"
+                    android:text="@string/android1_calculator"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:textColor="@color/black"
+                    android:textSize="32sp" />
+            </LinearLayout>
+        </androidx.appcompat.widget.Toolbar>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.35">
-        </FrameLayout>
+            android:layout_marginTop="-10dp"
+            android:background="@drawable/background_design"
+            android:orientation="vertical"
+            tools:context=".activities.MainActivity">
 
-        <FrameLayout
-            android:id="@+id/scientificLayout"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.65">
-        </FrameLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5">
+
+                <TextView
+                    android:id="@+id/outputText"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/background_text_design"
+                    android:enabled="true"
+                    android:fadeScrollbars="true"
+                    android:gravity="center|start"
+                    android:maxLines="100"
+                    android:paddingLeft="2dp"
+                    android:paddingTop="2dp"
+                    android:paddingRight="2dp"
+                    android:paddingBottom="2dp"
+                    android:scrollbarStyle="insideOverlay"
+                    android:scrollbars="vertical"
+                    android:textColor="#000000"
+                    android:textColorHint="#84FFFF"
+                    android:textSize="36sp"
+                    android:verticalScrollbarPosition="right" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/fragmentsLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.35" />
+
+                <FrameLayout
+                    android:id="@+id/scientificLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.65" />
+            </LinearLayout>
+
+        </LinearLayout>
     </LinearLayout>
 
-</LinearLayout>
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@drawable/textfield_d"
+        android:fitsSystemWindows="false"
+        app:headerLayout="@layout/nav_header_main"
+        app:itemIconTint="#5C95E3"
+        app:itemTextColor="#5C95E3"
+        app:menu="@menu/activity_main_drawer" />
+</androidx.drawerlayout.widget.DrawerLayout>

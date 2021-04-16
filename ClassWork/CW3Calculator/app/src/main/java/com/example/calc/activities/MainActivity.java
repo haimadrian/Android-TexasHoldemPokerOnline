@@ -1,8 +1,10 @@
 package com.example.calc.activities;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -10,15 +12,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.ui.AppBarConfiguration;
 
 import com.example.calc.R;
 import com.example.calc.action.ActionContext;
@@ -26,6 +32,10 @@ import com.example.calc.action.ActionType;
 import com.example.calc.action.ArithmeticAction;
 import com.example.calc.fragments.FragmentBasic;
 import com.example.calc.fragments.FragmentScientific;
+import com.example.calc.server.CalculatorWebService;
+import com.google.android.material.navigation.NavigationView;
+
+import java.util.function.Consumer;
 
 public class MainActivity extends AppCompatActivity {
     private static final String SHARED_PREFERENCES_NAME = "calc-shared";
@@ -33,6 +43,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String STORED_OUTPUT_KEY = "output";
     private static final String STORED_ACTION_KEY = "action";
     private static final String STORED_VALUE_KEY = "value";
+    private static final String STORED_SERVER_KEY = "isServer";
+
+    private AppBarConfiguration mAppBarConfiguration;
+    private DrawerLayout navDrawer;
 
     private FragmentManager fragmentManager;
     private FragmentTransaction fragmentTransaction;
@@ -43,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
 
     private FragmentBasic basicFragment;
     private FragmentScientific scientificFragment;
+    private boolean isServer = false;
+
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
+    private Switch serverSwitch;
 
     public MainActivity() {
         Log.d("Lifecycle", this.toString() + ".new");
@@ -54,8 +72,29 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Lifecycle", this.toString() + ".onCreate");
         setContentView(R.layout.activity_main);
 
+        navDrawer = findViewById(R.id.drawer_layout);
+        navDrawer.closeDrawers();
+
+        Toolbar myToolbar = findViewById(R.id.app_toolbar);
+        setSupportActionBar(myToolbar);
+
+        NavigationView navigationView = findViewById(R.id.nav_view);
+
+        // Passing each menu ID as a set of Ids because each
+        // menu should be considered as top level destinations.
+        mAppBarConfiguration =
+                new AppBarConfiguration.Builder(R.id.nav_standard, R.id.nav_science, R.id.nav_server, R.id.nav_exit)
+                        .setOpenableLayout(navDrawer)
+                        .build();
+
+        // Listen to navigation buttons, to handle exit here instead of navigating to other fragments.
+        navigationView.setNavigationItemSelectedListener(this::onMenuItemSelected);
+
         outputText = findViewById(R.id.outputText);
         outputText.setMovementMethod(new ScrollingMovementMethod());
+
+        serverSwitch = (Switch)navigationView.getMenu().findItem(R.id.nav_server).getActionView();
+        serverSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> setIsServerMode(isChecked));
 
         // Set text to outputText based on saved instance state / shared preferences
         initializeTextBasedOnSavedState(savedInstanceState);
@@ -68,19 +107,75 @@ public class MainActivity extends AppCompatActivity {
         fragmentTransaction = fragmentManager.beginTransaction();
         scientificFragment = new FragmentScientific();
         fragmentTransaction.add(R.id.scientificLayout, scientificFragment).commit();
-        findViewById(R.id.scientificLayout).setVisibility(View.GONE);
 
-        ((Switch)findViewById(R.id.modeSwitch)).setOnCheckedChangeListener(((buttonView, isChecked) -> {
-            try {
-                Log.d("Event", this.toString() + ".onCheckedChange: Requesting orientation. isChecked=" + isChecked);
-                setRequestedOrientation(isChecked ? ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        if (getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+            findViewById(R.id.scientificLayout).setVisibility(View.VISIBLE);
+            LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) myToolbar.getLayoutParams();
+            layoutParams.height = 175;
+            myToolbar.setLayoutParams(layoutParams);
+        } else {
+            findViewById(R.id.scientificLayout).setVisibility(View.GONE);
+            LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) myToolbar.getLayoutParams();
+            layoutParams.height = 200;
+            myToolbar.setLayoutParams(layoutParams);
+        }
 
-                Log.d("Event", this.toString() + ".onCheckedChange: Setting fragment visibility");
-                findViewById(R.id.scientificLayout).setVisibility(isChecked ? View.VISIBLE : View.GONE);
-            } catch (Exception e) {
-                Log.d("error", e.getMessage(), e);
+        CalculatorWebService.getInstance().start();
+    }
+
+    /**
+     * Occurs when user selects a menu item in te navigation view
+     * @return Whether to draw selection background or not (We draw selection for selectable items and not buttons)
+     */
+    private boolean onMenuItemSelected(MenuItem item) {
+        boolean shouldDrawSelection = false;
+        try {
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.nav_exit) {
+                Toast.makeText(this, "Good Bye!", Toast.LENGTH_LONG).show();
+            } else if (itemId == R.id.nav_server) {
+                serverSwitch.setChecked(!serverSwitch.isChecked());
+            } else if (itemId == R.id.nav_standard) {
+                View scientificLayout = findViewById(R.id.scientificLayout);
+                if (scientificLayout.getVisibility() == View.VISIBLE) {
+                    new Handler().post(() -> {
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                        scientificLayout.setVisibility(View.GONE);
+                    });
+                }
+
+                shouldDrawSelection = true;
+            } else if (itemId == R.id.nav_science) {
+                View scientificLayout = findViewById(R.id.scientificLayout);
+                if (scientificLayout.getVisibility() != View.VISIBLE) {
+                    new Handler().post(() -> {
+                        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                        scientificLayout.setVisibility(View.VISIBLE);
+                    });
+                }
+
+                shouldDrawSelection = true;
             }
-        }));
+        } catch (Exception e) {
+            Log.d("error", e.getMessage(), e);
+        }
+
+        // Do it later so we will exit the event before losing stuff
+        new Handler().post(() -> navDrawer.closeDrawers());
+        return shouldDrawSelection;
+    }
+
+    private void setIsServerMode(boolean isServerMode) {
+        this.isServer = isServerMode;
+        Log.d("ServerMode", "Is using server mode: " + isServer);
+    }
+
+    /**
+     * Occurs when user clicks the burger icon
+     */
+    public void onMenuClicked(View view) {
+        navDrawer.open();
     }
 
     /**
@@ -117,6 +212,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d("Lifecycle", this.toString() + ".onCreate: Restoring saved instance state");
             value = savedInstanceState.getDouble(STORED_VALUE_KEY, 0);
             action = savedInstanceState.getString(STORED_ACTION_KEY, "");
+            setIsServerMode(savedInstanceState.getBoolean(STORED_SERVER_KEY, false));
+
+            serverSwitch.setChecked(isServer);
             outputText.setText(savedInstanceState.getString(STORED_OUTPUT_KEY, ""));
             outputText.bringPointIntoView(outputText.length());
         }
@@ -127,9 +225,12 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         Log.d("Event", this.toString() + ".onSaveInstanceState");
 
+        navDrawer.closeDrawers();
+
         outState.putString(STORED_OUTPUT_KEY, outputText.getText().toString());
         outState.putString(STORED_ACTION_KEY, action);
         outState.putDouble(STORED_VALUE_KEY, value);
+        outState.putBoolean(STORED_SERVER_KEY, isServer);
     }
 
     @Override
@@ -137,14 +238,15 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.d("Lifecycle", this.toString() + ".onDestroy");
 
+        navDrawer.closeDrawers();
+
         String lastValue = getLine();
         if (!lastValue.isEmpty()) {
             double value;
             try {
                 value = parseValue(lastValue);
-            } catch (Exception e) {
-                Log.e("Error", "Error has occurred while trying to get value to store", e);
-                value = 0;
+            } catch (Exception ignore) {
+                value = this.value;
             }
 
             // Save last value to disk so it will be available next time the app is launched
@@ -155,6 +257,8 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d("Event", "Stored to shared preferences: " + value);
         }
+
+        CalculatorWebService.getInstance().stop();
     }
 
     @Override
@@ -347,12 +451,13 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     int lastActionIndex = currOut.lastIndexOf(action);
                     double lastVal = parseValue(currOut.substring(lastActionIndex + 1));
-                    value = doAction(value, lastVal, action);
-                    updateOutputValue();
-                    outputText.append(System.lineSeparator());
-
-                    action = "";
-                    value = 0;
+                    doAction(value, lastVal, action, value -> {
+                        this.value = value;
+                        updateOutputValue();
+                        this.outputText.append(System.lineSeparator());
+                        this.action = "";
+                        this.value = 0;
+                    });
                 }
             }
         } catch (Throwable t) {
@@ -425,7 +530,7 @@ public class MainActivity extends AppCompatActivity {
                 if (!action.isEmpty()) {
                     int lastActionIndex = currOut.lastIndexOf(action);
                     double lastVal = parseValue(currOut.substring(lastActionIndex + 1));
-                    value = doAction(value, lastVal, action);
+                    doAction(value, lastVal, action, value -> this.value = value);
                 } else {
                     value = parseValue(currOut);
                 }
@@ -487,11 +592,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // For functions, act as user pressed equals.
-            value = doAction(value, 0, functionText);
-            updateOutputValue();
-            outputText.append(System.lineSeparator());
-            action = "";
-            value = 0;
+            doAction(value, 0, functionText, value -> {
+                this.value = value;
+                updateOutputValue();
+                outputText.append(System.lineSeparator());
+                action = "";
+                this.value = 0;
+            });
         } catch (Throwable t) {
             setErrorOutput(String.format(getString(R.string.error), t.getMessage()));
         }
@@ -503,31 +610,48 @@ public class MainActivity extends AppCompatActivity {
      * @param value      The value to execute an action on
      * @param lastVal    For operators that take two arguments, this is the right argument
      * @param actionText Action text to execute. See {@link ActionType#valueOfActionText(String)}
-     * @return Result of the calculation.
      * @see ActionType
      */
-    private double doAction(double value, double lastVal, String actionText) {
-        double result = value;
-
+    private void doAction(double value, double lastVal, String actionText, Consumer<Double> onResultReadyListener) {
         ActionType actionType = ActionType.valueOfActionText(actionText);
         ArithmeticAction action = actionType.newActionInstance();
         if (action == null) {
-            System.out.println("Unknown action: " + actionText);
+            Log.d("doAction", "Unknown action: " + actionText);
         } else {
-            result = action.executeAsDouble(new ActionContext(lastVal, value));
-            if (Double.isNaN(result)) {
-                if (actionType == ActionType.DIVIDE) {
-                    setErrorOutput(getString(R.string.divideByZero));
-                } else {
-                    setErrorOutput(String.format(getString(R.string.notEligibleForNegative), actionType.getActionText()));
-                    appendOutputTextAndScrollToBottom("Was: " + getValueText(value, false));
-                }
-                result = 0;
-            } else if (Double.isFinite(result) && (result < 1)) {
-                // Round until the 15th digit right to the floating point, in order to
-                // round sin(pi) to 0, and not -1.2246467991473532E-16. (Because Math.PI keeps 16 digits only)
-                result = Math.rint(1e15*result) / 1e15;
+            if (isServer) {
+                Log.d("doAction", "Executing action in front of Server: " + actionType);
+                CalculatorWebService.getInstance().executeCalculatorAction(value, lastVal, actionType, response -> {
+                    double val = value;
+                    if (response.getStatus() != 200) {
+                        Log.e("doAction", "Error returned from server: " + response.getErrorMessage());
+                        Toast.makeText(MainActivity.this, response.getStatus() + " - " + response.getErrorMessage(), Toast.LENGTH_LONG).show();
+                    } else {
+                        val = response.getValue();
+                    }
+
+                    onResultReadyListener.accept(handleCalculationResult(value, val, actionType));
+                });
+            } else {
+                Log.d("doAction", "Executing action locally: " + actionType);
+                double result = action.executeAsDouble(new ActionContext(lastVal, value));
+                onResultReadyListener.accept(handleCalculationResult(value, result, actionType));
             }
+        }
+    }
+
+    private double handleCalculationResult(double value, double result, ActionType actionType) {
+        if (Double.isNaN(result)) {
+            if (actionType == ActionType.DIVIDE) {
+                setErrorOutput(getString(R.string.divideByZero));
+            } else {
+                setErrorOutput(String.format(getString(R.string.notEligibleForNegative), actionType.getActionText()));
+                appendOutputTextAndScrollToBottom("Was: " + getValueText(value, false));
+            }
+            result = 0;
+        } else if (Double.isFinite(result) && (result < 1)) {
+            // Round until the 15th digit right to the floating point, in order to
+            // round sin(pi) to 0, and not -1.2246467991473532E-16. (Because Math.PI keeps 16 digits only)
+            result = Math.rint(1e15*result) / 1e15;
         }
 
         return result;

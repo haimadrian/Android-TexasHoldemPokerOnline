@@ -1,27 +1,13 @@
-package com.example.calc.action;
+package org.hit.android.haim.calc.action;
 
-import com.example.calc.action.impl.Abs;
-import com.example.calc.action.impl.Ceil;
-import com.example.calc.action.impl.Cos;
-import com.example.calc.action.impl.Cot;
-import com.example.calc.action.impl.Div;
-import com.example.calc.action.impl.Factorial;
-import com.example.calc.action.impl.Floor;
-import com.example.calc.action.impl.Ln;
-import com.example.calc.action.impl.Minus;
-import com.example.calc.action.impl.Mul;
-import com.example.calc.action.impl.Plus;
-import com.example.calc.action.impl.Rand;
-import com.example.calc.action.impl.Sin;
-import com.example.calc.action.impl.Square;
-import com.example.calc.action.impl.SquareRoot;
-import com.example.calc.action.impl.Tan;
+import org.hit.android.haim.calc.action.impl.*;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
  * All available action types of our calculator, mapped to their implementing actions, to act as a Factory for commands.
+ *
  * @author Haim Adrian
  * @since 28-Feb-21
  */
@@ -74,43 +60,10 @@ public enum ActionType {
         this.descriptiveText = descriptiveText;
     }
 
-    public String getActionText() {
-        return actionText;
-    }
-
-    /**
-     * Use this method to construct a new command that implements the calculation of this action type.
-     * @param <R> Expected response type. Mostly Double.
-     * @return The implementing command or null if we have failed to construct it.
-     */
-    @SuppressWarnings("unchecked")
-    public <R extends ActionIfc<?>> R newActionInstance() {
-        R action = null;
-
-        if (actionClass != null) {
-            try {
-                action = (R) actionClass.getConstructor().newInstance();
-            } catch (Exception e) {
-                System.out.println("FML");
-                e.printStackTrace();
-            }
-        }
-
-        return action;
-    }
-
-    /**
-     * In order to support descriptive calculation, we have a template to display special functions so it is easier for user to see
-     * what function we have executed. e.g. "3! = 6"
-     * @return The descriptive text
-     */
-    public String getDescriptiveText() {
-        return descriptiveText;
-    }
-
     /**
      * In order to get an enum type based on buttons text, we expose this function such that we can use the text from events
      * and know what action type it is.
+     *
      * @param actionText The text to find action type for
      * @return The action type or UNKNOWN if there is no match.
      */
@@ -134,5 +87,41 @@ public enum ActionType {
 
     public static List<ActionType> listTrigoFunctions() {
         return Arrays.asList(SIN, COS, TAN, COT);
+    }
+
+    public String getActionText() {
+        return actionText;
+    }
+
+    /**
+     * Use this method to construct a new command that implements the calculation of this action type.
+     *
+     * @param <R> Expected response type. Mostly Double.
+     * @return The implementing command or null if we have failed to construct it.
+     */
+    @SuppressWarnings("unchecked")
+    public <R extends ActionIfc<?>> R newActionInstance() {
+        R action = null;
+
+        if (actionClass != null) {
+            try {
+                action = (R) actionClass.getConstructor().newInstance();
+            } catch (Exception e) {
+                System.out.println("FML");
+                e.printStackTrace();
+            }
+        }
+
+        return action;
+    }
+
+    /**
+     * In order to support descriptive calculation, we have a template to display special functions so it is easier for user to see
+     * what function we have executed. e.g. "3! = 6"
+     *
+     * @return The descriptive text
+     */
+    public String getDescriptiveText() {
+        return descriptiveText;
     }
 }

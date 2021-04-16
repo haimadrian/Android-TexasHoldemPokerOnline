@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.CW3Calculator" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="Theme.CW3Calculator" parent="Theme.Design.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">#82B1FF</item>
         <item name="colorPrimaryVariant">#24324A</item>

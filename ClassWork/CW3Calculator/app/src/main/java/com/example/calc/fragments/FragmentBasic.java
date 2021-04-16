@@ -81,11 +81,11 @@ public class FragmentBasic extends Fragment {
             view.findViewById(R.id.button8).setOnClickListener(mainActivity::onOperandButtonClicked);
             view.findViewById(R.id.button9).setOnClickListener(mainActivity::onOperandButtonClicked);
             view.findViewById(R.id.buttonMul).setOnClickListener(mainActivity::onOperatorButtonClicked);
+            view.findViewById(R.id.buttonDiv).setOnClickListener(mainActivity::onOperatorButtonClicked);
             view.findViewById(R.id.buttonMinus).setOnClickListener(mainActivity::onOperatorButtonClicked);
             view.findViewById(R.id.buttonPlus).setOnClickListener(mainActivity::onOperatorButtonClicked);
             view.findViewById(R.id.buttonEquals).setOnClickListener(mainActivity::onEqualsButtonClicked);
             view.findViewById(R.id.buttonClear).setOnClickListener(mainActivity::onClearButtonClicked);
-            view.findViewById(R.id.buttonDot).setOnClickListener(mainActivity::onOperandButtonClicked);
         } else {
             Log.d("Lifecycle", this.toString() + ".onViewCreated skipped");
         }
