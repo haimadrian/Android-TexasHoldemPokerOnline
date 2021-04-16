@@ -2,6 +2,7 @@ package org.hit.android.haim.hwrecyclerview.model;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.RawRes;
 
 import java.util.List;
 
@@ -10,14 +11,18 @@ import java.util.List;
  * @since 07-Apr-21
  */
 public class TvSeries {
+    private final String id;
     private String name;
     private int imageResId;
+    private int themeSongResId;
     private String date;
     private List<Character> characters;
 
-    public TvSeries(@NonNull String name, @DrawableRes int imageResId, @NonNull String date, @NonNull List<Character> characters) {
+    public TvSeries(@NonNull String id, @NonNull String name, @DrawableRes int imageResId, @RawRes int themeSongResId, @NonNull String date, @NonNull List<Character> characters) {
+        this.id = id;
         this.name = name;
         this.imageResId = imageResId;
+        this.themeSongResId = themeSongResId;
         this.date = date;
         this.characters = characters;
 
@@ -40,12 +45,22 @@ public class TvSeries {
         this.name = name;
     }
 
+    @DrawableRes
     public int getImageResId() {
         return imageResId;
     }
 
-    public void setImageResId(int imageResId) {
+    public void setImageResId(@DrawableRes int imageResId) {
         this.imageResId = imageResId;
+    }
+
+    @RawRes
+    public int getThemeSongResId() {
+        return themeSongResId;
+    }
+
+    public void setThemeSongResId(@RawRes int themeSongResId) {
+        this.themeSongResId = themeSongResId;
     }
 
     public String getDate() {
@@ -54,5 +69,9 @@ public class TvSeries {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public String getId() {
+        return id;
     }
 }

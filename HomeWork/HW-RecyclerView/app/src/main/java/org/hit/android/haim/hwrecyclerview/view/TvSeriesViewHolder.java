@@ -13,13 +13,19 @@ import org.hit.android.haim.hwrecyclerview.R;
  * @since 07-Apr-21
  */
 public class TvSeriesViewHolder extends RecyclerView.ViewHolder {
+    private final View itemView;
     private final TextView itemTitleTextView;
     private final RecyclerView charactersRecyclerView;
 
     public TvSeriesViewHolder(@NonNull View itemView) {
         super(itemView);
+        this.itemView = itemView;
         itemTitleTextView = itemView.findViewById(R.id.itemTitleTextView);
         charactersRecyclerView = itemView.findViewById(R.id.charactersRecyclerView);
+    }
+
+    public View getItemView() {
+        return itemView;
     }
 
     public TextView getItemTitleTextView() {

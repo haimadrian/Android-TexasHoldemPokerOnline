@@ -22,14 +22,35 @@
         app:title=""
         app:titleTextColor="#79C6F6">
 
-        <ImageView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginStart="-10dp"
+            android:layout_marginTop="5dp"
             android:layout_marginEnd="20dp"
             android:layout_marginBottom="10dp"
-            android:background="@drawable/logo"
-            android:elevation="7dp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.1"
+                android:background="@drawable/logo"
+                android:elevation="7dp" />
+
+            <ImageView
+                android:id="@+id/imageViewVolumeButton"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="0.9"
+                android:background="@drawable/ic_twotone_volume_up_24"
+                android:elevation="7dp"
+                android:onClick="onSoundButtonClick"
+                android:tag="sound-on" />
+        </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
