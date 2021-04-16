@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainContent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background_design"
+    android:orientation="vertical"
+    android:fitsSystemWindows="false"
+    android:theme="@style/Platform.MaterialComponents.Light"
+    tools:context=".activity.MainActivity">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/app_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:background="@drawable/ic_ellipse_home_page"
+        android:elevation="4dp"
+        android:gravity="center"
+        android:theme="@style/Theme.Design.NoActionBar"
+        app:layout_scrollFlags="scroll|enterAlways"
+        app:subtitle=""
+        app:title=""
+        app:titleMargin="10dp"
+        app:titleTextAppearance="?android:attr/textAppearanceLarge"
+        app:titleTextColor="@color/black">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="0dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageViewHome"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="start|center_vertical"
+                android:elevation="5dp"
+                android:onClick="onHomeClicked"
+                android:src="@drawable/ic_twotone_home_48" />
+
+            <TextView
+                android:id="@+id/textViewName"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:layout_marginStart="-20dp"
+                android:layout_weight="0.3"
+                android:elevation="1dp"
+                android:gravity="center"
+                android:text="@string/chat"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textColor="#203864"
+                android:textSize="38sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/imageViewDisconnect"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginEnd="15dp"
+                android:elevation="5dp"
+                android:onClick="onDisconnectClicked"
+                android:src="@drawable/ic_twotone_logout_48" />
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="-10dp"
+        android:background="@drawable/background_design"
+        android:orientation="vertical"
+        android:paddingTop="10dp"
+        tools:context=".activities.MainActivity">
+        <FrameLayout
+            android:id="@+id/contentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+</LinearLayout>

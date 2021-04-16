@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">ChatClient</string>
+    <string name="chat">Chat</string>
+    <string name="fill_in_user_details">Fill in user details</string>
+    <string name="email">Email</string>
+    <string name="nick_name">Nick Name</string>
+    <string name="date_of_birth">Date of birth (yyyy-MM-dd)</string>
+    <string name="go">Go!</string>
+    <string name="participants">Participants: %d</string>
+    <string name="delete_channel_confirmation">Are you sure you want to delete %s channel?</string>
+    <string name="write_something">Write something…</string>
+
+    <string-array name= "gender_options">
+        <item name="Male">Male</item>
+        <item name="Female">Female</item>
+        <item name="WhateverElse">Whatever</item>
+    </string-array>
+</resources>

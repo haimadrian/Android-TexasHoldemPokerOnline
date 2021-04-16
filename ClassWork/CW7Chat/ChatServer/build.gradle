@@ -1,0 +1,67 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.4.3' // Spring boot, to have embedded web server and RESTful web services
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE' // Spring IO, to work with MySQL
+    id "io.freefair.lombok" version "5.3.0" // Project lombok, to generate getters, setters, ctors etc.
+}
+
+group 'org.hit.android.haim.chat'
+version '1.0.0'
+
+ext {
+    springBootVer = '2.4.3'
+    jjwtVer = '0.11.2'
+    mysqlConnectorVer = '8.0.23'
+    disruptorVer = '3.4.2'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+configurations.all {
+    // Exclude spring logging to use log4j2 instead of logback
+    exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+}
+
+dependencies {
+    compile "org.springframework.boot:spring-boot-starter-web:${springBootVer}" // Spring web for RESTful web services
+    compile "org.springframework.boot:spring-boot-starter-log4j2:${springBootVer}" // Working with log4j2
+    implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVer}"
+    //implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVer}" // Java beans to SQL and vice versa
+    implementation "org.springframework.boot:spring-boot-starter-data-mongodb:${springBootVer}"
+    runtimeOnly "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVer}" // Encode passwords and authenticate users
+    runtimeOnly "org.apache.logging.log4j:log4j-web:2.13.3" // Log4j in servlet environment
+    runtimeOnly "com.lmax:disruptor:${disruptorVer}" // Asynchronous logging
+
+    testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVer}"
+    testCompile "org.mockito:mockito-junit-jupiter:3.8.0"
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.7.1"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootJar {
+    mainClass = 'org.hit.android.haim.chat.server.ChatServerMain'
+    manifest {
+        attributes 'Built-By': 'Haim Adrian',
+                'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+                'Build-Revision': "${version}",
+                'Created-By': "Gradle ${gradle.gradleVersion}",
+                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+                'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}",
+                'Start-Class': 'org.bravetogether.mapstories.server.MapStoriesServerMain'
+    }
+    launchScript {
+        properties 'logFilename': 'example-app.log'
+    }
+}

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    A default log4j2 configuration that will be used in case no one specified the log4j.configurationFile
+-->
+<Configuration status="info">
+    <Properties>
+        <Property name="mainLogPattern">%d{DATE} %-5level [%threadName] %logger{1} - %msg%n%xThrowable</Property>
+    </Properties>
+    <Appenders>
+        <!-- All TRACE, DEBUG and INFO to System.out -->
+        <Console name="ConsoleOut" target="SYSTEM_OUT">
+            <PatternLayout pattern="${mainLogPattern}"/>
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="DENY" onMismatch="ACCEPT"/>
+            </Filters>
+        </Console>
+        <!-- All WARN, ERROR and FATAL to System.err -->
+        <Console name="ConsoleErr" target="SYSTEM_ERR">
+            <PatternLayout pattern="${mainLogPattern}"/>
+            <Filters>
+                <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="stdout" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleOut"/>
+        </Logger>
+        <Logger name="stderr" level="debug" additivity="false">
+            <AppenderRef ref="ConsoleErr"/>
+        </Logger>
+        <Root level="info">
+            <AppenderRef ref="ConsoleOut"/>
+            <AppenderRef ref="ConsoleErr"/>
+        </Root>
+    </Loggers>
+</Configuration>

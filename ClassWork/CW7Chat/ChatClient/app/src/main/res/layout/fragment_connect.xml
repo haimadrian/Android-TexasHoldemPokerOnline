@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textViewConnect"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/fill_in_user_details"
+            android:textAlignment="center"
+            android:textColor="#203864"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/editTextEmailConnect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:background="@drawable/textfield_d"
+            android:drawableStart="@drawable/ic_twotone_email_24"
+            android:drawablePadding="6dp"
+            android:ems="30"
+            android:gravity="center_vertical"
+            android:hint="@string/email"
+            android:inputType="text|textEmailAddress"
+            android:paddingStart="6dp"
+            android:singleLine="true" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/editTextNameConnect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:background="@drawable/textfield_d"
+            android:drawableStart="@drawable/ic_twotone_face_24"
+            android:drawablePadding="6dp"
+            android:ems="30"
+            android:gravity="center_vertical"
+            android:hint="@string/nick_name"
+            android:inputType="text|textPersonName"
+            android:paddingStart="6dp"
+            android:singleLine="true" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/editTextDateOfBirthConnect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:background="@drawable/textfield_d"
+            android:drawableStart="@drawable/ic_twotone_date_range_24"
+            android:drawablePadding="6dp"
+            android:ems="30"
+            android:gravity="center_vertical"
+            android:hint="@string/date_of_birth"
+            android:inputType="date"
+            android:paddingStart="6dp"
+            android:singleLine="true" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.1"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/spinnerGenderConnect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_marginRight="40dp"
+            android:background="@drawable/ic_dropdown"
+            android:drawableStart="@drawable/ic_twotone_transgender_24"
+            android:drawablePadding="6dp"
+            android:dropDownWidth="match_parent"
+            android:gravity="center_vertical"
+            android:spinnerMode="dropdown" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.2"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/buttonGoConnect"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="40dp"
+            android:background="@drawable/ic_blue_btn"
+            android:text="@string/go"
+            android:textColor="@color/white"
+            android:textSize="28sp" />
+    </LinearLayout>
+
+</LinearLayout>
