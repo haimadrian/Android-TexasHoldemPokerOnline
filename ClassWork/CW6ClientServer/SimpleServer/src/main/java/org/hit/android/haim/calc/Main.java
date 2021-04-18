@@ -2,8 +2,8 @@ package org.hit.android.haim.calc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hit.android.haim.calc.server.CalculatorClientHandler;
-import org.hit.android.haim.calc.server.Server;
+import org.hit.android.haim.calc.server.impl.CalculatorClientHandler;
+import org.hit.android.haim.calc.server.common.TCPServer;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -21,7 +21,7 @@ public class Main {
 
     private Logger log;
     private TrayIcon trayIcon;
-    private Server server;
+    private TCPServer server;
     private boolean wasShutDown = false;
 
     public static void main(String[] args) {
@@ -62,7 +62,7 @@ public class Main {
     private void run() {
         log = LogManager.getLogger(Main.class);
 
-        server = new Server(1234, 0, 10, new CalculatorClientHandler());
+        server = new TCPServer(1234, 0, 10, new CalculatorClientHandler());
         server.start();
         showTrayIcon();
 

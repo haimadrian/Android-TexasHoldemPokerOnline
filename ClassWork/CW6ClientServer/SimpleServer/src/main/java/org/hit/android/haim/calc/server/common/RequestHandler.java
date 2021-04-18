@@ -1,6 +1,6 @@
-package org.hit.android.haim.calc.server;
+package org.hit.android.haim.calc.server.common;
 
-import java.net.InetAddress;
+import java.io.IOException;
 import java.util.function.Consumer;
 
 /**
@@ -14,7 +14,7 @@ public interface RequestHandler {
      * @param client The accepted client
      * @return Whether to populate this request or not
      */
-    default boolean onBeforeRequest(@SuppressWarnings("unused") InetAddress client) {
+    default boolean onBeforeRequest(@SuppressWarnings("unused") ClientInfo client) {
         return true;
     }
 
@@ -23,11 +23,11 @@ public interface RequestHandler {
      * This lets implementor to handle the input and return a response that the server will send back to the client.
      *
      * @param client The accepted client
-     * @param request The body of a request
+     * @param request The body of a request. Can never be null.
      * @param stopCommunication A consumer to let implementor to stop the communication based on the request
      * @return A response to send back to the client
      */
-    Response onRequest(InetAddress client, Request request, Consumer<Boolean> stopCommunication);
+    String onRequest(ClientInfo client, String request, Consumer<Boolean> stopCommunication) throws IOException;
 
     /**
      * Occurs when there was any unexpected error while accepting a client request.<br/>
@@ -38,12 +38,6 @@ public interface RequestHandler {
      * @param thrown The error
      * @return Error response to return to the client, in case the error happened after accepting a client
      */
-    default Response onError(@SuppressWarnings("unused") InetAddress client, Throwable thrown) {
-        if (thrown instanceof Server.WebException) {
-            return Response.error(((Server.WebException) thrown).getHttpStatus().getCode(), thrown.getMessage());
-        }
-
-        return Response.error(thrown.getMessage());
-    }
+    String onError(ClientInfo client, Throwable thrown) throws IOException;
 }
 

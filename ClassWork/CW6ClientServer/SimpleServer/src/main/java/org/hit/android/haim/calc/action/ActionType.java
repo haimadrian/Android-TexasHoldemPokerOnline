@@ -34,6 +34,7 @@ public enum ActionType {
     TAN("tan", Tan.class, "tan(%s) = "),
     COT("cot", Cot.class, "cot(%s) = "),
 
+    CONNECT("hello", null, "hello"),
     DISCONNECT("bye", null, "bye"),
     UNKNOWN("", null, "");
     //@formatter:on

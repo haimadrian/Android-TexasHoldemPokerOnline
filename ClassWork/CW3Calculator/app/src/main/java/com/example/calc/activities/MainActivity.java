@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
             myToolbar.setLayoutParams(layoutParams);
         }
 
-        CalculatorWebService.getInstance().start();
+        CalculatorWebService.getInstance();
     }
 
     /**
@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("Event", "Stored to shared preferences: " + value);
         }
 
-        CalculatorWebService.getInstance().stop();
+        CalculatorWebService.getInstance().disconnect();
     }
 
     @Override
@@ -622,9 +622,11 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("doAction", "Executing action in front of Server: " + actionType);
                 CalculatorWebService.getInstance().executeCalculatorAction(value, lastVal, actionType, response -> {
                     double val = value;
-                    if (response.getStatus() != 200) {
-                        Log.e("doAction", "Error returned from server: " + response.getErrorMessage());
-                        Toast.makeText(MainActivity.this, response.getStatus() + " - " + response.getErrorMessage(), Toast.LENGTH_LONG).show();
+                    if ((response == null) || response.getStatus() != 200) {
+                        Log.e("doAction", "Error returned from server: " + (response != null ? response.getErrorMessage() : null));
+                        if (response != null) {
+                            Toast.makeText(MainActivity.this, response.getStatus() + " - " + response.getErrorMessage(), Toast.LENGTH_LONG).show();
+                        }
                     } else {
                         val = response.getValue();
                     }

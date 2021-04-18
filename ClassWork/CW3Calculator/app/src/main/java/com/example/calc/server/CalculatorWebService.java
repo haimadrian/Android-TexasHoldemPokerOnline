@@ -42,40 +42,52 @@ public class CalculatorWebService {
         return instance;
     }
 
-    public void start() {
-        executor.submit(() -> {
-            try {
-                clientSocket = new Socket("192.168.0.10", 1234);
-                clientSocket.setSoTimeout((int)TimeUnit.SECONDS.toMillis(10));
-                outToServer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
-                inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            } catch (Exception e) {
-                Log.e("Web", "Error has occurred: " + e.toString(), e);
-            }
-        });
+    private void connect() {
+        try {
+            String ip = "192.168.0.10";
+            int port = 1234;
+            Log.d("Web", "Connecting to server at: " + ip + ":" + port);
+
+            clientSocket = new Socket(ip, port);
+            clientSocket.setSoTimeout((int) TimeUnit.SECONDS.toMillis(2));
+            inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            outToServer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+        } catch (Exception e) {
+            Log.e("Web", "Error has occurred: " + e.toString(), e);
+        }
     }
 
-    public void stop() {
-        // Hold the references because they will be closed "later", and it might be that the start method will be invoked. (when we change phone orientation)
-        Socket clientSocket = this.clientSocket;
-        BufferedWriter outToServer = this.outToServer;
-        BufferedReader inFromServer = this.inFromServer;
-        executeRequest(new Request(ActionType.DISCONNECT, null, null), response -> {
-            try {
-                inFromServer.close();
-            } catch (IOException ignore) {
-            }
+    public void disconnect() {
+        Log.d("Web", "Disconnecting from server.");
+        executeRequest(new Request(ActionType.DISCONNECT, null, null), response -> closeStreams());
+    }
 
-            try {
+    private void closeStreams() {
+        Log.d("Web", "Closing communication with server.");
+
+        try {
+            if (outToServer != null) {
                 outToServer.close();
-            } catch (IOException ignore) {
+                outToServer = null;
             }
+        } catch (IOException ignore) {
+        }
 
-            try {
-                clientSocket.close();
-            } catch (IOException ignore) {
+        try {
+            if (inFromServer != null) {
+                inFromServer.close();
+                inFromServer = null;
             }
-        });
+        } catch (IOException ignore) {
+        }
+
+        try {
+            if (clientSocket != null) {
+                clientSocket.close();
+                clientSocket = null;
+            }
+        } catch (IOException ignore) {
+        }
     }
 
     public void executeCalculatorAction(double value, double lastVal, ActionType actionType, Consumer<Response> responseConsumer) {
@@ -83,30 +95,51 @@ public class CalculatorWebService {
     }
 
     private void executeRequest(Request request, Consumer<Response> responseConsumer) {
-        Looper looper = Looper.myLooper();
         executor.submit(() -> {
             try {
-                String requestJson = gson.toJson(request);
-                Log.d("Web", "Sending request: " + requestJson);
-
-                outToServer.write(requestJson + '\n');
-                outToServer.flush();
+                if (outToServer == null) {
+                    connect();
+                }
 
                 Response response;
+                if (outToServer != null) {
+                    String requestJson = gson.toJson(request);
+                    Log.d("Web", "Sending request: " + requestJson);
 
-                try {
-                    String responseLine = inFromServer.readLine();
-                    Log.d("Web", "Response: " + responseLine);
-                    response = gson.fromJson(responseLine, Response.class);
-                } catch (SocketTimeoutException e) {
-                    response = new Response(408, request.getValue(), "408 TIME OUT");
+                    outToServer.write(requestJson + "\n\n");
+                    outToServer.flush();
+
+                    try {
+                        String responseLine = inFromServer.readLine();
+                        Log.d("Web", "Response: " + responseLine);
+
+                        if ((responseLine == null) || !responseLine.trim().startsWith("{")) {
+                            disconnect();
+                            response = new Response(500, request.getValue(), "500 INTERNAL SERVER ERROR");
+                        } else {
+                            response = gson.fromJson(responseLine, Response.class);
+                        }
+                    } catch (SocketTimeoutException e) {
+                        closeStreams();
+                        response = new Response(408, request.getValue(), "408 TIME OUT");
+                    }
+                } else {
+                    response = new Response(503, request.getValue(), "503 SERVICE UNAVAILABLE");
+                    Log.w("Web", "Not connected. Unable to send requests.");
                 }
 
                 if (responseConsumer != null) {
                     Response finalResponse = response;
-                    new Handler(looper).post(() -> responseConsumer.accept(finalResponse));
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        try {
+                            responseConsumer.accept(finalResponse);
+                        } catch (Exception e) {
+                            Log.e("WebResponseHandler", "Error has occurred while handling web response.", e);
+                        }
+                    });
                 }
             } catch (Exception e) {
+                closeStreams();
                 Log.e("Web", "Error has occurred: " + e.toString() + ". Request=" + request, e);
             }
         });

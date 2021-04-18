@@ -1,4 +1,4 @@
-package org.hit.android.haim.calc.server;
+package org.hit.android.haim.calc.server.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;

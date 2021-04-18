@@ -1,9 +1,10 @@
-package org.hit.android.haim.calc.server;
+package org.hit.android.haim.calc.server.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hit.android.haim.calc.server.common.HttpStatus;
 
 /**
  * @author Haim Adrian
@@ -19,11 +20,11 @@ public abstract class Response {
     private int status;
 
     public static Response ok() {
-        return ok(Server.HttpStatus.OK.getCode(), null);
+        return ok(HttpStatus.OK.getCode(), null);
     }
 
     public static Response ok(Double value) {
-        return ok(Server.HttpStatus.OK.getCode(), value);
+        return ok(HttpStatus.OK.getCode(), value);
     }
 
     public static Response ok(int status, Double value) {
@@ -31,11 +32,11 @@ public abstract class Response {
     }
 
     public static Response error() {
-        return error(Server.HttpStatus.INTERNAL_SERVER_ERROR.getCode(), "INTERNAL_SERVER_ERROR");
+        return error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), "INTERNAL_SERVER_ERROR");
     }
 
     public static Response error(String errorMessage) {
-        return error(Server.HttpStatus.INTERNAL_SERVER_ERROR.getCode(), errorMessage);
+        return error(HttpStatus.INTERNAL_SERVER_ERROR.getCode(), errorMessage);
     }
 
     public static Response error(int status, String errorMessage) {
@@ -43,11 +44,11 @@ public abstract class Response {
     }
 
     public static Response badRequest() {
-        return badRequest(Server.HttpStatus.BAD_REQUEST.getCode(), "BAD_REQUEST");
+        return badRequest(HttpStatus.BAD_REQUEST.getCode(), "BAD_REQUEST");
     }
 
     public static Response badRequest(String errorMessage) {
-        return badRequest(Server.HttpStatus.BAD_REQUEST.getCode(), errorMessage);
+        return badRequest(HttpStatus.BAD_REQUEST.getCode(), errorMessage);
     }
 
     public static Response badRequest(int status, String errorMessage) {
