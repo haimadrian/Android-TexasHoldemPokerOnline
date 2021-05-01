@@ -13,13 +13,10 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * This class responsible for server socket management.<br/>
- * We have a thread pool with configurable boundaries to server requests from another edges.<br/>
+ * We have a thread pool with configurable boundaries to serve requests from other edges.<br/>
  * Every request should be populated by implementing a {@link RequestHandler}
  *
  * @author Haim Adrian
@@ -28,12 +25,12 @@ import java.util.concurrent.locks.ReentrantLock;
 @Log4j2
 public class TCPServer {
     /**
-     * Use an atomic counter so we can count servers and give them meaningful name.
+     * Use an atomic counter so we can count instances of {@link TCPServer} and give them meaningful name.
      */
     private static final AtomicInteger serverIdCounter = new AtomicInteger();
 
     /**
-     * Use an atomic counter so we can count threads and give them meaningful name.
+     * Use an atomic counter so we can count threads (client handlers in current tcp server) and give them meaningful name.
      */
     private final AtomicInteger workerThreadIdCounter;
 
@@ -53,7 +50,7 @@ public class TCPServer {
     private final int corePoolSize;
 
     /**
-     * Maximum amount of threads that will server client requests in parallel.
+     * Maximum amount of threads that will serve client requests in parallel.
      * If there are more requests than maximum workers, the requests will be rejected.
      */
     private final int maxPoolSize;
@@ -64,7 +61,7 @@ public class TCPServer {
     private final RequestHandler requestHandler;
 
     /**
-     * A helper boolean that determines whether server is running or not, to support ordinary stop of the server
+     * A helper boolean that determines whether server is running or not, to support ordinary shutdown of the server
      */
     private final AtomicBoolean isRunning;
 
@@ -79,17 +76,6 @@ public class TCPServer {
     private ExecutorService workersExecutor;
 
     /**
-     * A locker we use in order to support ordinary shutdown of the server.<br/>
-     * We use it along with {@link #acceptingSocketCondition} to block a call to {@link #stop()} until the server loop is stopped.
-     */
-    private Lock locker;
-
-    /**
-     * See {@link #locker}
-     */
-    private Condition acceptingSocketCondition;
-
-    /**
      * Hold references to request handlers so we can inform them to stop when server is required to stop
      */
     private List<ClientHandler> handlers;
@@ -99,7 +85,7 @@ public class TCPServer {
      *
      * @param port The port we are listening on
      * @param corePoolSize Minimum amount of threads that will serve client requests in parallel
-     * @param maxPoolSize Maximum amount of threads that will server client requests in parallel. If there are more requests
+     * @param maxPoolSize Maximum amount of threads that will serve client requests in parallel. If there are more requests
      * than maximum workers, the requests will be rejected.
      * @param requestHandler A request handler to use for handling client requests
      */
@@ -117,7 +103,7 @@ public class TCPServer {
     private ThreadPoolExecutor initializeWorkersThreadPool() {
         ThreadPoolExecutor executor = new ThreadPoolExecutor(corePoolSize, maxPoolSize,
             60L, TimeUnit.SECONDS,
-            new SynchronousQueue<Runnable>(), // Do not cache tasks. Create a new thread to handle it or reject the task.
+            new SynchronousQueue<>(), // Do not cache tasks. Create a new thread to handle it or reject the task.
             this::workerThreadFactory);
 
         // So core threads will also time-out when no requests are arrived,
@@ -130,11 +116,9 @@ public class TCPServer {
      * Start the server so it will listen on the configured port and accept connections
      */
     public void start() {
+        // Atomic check and update, so only single thread can start a server
         if (!isRunning.getAndSet(true)) {
-            locker = new ReentrantLock(true);
-            acceptingSocketCondition = locker.newCondition();
             serverExecutor = Executors.newSingleThreadExecutor(this::serverThreadFactory);
-
             workersExecutor = initializeWorkersThreadPool();
             handlers = new ArrayList<>();
 
@@ -149,9 +133,15 @@ public class TCPServer {
                         try {
                             socket = serverSocket.accept();
 
-                            // Set socket timeout so we will be able to stop server instead of getting blocked at clientInput.read()
-                            socket.setSoTimeout((int) TimeUnit.MILLISECONDS.toMillis(500));
-                            onSocketAccepted(socket);
+                            // As the "accept" call above can wait up to 2 seconds, where the server
+                            // might have been stopped during those two seconds, we would like to ignore this request.
+                            if (!isRunning.get()) {
+                                safeCloseSocket(socket);
+                            } else {
+                                // Set socket timeout so we will be able to stop server instead of getting blocked at clientInput.read()
+                                socket.setSoTimeout((int) TimeUnit.MILLISECONDS.toMillis(100));
+                                onSocketAccepted(socket);
+                            }
                         } catch (Throwable t) {
                             onSocketHandlerError(socket, t);
                         }
@@ -163,9 +153,6 @@ public class TCPServer {
                 } finally {
                     isRunning.set(false);
                     log.info("Server was terminated");
-
-                    // Signal that a socket has been accepted/timed-out, so in case someone called #stop() they will resume.
-                    try { acceptingSocketCondition.signal(); } catch (Exception ignore) { }
                 }
             });
         }
@@ -179,23 +166,39 @@ public class TCPServer {
         if (isRunning.getAndSet(false)) {
             log.info("Stopping workers");
             handlers.forEach(ClientHandler::stop);
-            try { Thread.sleep(1000); } catch (Exception ignore) { }
 
-            log.info("Shutting down thread pools");
+            log.info("Shutting down thread pools...");
             workersExecutor.shutdown();
             serverExecutor.shutdown();
 
             try {
                 // Wait for server to stop.
-                log.info("Waiting for shutdown...");
-                acceptingSocketCondition.await(10, TimeUnit.SECONDS);
+                log.info("Waiting for workers to shutdown...");
+                if (!workersExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                    log.warn("Time out has occurred while waiting for workers to stop.");
+                }
             } catch (Exception ignore) {
             } finally {
-                log.info("End waiting");
+                try {
+                    // Wait for server to stop.
+                    log.info("End waiting for workers. Waiting for tcp server...");
+                    if (!serverExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                        log.warn("Time out has occurred while waiting for server to stop.");
+                    }
+                } catch (Exception ignore) {
+                } finally {
+                    log.info("End waiting for server");
+                }
             }
         }
     }
 
+    /**
+     * Occurs when new client socket is accepted.<br/>
+     * We will pass the streams of that socket to {@link ClientHandler} in order to handle requests and responses.<br/>
+     * Handling of this socket will occur on a different thread, so we can server other clients asynchronously
+     * @param socket The socket to handle
+     */
     private void onSocketAccepted(Socket socket) {
         workersExecutor.submit(() -> {
             ClientInfo client = ClientInfo.from(socket);

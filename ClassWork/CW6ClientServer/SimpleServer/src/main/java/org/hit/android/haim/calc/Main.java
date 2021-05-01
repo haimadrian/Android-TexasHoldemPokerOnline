@@ -2,8 +2,8 @@ package org.hit.android.haim.calc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hit.android.haim.calc.server.impl.CalculatorClientHandler;
 import org.hit.android.haim.calc.server.common.TCPServer;
+import org.hit.android.haim.calc.server.impl.CalculatorClientHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;

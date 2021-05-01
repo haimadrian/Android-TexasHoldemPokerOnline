@@ -2,6 +2,7 @@ package org.hit.android.haim.calc.server.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import lombok.extern.log4j.Log4j2;
 import org.hit.android.haim.calc.action.ActionContext;
 import org.hit.android.haim.calc.action.ActionType;
 import org.hit.android.haim.calc.action.ArithmeticAction;
@@ -12,6 +13,8 @@ import org.hit.android.haim.calc.server.common.exception.FavIconException;
 import org.hit.android.haim.calc.server.common.exception.WebException;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.hit.android.haim.calc.server.common.ClientHandler.*;
@@ -20,6 +23,7 @@ import static org.hit.android.haim.calc.server.common.ClientHandler.*;
  * @author Haim Adrian
  * @since 13-Apr-21
  */
+@Log4j2
 public class CalculatorClientHandler implements RequestHandler {
     public static final String VALUE_QUERY_PARAM = "value";
     public static final String LAST_VALUE_QUERY_PARAM = "lastValue";
@@ -50,14 +54,14 @@ public class CalculatorClientHandler implements RequestHandler {
         Response response;
         Request request = null;
 
-        if (!requestString.startsWith("{")) {
-            request = readHttpRequest(requestString);
-        } else {
+        if (requestString.startsWith("{")) {
             try {
                 request = objectMapper.readValue(requestString, Request.class);
             } catch (Exception e) {
                 throw new IllegalArgumentException(e.getMessage());
             }
+        } else {
+            request = readHttpRequest(requestString);
         }
 
         if ((request != null) && (request.getActionType() != ActionType.CONNECT) && (request.getActionType() != ActionType.DISCONNECT)) {
@@ -88,7 +92,7 @@ public class CalculatorClientHandler implements RequestHandler {
             response = Response.error(thrown.getMessage());
         }
 
-        return objectMapper.writeValueAsString(response);
+        return responseToString(response, thrown instanceof WebException);
     }
 
     private String responseToString(Response response, boolean httpRequest) throws IOException {
@@ -127,26 +131,44 @@ public class CalculatorClientHandler implements RequestHandler {
         return result;
     }
 
-    private Request readHttpRequest(String request) throws IOException {
-        String requestLower = request.toLowerCase();
-        if (!requestLower.contains("get")) {
+    private Request readHttpRequest(String httpRequest) throws IOException {
+        String[] requestLines = httpRequest.split(System.lineSeparator());
+
+        // First line is the request line. e.g. GET /calc?value=5&lastValue=2&action=MINUS HTTP/1.1
+        String[] requestLine = requestLines[0].split(" ");
+        String httpMethod = requestLine[0];
+        String httpPath = requestLine[1];
+        String httpPathLower = httpPath.toLowerCase();
+        String httpVersion = requestLine[2];
+
+        // Second line is the host. e.g. Host: 127.0.0.1:1234
+        String host = requestLines[1].split(" ")[1];
+
+        // Next lines are headers
+        Map<String, String> headers = new HashMap<>();
+        for (int i = 2; i < requestLines.length; i++) {
+            String[] header = requestLines[i].split(":");
+            if (header.length > 1) {
+                headers.put(header[0].trim().toLowerCase(), header[1].trim());
+            } else {
+                headers.put(header[0].trim().toLowerCase(), header[0].trim());
+            }
+        }
+
+        String accessLog = String.format("Client [%s], method %s, path %s, version %s", headers.get("user-agent"), httpMethod, httpPath, httpVersion);
+        log.info(accessLog);
+
+        if (!"get".equalsIgnoreCase(httpMethod)) {
             throw new WebException(HttpStatus.METHOD_NOT_ALLOWED, "Use GET only");
         }
 
-        if (requestLower.contains("favicon.ico")) {
+        if (httpPathLower.contains("favicon.ico")) {
             throw new FavIconException(); // ClientHandler will write favicon.ico file
         }
 
-        // Input first line should look like: GET /calc?value=5&lastValue=2&action=MINUS HTTP/1.1
-        String requestLine = request;
-        int indexOfNewLine = request.indexOf('\n');
-        if (indexOfNewLine > 0) {
-            requestLine = request.substring(0, indexOfNewLine).trim();
-        }
-        String[] queryParams = requestLine.split(" ");
-        queryParams = queryParams[1].split("\\?");
+        String[] queryParams = httpPath.split("\\?");
         if (queryParams.length != 2) {
-            throw new WebException(HttpStatus.BAD_REQUEST, "Missing query parameters. Was: " + request);
+            throw new WebException(HttpStatus.BAD_REQUEST, "Missing query parameters. Was: " + httpPath);
         }
 
         double value = 0;

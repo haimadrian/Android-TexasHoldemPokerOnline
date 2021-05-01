@@ -118,7 +118,7 @@ public class FragmentLobby extends Fragment {
 
             @Override
             public void onFailure(Call<JsonNode> call, Throwable t) {
-                Log.e("DeleteChannel", "Error has occurred while trying to load channels", t);
+                Log.e("Load", "Error has occurred while trying to load channels", t);
                 Snackbar.make(view, "Something went wrong while loading channels: " + t.getMessage(), Snackbar.LENGTH_LONG).show();
             }
         });
