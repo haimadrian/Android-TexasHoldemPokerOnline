@@ -7,16 +7,24 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.view.fragment.login.SignInFragment;
 import org.hit.android.haim.texasholdem.view.fragment.login.SignUpFragment;
-import org.hit.android.haim.texasholdem.view.model.LoggedInUserView;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.internal.EverythingIsNonNull;
 
 /**
  * The login activity consists of 2 text fields: username and password.<br/>
@@ -27,8 +35,6 @@ import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
  * @since 26-Mar-21
  */
 public class LoginActivity extends AppCompatActivity {
-    public static final String USER_EXTRA_NAME = "user";
-
     /**
      * Name of our shared preferences file, which is private to our app only
      */
@@ -64,9 +70,25 @@ public class LoginActivity extends AppCompatActivity {
      * @param context The context for initializing an intent with.
      */
     public static void doSignOut(ContextWrapper context) {
-        TexasHoldemWebService.getInstance().getUserService().signOut();
+        TexasHoldemWebService.getInstance().getUserService().signOut().enqueue(new Callback<JsonNode>() {
+            @Override
+            @EverythingIsNonNull
+            public void onResponse(Call<JsonNode> call, Response<JsonNode> response) {
+                TexasHoldemWebService.getInstance().setLoggedInUserId(null);
 
-        // Clear data from
+                Log.d("WEB", "Server responded with: " + response);
+                Toast.makeText(context, "Signed out successfully", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            @EverythingIsNonNull
+            public void onFailure(Call<JsonNode> call, Throwable t) {
+                Log.e("WEB", "Error has occurred while signing out", t);
+            }
+        });
+        TexasHoldemWebService.getInstance().setJwtToken(null); // Nothing will be authorized after sign out.
+
+        // Clear data from shared preferences
         SharedPreferences.Editor editor = context.getSharedPreferences(LoginActivity.TEXAS_HOLDEM_PREFS, MODE_PRIVATE).edit();
         editor.remove(LoginActivity.USER_ID);
         editor.remove(LoginActivity.USER_JWT_TOKEN);
@@ -131,17 +153,16 @@ public class LoginActivity extends AppCompatActivity {
      * Call this method when user is signed in successfully, to switch to main activity
      * @param user The signed in user
      */
-    public void userSignedInSuccessfully(LoggedInUserView user) {
+    public void userSignedInSuccessfully(User user) {
         // First, save the jwtToken as a shared preference, so we will be able to connect automatically next time
         // We want the cookie to be stored in our device only, without letting other apps to get it
         SharedPreferences.Editor editor = getSharedPreferences(TEXAS_HOLDEM_PREFS, MODE_PRIVATE).edit();
-        editor.putString(USER_ID, user.getUserId());
+        editor.putString(USER_ID, user.getId());
         editor.putString(USER_JWT_TOKEN, TexasHoldemWebService.getInstance().getJwtToken());
         editor.apply();
 
         // Second, switch to home page
         Intent i = new Intent(getApplicationContext(), MainActivity.class);
-        i.putExtra(USER_EXTRA_NAME, user);
         startActivity(i);
 
         // Finish this activity as we went to home activity

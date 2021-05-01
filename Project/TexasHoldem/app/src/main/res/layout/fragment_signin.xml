@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center_vertical"
     android:orientation="vertical"
-    tools:context=".view.fragment.AbstractSignInFragment">
+    tools:context=".view.fragment.login.AbstractSignInFragment">
 
     <EditText
         android:id="@+id/topEditText"

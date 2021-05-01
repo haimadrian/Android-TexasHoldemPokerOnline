@@ -1,5 +1,19 @@
 plugins {
-    id 'com.android.application'
+    id "com.android.application"
+    id "io.freefair.lombok" version "5.3.0" // Project lombok, to generate getters, setters, ctors etc.
+}
+
+ext {
+    appCompatVer = "1.2.0"
+    circleImageVer = "3.1.0"
+    jacksonVer = "2.12.3"
+    lifecycleVer = "2.3.1"
+    lombokVer = '1.18.18'
+    materialVer = "1.3.0"
+    navigationVer = "2.3.5"
+    okHttpVer = "4.9.1"
+    recyclerviewAnimatorsVer = "4.0.2"
+    retrofitVer = '2.9.0'
 }
 
 android {
@@ -19,7 +33,7 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }
     compileOptions {
@@ -30,18 +44,34 @@ android {
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.3.0'
-    implementation 'androidx.navigation:navigation-fragment:2.3.4'
-    implementation 'androidx.navigation:navigation-ui:2.3.4'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.3.1'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.9.1'
-    implementation 'com.squareup.okhttp3:okhttp-tls:4.9.1'
-    implementation 'com.google.code.gson:gson:2.8.6'
-    implementation 'androidx.annotation:annotation:1.2.0'
-    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    // Project Lombok to make classes implementation clearer
+    compileOnly "org.projectlombok:lombok:1.18.18"
+    annotationProcessor "org.projectlombok:lombok:${lombokVer}"
+
+    // Android refs. Navigation, RecyclerView, animations, etc.
+    implementation "androidx.annotation:annotation:${appCompatVer}"
+    implementation "androidx.appcompat:appcompat:${appCompatVer}"
+    implementation "androidx.navigation:navigation-fragment:${navigationVer}"
+    implementation "androidx.navigation:navigation-ui:${navigationVer}"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:${lifecycleVer}"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${lifecycleVer}"
+    implementation "com.google.android.material:material:${materialVer}"
+    implementation "de.hdodenhof:circleimageview:${circleImageVer}"
+    implementation "jp.wasabeef:recyclerview-animators:${recyclerviewAnimatorsVer}"
+
+    // HTTPS using retrofit and jackson
+    implementation "com.squareup.okhttp3:okhttp-tls:${okHttpVer}" // HandshakeCertificates class
+    implementation "com.squareup.okhttp3:logging-interceptor:${okHttpVer}" // See HTTP logs
+    implementation "com.squareup.retrofit2:retrofit:${retrofitVer}"
+    implementation (
+            [group: "com.fasterxml.jackson.core", name: "jackson-core", version: jacksonVer],
+            [group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: jacksonVer],
+            [group: "com.fasterxml.jackson.core", name: "jackson-databind", version: jacksonVer],
+            [group: "com.fasterxml.jackson.datatype", name: "jackson-datatype-jsr310", version: jacksonVer]
+    )
+    implementation "com.squareup.retrofit2:converter-jackson:${retrofitVer}"
+
+    testImplementation "junit:junit:4.13.2"
+    androidTestImplementation "androidx.test.ext:junit:1.1.2"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.3.0"
 }

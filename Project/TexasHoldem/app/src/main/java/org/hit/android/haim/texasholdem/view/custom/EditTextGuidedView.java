@@ -74,9 +74,6 @@ public class EditTextGuidedView extends LinearLayout {
         int inputType = a.getInteger(R.styleable.EditTextGuidedView_inputType, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
         a.recycle();
 
-        setOrientation(LinearLayout.HORIZONTAL);
-        setGravity(Gravity.CENTER_VERTICAL);
-
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.view_edit_text_guided, this, true);
 

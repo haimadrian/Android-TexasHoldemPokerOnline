@@ -28,13 +28,13 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        view.findViewById(R.id.imageViewPc).setOnClickListener(this::onPlayPcButtonClicked);
-        view.findViewById(R.id.imageViewNetwork).setOnClickListener(this::onPlayNetworkButtonClicked);
+        view.findViewById(R.id.buttonPlayAi).setOnClickListener(this::onPlayAiButtonClicked);
+        view.findViewById(R.id.buttonPlayNetwork).setOnClickListener(this::onPlayNetworkButtonClicked);
     }
 
-    private void onPlayPcButtonClicked(View imageView) {
+    private void onPlayAiButtonClicked(View imageView) {
         if (getActivity() != null) {
-            ((MainActivity)getActivity()).navigateToFragment(R.id.nav_play_pc);
+            ((MainActivity)getActivity()).navigateToFragment(R.id.nav_play_ai);
         }
     }
 

@@ -19,4 +19,34 @@
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
     </style>
+
+    <style name="ButtonStyle" parent="TextAppearance.MaterialComponents.Button">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="ButtonGreenStyle" parent="ButtonStyle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:background">@drawable/button_green</item>
+    </style>
+
+    <style name="ButtonBlueStyle" parent="ButtonStyle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/button_blue</item>
+    </style>
+
+    <style name="ButtonRedStyle" parent="ButtonStyle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/button_red</item>
+    </style>
+
+    <style name="ButtonYellowStyle" parent="ButtonStyle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/button_yellow</item>
+    </style>
 </resources>

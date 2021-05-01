@@ -14,13 +14,12 @@
     android:theme="@style/Theme.TexasHoldem"
     tools:context=".view.activity.MainActivity">
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/userImage"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="0.2"
-        android:contentDescription="@string/nav_header_desc"
-        android:src="@mipmap/ic_launcher_round" />
+        android:layout_weight="0.15"
+        android:elevation="2dp" />
 
     <TextView
         android:id="@+id/userTextView"

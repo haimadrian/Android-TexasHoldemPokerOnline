@@ -43,10 +43,17 @@
     <string name="by_haim_adrian">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;By Haim Adrian</string>
     <string name="about_content">This application has been developed as a final project of Android1 course.\nTeacher: Efi Profus\nCollege: Holon Institute of Technology\nVersion: 1.0.0</string>
 
-    <!-- Play against PC -->
+    <!-- Play against AI -->
     <string name="amount_of_bots">Amount of bots</string>
     <string name="amount_of_coins">Amount of coins</string>
     <string name="size_of_small_bet">Small bet</string>
     <string name="size_of_big_bet">Big bet</string>
     <string name="help">Help</string>
+    <string name="play">PLAY</string>
+    <string name="go">GO</string>
+    <string name="fold">FOLD</string>
+    <string name="check">CHECK</string>
+    <string name="raise">RAISE</string>
+    <string name="quit">QUIT</string>
+    <string name="chat">CHAT</string>
 </resources>

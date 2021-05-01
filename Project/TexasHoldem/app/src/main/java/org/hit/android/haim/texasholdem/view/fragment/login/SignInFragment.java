@@ -9,10 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.view.activity.LoginActivity;
-import org.hit.android.haim.texasholdem.view.fragment.AbstractSignInFragment;
-import org.hit.android.haim.texasholdem.view.login.SignInViewModel;
-import org.hit.android.haim.texasholdem.view.model.LoggedInUserView;
+import org.hit.android.haim.texasholdem.view.model.login.SignInViewModel;
 
 /**
  * The fragment that holds username and password fields, to let user sign in to the application.
@@ -50,9 +49,9 @@ public class SignInFragment extends AbstractSignInFragment<SignInViewModel> {
     }
 
     @Override
-    protected void updateUiWithUser(LoggedInUserView model) {
+    protected void updateUiWithUser(User model) {
         if (getContext() != null && getContext().getApplicationContext() != null) {
-            Toast.makeText(getContext().getApplicationContext(), String.format(getString(R.string.welcome), model.getNickName()), Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext().getApplicationContext(), String.format(getString(R.string.welcome), model.getName()), Toast.LENGTH_LONG).show();
         }
 
         // Successfully signed in. Go to home page

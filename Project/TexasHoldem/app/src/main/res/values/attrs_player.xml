@@ -1,0 +1,21 @@
+<resources>
+    <!--
+        Support custom attributes to PlayerView:
+        1. Orientation - Control the orientation of PlayerView main linear layout, such that we can
+                         configure it to be either horizontal or vertical, based on the location of
+                         the player around the table.
+        2. Reverse - Whether to reverse the order of children of PlayerView or not.
+                     By default, the order is profile image first, and then name + chips.
+                     In order to be able to paint the name+chips before the image, we have
+                     introduced the "reverse" parameter, so we will re-arrange children.
+     -->
+    <declare-styleable name="PlayerView">
+        <attr name="orientation">
+            <!-- Defines an horizontal widget. -->
+            <enum name="horizontal" value="0" />
+            <!-- Defines a vertical widget. -->
+            <enum name="vertical" value="1" />
+        </attr>
+        <attr name="reverse" format="boolean"/>
+    </declare-styleable>
+</resources>

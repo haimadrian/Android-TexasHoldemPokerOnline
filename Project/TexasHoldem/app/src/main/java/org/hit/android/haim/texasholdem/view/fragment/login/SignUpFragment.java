@@ -9,10 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.view.activity.LoginActivity;
-import org.hit.android.haim.texasholdem.view.fragment.AbstractSignInFragment;
-import org.hit.android.haim.texasholdem.view.login.SignUpViewModel;
-import org.hit.android.haim.texasholdem.view.model.LoggedInUserView;
+import org.hit.android.haim.texasholdem.view.model.login.SignUpViewModel;
 
 /**
  * The fragment that holds nickname and date of birth fields, to let user sign up to the application.<br/>
@@ -54,7 +53,7 @@ public class SignUpFragment extends AbstractSignInFragment<SignUpViewModel> {
     }
 
     @Override
-    protected void updateUiWithUser(LoggedInUserView model) {
+    protected void updateUiWithUser(User model) {
         if (getContext() != null && getContext().getApplicationContext() != null) {
             Toast.makeText(getContext().getApplicationContext(), "Successfully signed up. Please sign in", Toast.LENGTH_LONG).show();
         }
