@@ -23,6 +23,8 @@ public class Request {
      */
     private Double lastValue;
 
+    private String dynamicValue;
+
     public Request() {
     }
 
@@ -30,6 +32,11 @@ public class Request {
         this.actionType = actionType;
         this.value = value;
         this.lastValue = lastValue;
+    }
+
+    public Request(ActionType actionType, String dynamicValue) {
+        this.actionType = actionType;
+        this.dynamicValue = dynamicValue;
     }
 
     public ActionType getActionType() {

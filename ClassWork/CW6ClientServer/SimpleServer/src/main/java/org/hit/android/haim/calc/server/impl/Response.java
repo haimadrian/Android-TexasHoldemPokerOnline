@@ -23,11 +23,11 @@ public abstract class Response {
         return ok(HttpStatus.OK.getCode(), null);
     }
 
-    public static Response ok(Double value) {
+    public static Response ok(String value) {
         return ok(HttpStatus.OK.getCode(), value);
     }
 
-    public static Response ok(int status, Double value) {
+    public static Response ok(int status, String value) {
         return new SimpleResponse(status, value);
     }
 
@@ -62,9 +62,9 @@ public abstract class Response {
         /**
          * An action response value (calculation)
          */
-        private Double value;
+        private String value;
 
-        public SimpleResponse(int status, Double value) {
+        public SimpleResponse(int status, String value) {
             super(status);
             this.value = value;
         }

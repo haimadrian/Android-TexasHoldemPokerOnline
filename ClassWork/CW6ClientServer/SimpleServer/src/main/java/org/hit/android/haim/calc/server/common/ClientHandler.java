@@ -5,6 +5,7 @@ import org.hit.android.haim.calc.server.common.exception.FavIconException;
 
 import java.io.*;
 import java.net.SocketTimeoutException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;

@@ -2,6 +2,7 @@ package org.hit.android.haim.calc;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hit.android.haim.calc.model.DbAccess;
 import org.hit.android.haim.calc.server.common.TCPServer;
 import org.hit.android.haim.calc.server.impl.CalculatorClientHandler;
 
@@ -62,6 +63,8 @@ public class Main {
     private void run() {
         log = LogManager.getLogger(Main.class);
 
+        DbAccess.getInstance().connect();
+
         server = new TCPServer(1234, 0, 10, new CalculatorClientHandler());
         server.start();
         showTrayIcon();
@@ -91,13 +94,13 @@ public class Main {
             exit.addActionListener(e -> shutdown());
             popup.add(exit);
 
-            trayIcon = new TrayIcon(new ImageIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream("icon.png"))).getImage(), "King Effi Profus");
+            trayIcon = new TrayIcon(new ImageIcon(ImageIO.read(getClass().getClassLoader().getResourceAsStream("icon.png"))).getImage(), "King Profus");
             trayIcon.setImageAutoSize(true);
             trayIcon.setPopupMenu(popup);
             SystemTray.getSystemTray().add(trayIcon);
 
-            trayIcon.displayMessage("King Effi Profus", "Android1 server is running", java.awt.TrayIcon.MessageType.INFO);
-            trayIcon.setToolTip("King Effi Profus");
+            trayIcon.displayMessage("King Profus", "Android1 server is running", java.awt.TrayIcon.MessageType.INFO);
+            trayIcon.setToolTip("King Profus");
         } catch (Exception e) {
             log.error("Failed to add system tray icon: " + e.getMessage(), e);
         }

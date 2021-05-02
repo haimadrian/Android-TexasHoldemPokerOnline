@@ -44,7 +44,7 @@ public class CalculatorWebService {
 
     private void connect() {
         try {
-            String ip = "192.168.0.10";
+            String ip = "192.168.0.8";
             int port = 1234;
             Log.d("Web", "Connecting to server at: " + ip + ":" + port);
 
@@ -94,6 +94,10 @@ public class CalculatorWebService {
         executeRequest(new Request(actionType, value, lastVal), responseConsumer);
     }
 
+    public void executeDynamicAction(String dynamicValue, ActionType actionType, Consumer<Response> responseConsumer) {
+        executeRequest(new Request(actionType, dynamicValue), responseConsumer);
+    }
+
     private void executeRequest(Request request, Consumer<Response> responseConsumer) {
         executor.submit(() -> {
             try {
@@ -115,16 +119,16 @@ public class CalculatorWebService {
 
                         if ((responseLine == null) || !responseLine.trim().startsWith("{")) {
                             disconnect();
-                            response = new Response(500, request.getValue(), "500 INTERNAL SERVER ERROR");
+                            response = new Response(500, String.valueOf(request.getValue()), "500 INTERNAL SERVER ERROR");
                         } else {
                             response = gson.fromJson(responseLine, Response.class);
                         }
                     } catch (SocketTimeoutException e) {
                         closeStreams();
-                        response = new Response(408, request.getValue(), "408 TIME OUT");
+                        response = new Response(408, String.valueOf(request.getValue()), "408 TIME OUT");
                     }
                 } else {
-                    response = new Response(503, request.getValue(), "503 SERVICE UNAVAILABLE");
+                    response = new Response(503, String.valueOf(request.getValue()), "503 SERVICE UNAVAILABLE");
                     Log.w("Web", "Not connected. Unable to send requests.");
                 }
 

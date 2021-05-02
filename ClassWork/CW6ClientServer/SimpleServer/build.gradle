@@ -29,6 +29,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
     implementation "org.apache.logging.log4j:log4j-core:${log4jVer}"
     implementation "org.apache.logging.log4j:log4j-web:${log4jVer}" // Log4j in servlet environment
+    implementation "mysql:mysql-connector-java:5.1.49"
     runtimeOnly "com.lmax:disruptor:${disruptorVer}" // Asynchronous logging
 
     testCompile "org.mockito:mockito-junit-jupiter:3.8.0"

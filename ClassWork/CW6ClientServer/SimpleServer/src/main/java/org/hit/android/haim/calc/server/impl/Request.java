@@ -32,6 +32,9 @@ public class Request {
     @JsonProperty(defaultValue = "0")
     private Double lastValue;
 
+    @JsonProperty
+    private String dynamicValue;
+
     @JsonIgnore
     private boolean isHttpRequest;
 }

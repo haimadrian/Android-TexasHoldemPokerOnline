@@ -13,7 +13,7 @@ public class Response {
     /**
      * An action response value (calculation)
      */
-    private Double value;
+    private String value;
 
     /**
      * Optional error message, when there is an error response
@@ -23,7 +23,7 @@ public class Response {
     public Response() {
     }
 
-    public Response(int status, Double value, String errorMessage) {
+    public Response(int status, String value, String errorMessage) {
         this.status = status;
         this.value = value;
         this.errorMessage = errorMessage;
@@ -37,11 +37,11 @@ public class Response {
         this.status = status;
     }
 
-    public Double getValue() {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(Double value) {
+    public void setValue(String value) {
         this.value = value;
     }
 

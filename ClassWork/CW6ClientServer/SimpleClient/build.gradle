@@ -1,0 +1,24 @@
+plugins {
+    id "io.freefair.lombok" version "5.3.0" // Project lombok, to generate getters, setters, ctors etc.
+}
+
+group 'org.hit.android1.haim'
+version '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+dependencies {
+    compile project (":MatrixCommon")
+
+    testCompile "org.mockito:mockito-junit-jupiter:3.8.0"
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.7.1"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+    useJUnitPlatform()
+}

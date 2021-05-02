@@ -3,9 +3,7 @@ package org.hit.android.haim.calc.server.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.extern.log4j.Log4j2;
-import org.hit.android.haim.calc.action.ActionContext;
-import org.hit.android.haim.calc.action.ActionType;
-import org.hit.android.haim.calc.action.ArithmeticAction;
+import org.hit.android.haim.calc.action.*;
 import org.hit.android.haim.calc.server.common.ClientInfo;
 import org.hit.android.haim.calc.server.common.HttpStatus;
 import org.hit.android.haim.calc.server.common.RequestHandler;
@@ -64,7 +62,7 @@ public class CalculatorClientHandler implements RequestHandler {
             request = readHttpRequest(requestString);
         }
 
-        if ((request != null) && (request.getActionType() != ActionType.CONNECT) && (request.getActionType() != ActionType.DISCONNECT)) {
+        if ((request != null) && (request.getActionType() != ActionType.DISCONNECT)) {
             stopCommunicating = Boolean.FALSE;
 
             if (request.getActionType() == null) {
@@ -115,20 +113,27 @@ public class CalculatorClientHandler implements RequestHandler {
      * @return Result of the calculation.
      * @see ActionType
      */
-    private static double doAction(Request request) {
-        double result = request.getValue();
-
+    private static String doAction(Request request) {
         ActionType actionType = request.getActionType();
-        ArithmeticAction action = actionType.newActionInstance();
+        ActionIfc<?> action = actionType.newActionInstance();
 
-        result = action.executeAsDouble(new ActionContext(request.getLastValue(), request.getValue()));
-        if (!Double.isNaN(result) && Double.isFinite(result) && (result < 1)) {
-            // Round until the 15th digit right to the floating point, in order to
-            // round sin(pi) to 0, and not -1.2246467991473532E-16. (Because Math.PI keeps 16 digits only)
-            result = Math.rint(1e15 * result) / 1e15;
+        if (action instanceof ArithmeticAction) {
+            ActionResponse<?> response = action.execute(new ActionContext(request.getLastValue(), request.getValue()));
+            double result = request.getValue();
+            result = (Double) response.getResponse();
+            if (!Double.isNaN(result) && Double.isFinite(result) && (result < 1)) {
+                // Round until the 15th digit right to the floating point, in order to
+                // round sin(pi) to 0, and not -1.2246467991473532E-16. (Because Math.PI keeps 16 digits only)
+                result = Math.rint(1e15 * result) / 1e15;
+            }
+
+            return String.valueOf(result);
+        } else if (action != null) {
+            ActionResponse<?> response = action.execute(new ActionContext(request.getDynamicValue()));
+            return String.valueOf(response.getResponse());
         }
 
-        return result;
+        return "";
     }
 
     private Request readHttpRequest(String httpRequest) throws IOException {
@@ -199,7 +204,7 @@ public class CalculatorClientHandler implements RequestHandler {
             throw new WebException(HttpStatus.BAD_REQUEST, "Missing query parameter. actionType is mandatory");
         }
 
-        return new Request(actionType, value, lastValue, true);
+        return new Request(actionType, value, lastValue, "", true);
     }
 
     private double getDouble(String valueToParse, String paramName) throws WebException {

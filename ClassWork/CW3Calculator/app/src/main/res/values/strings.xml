@@ -31,6 +31,9 @@
     <string name="standard">Standard</string>
     <string name="scientific">Scientific</string>
     <string name="server_mode">Server Mode</string>
+    <string name="login">Login</string>
     <string name="exit">Exit</string>
     <string name="android1_calculator">Android1 Calculator</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
 </resources>

@@ -28,6 +28,11 @@
             android:title="@string/server_mode"
             app:actionViewClass="android.widget.Switch"
             app:showAsAction="always" />
+        <item
+            android:id="@+id/nav_login"
+            android:icon="@drawable/ic_baseline_login_24"
+            android:title="@string/login"
+            android:visible="false"/>
     </group>
     <group
         android:id="@+id/systemGroup"

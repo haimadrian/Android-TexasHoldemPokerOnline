@@ -1,6 +1,7 @@
 package com.example.calc.activities;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
@@ -43,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String STORED_OUTPUT_KEY = "output";
     private static final String STORED_ACTION_KEY = "action";
     private static final String STORED_VALUE_KEY = "value";
-    private static final String STORED_SERVER_KEY = "isServer";
+    public static final String STORED_SERVER_KEY = "isServer";
 
     private AppBarConfiguration mAppBarConfiguration;
     private DrawerLayout navDrawer;
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch serverSwitch;
+    private NavigationView navigationView;
 
     public MainActivity() {
         Log.d("Lifecycle", this.toString() + ".new");
@@ -78,12 +80,12 @@ public class MainActivity extends AppCompatActivity {
         Toolbar myToolbar = findViewById(R.id.app_toolbar);
         setSupportActionBar(myToolbar);
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration =
-                new AppBarConfiguration.Builder(R.id.nav_standard, R.id.nav_science, R.id.nav_server, R.id.nav_exit)
+                new AppBarConfiguration.Builder(R.id.nav_standard, R.id.nav_science, R.id.nav_server, R.id.nav_login, R.id.nav_exit)
                         .setOpenableLayout(navDrawer)
                         .build();
 
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         outputText = findViewById(R.id.outputText);
         outputText.setMovementMethod(new ScrollingMovementMethod());
 
-        serverSwitch = (Switch)navigationView.getMenu().findItem(R.id.nav_server).getActionView();
+        serverSwitch = (Switch) navigationView.getMenu().findItem(R.id.nav_server).getActionView();
         serverSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> setIsServerMode(isChecked));
 
         // Set text to outputText based on saved instance state / shared preferences
@@ -136,6 +138,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Good Bye!", Toast.LENGTH_LONG).show();
             } else if (itemId == R.id.nav_server) {
                 serverSwitch.setChecked(!serverSwitch.isChecked());
+            } else if (itemId == R.id.nav_login) {
+                Intent i = new Intent(getApplicationContext(), LoginActivity.class);
+                startActivity(i);
+
+                // Finish this activity as we went to login activity
+                finish();
             } else if (itemId == R.id.nav_standard) {
                 View scientificLayout = findViewById(R.id.scientificLayout);
                 if (scientificLayout.getVisibility() == View.VISIBLE) {
@@ -169,6 +177,9 @@ public class MainActivity extends AppCompatActivity {
     private void setIsServerMode(boolean isServerMode) {
         this.isServer = isServerMode;
         Log.d("ServerMode", "Is using server mode: " + isServer);
+
+        // Show the login when we work against server only
+        navigationView.getMenu().findItem(R.id.nav_login).setVisible(isServerMode);
     }
 
     /**
@@ -206,6 +217,9 @@ public class MainActivity extends AppCompatActivity {
                 outputText.setText(getValueText(false));
                 outputText.bringPointIntoView(outputText.length());
             }
+
+            setIsServerMode(getIntent().getBooleanExtra(STORED_SERVER_KEY, false));
+            serverSwitch.setChecked(isServer);
 
             Toast.makeText(this, "Welcome!", Toast.LENGTH_LONG).show();
         } else {
@@ -628,7 +642,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, response.getStatus() + " - " + response.getErrorMessage(), Toast.LENGTH_LONG).show();
                         }
                     } else {
-                        val = response.getValue();
+                        val = parseValue(response.getValue());
                     }
 
                     onResultReadyListener.accept(handleCalculationResult(value, val, actionType));

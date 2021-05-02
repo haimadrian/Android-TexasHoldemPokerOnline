@@ -34,9 +34,11 @@ public enum ActionType {
     TAN("tan", Tan.class, "tan(%s) = "),
     COT("cot", Cot.class, "cot(%s) = "),
 
-    CONNECT("hello", null, "hello"),
+    CONNECT("connect", ConnectUser.class, "connect"),
     DISCONNECT("bye", null, "bye"),
-    UNKNOWN("", null, "");
+    UNKNOWN("", null, ""),
+
+    CREATE_USER("create", CreateUser.class, "create user");
     //@formatter:on
 
     /**

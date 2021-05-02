@@ -1,8 +1,9 @@
 package org.hit.android.server.calc;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
+import java.io.BufferedWriter;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -13,27 +14,29 @@ import java.util.Scanner;
 public class Main {
 
    public static void main(String[] args) {
-      String sentence;
-      String modifiedSentence;
+      String response;
 
       try (Scanner inFromUser = new Scanner(System.in);
            Socket clientSocket = new Socket("localhost", 1234)) {
 
-         try (DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+         System.out.println("Enter mail:");
+         String mail = inFromUser.nextLine().trim();
+         System.out.println("Enter password:");
+         String pwd = inFromUser.nextLine().trim();
+         System.out.println("Enter full name:");
+         String fullName = inFromUser.nextLine().trim();
+         try (BufferedWriter outToServer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
               BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
+            outToServer.write("{ \"actionType\": \"CREATE_USER\", \"dynamicValue\": \"" + mail + "##" + pwd + "##" + fullName + "\" }\n\n");
+            outToServer.flush();
 
-            do {
-               System.out.println("Enter expression to solve: ");
-               sentence = inFromUser.next();
-
-               outToServer.writeBytes(sentence + '\n');
-
-               modifiedSentence = inFromServer.readLine();
-               System.out.println("Result: " + modifiedSentence);
-            } while (!sentence.equalsIgnoreCase("bye"));
+            response = inFromServer.readLine();
+            System.out.println("Result: " + response);
+            outToServer.write("{ \"actionType\": \"DISCONNECT\" }\n\n");
+            outToServer.flush();
          }
       } catch (Exception e) {
-         System.err.println("Error has occurred: " + e.toString());
+         System.err.println("Error has occurred: " + e);
          e.printStackTrace();
       }
    }
