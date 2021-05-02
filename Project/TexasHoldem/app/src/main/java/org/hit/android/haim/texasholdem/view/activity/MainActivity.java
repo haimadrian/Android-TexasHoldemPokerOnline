@@ -119,6 +119,9 @@ public class MainActivity extends AppCompatActivity {
         userTextView = headerView.findViewById(R.id.userTextView);
         coinsTextView = headerView.findViewById(R.id.coinsTextView);
         userImageView = headerView.findViewById(R.id.userImage);
+        userImageView.setOnClickListener(v -> {
+            // TODO: Select image
+        });
 
         refreshUserInfo();
     }

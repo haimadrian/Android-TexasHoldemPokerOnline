@@ -3,7 +3,6 @@ package org.hit.android.haim.texasholdem.view.activity;
 import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -102,9 +101,6 @@ public class LoginActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         Log.d("Login", this.toString() + ": onCreate");
         super.onCreate(savedInstanceState);
-
-        // Play in landscape orientation only.
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         // Initialize it so it will be able to access resources (certificate)
         TexasHoldemWebService.getInstance().init(getApplicationContext());

@@ -71,10 +71,12 @@ public class SignUpFragment extends AbstractSignInFragment<SignUpViewModel> {
         getTopEditText().setHint(R.string.prompt_nickname);
         getTopEditText().setAutofillHints(getString(R.string.prompt_nickname));
         getTopEditText().setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PERSON_NAME);
+        getTopEditText().setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_outline_face_24, 0, 0, 0);
 
         getBottomEditTxt().setHint(R.string.prompt_date_of_birth);
         getBottomEditTxt().setAutofillHints(getString(R.string.prompt_date_of_birth_auto_fill));
         getBottomEditTxt().setInputType(EditorInfo.TYPE_CLASS_DATETIME | EditorInfo.TYPE_DATETIME_VARIATION_DATE);
+        getBottomEditTxt().setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_outline_date_range_24, 0, 0, 0);
         getBottomEditTxt().setImeActionLabel(getString(R.string.action_sign_up), 0);
 
         getButton().setText(R.string.action_sign_up);

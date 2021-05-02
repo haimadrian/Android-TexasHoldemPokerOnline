@@ -67,10 +67,12 @@ public class SignInFragment extends AbstractSignInFragment<SignInViewModel> {
         getTopEditText().setHint(R.string.prompt_username);
         getTopEditText().setAutofillHints(getString(R.string.prompt_username));
         getTopEditText().setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PERSON_NAME);
+        getTopEditText().setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_outline_email_24, 0, 0, 0);
 
         getBottomEditTxt().setHint(R.string.prompt_password);
         getBottomEditTxt().setAutofillHints(getString(R.string.prompt_password));
         getBottomEditTxt().setInputType(EditorInfo.TYPE_CLASS_TEXT | EditorInfo.TYPE_TEXT_VARIATION_PASSWORD);
+        getBottomEditTxt().setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_outline_lock_24, 0, 0, 0);
         getBottomEditTxt().setImeActionLabel(getString(R.string.action_sign_in), 0);
 
         getButton().setText(R.string.action_sign_in);

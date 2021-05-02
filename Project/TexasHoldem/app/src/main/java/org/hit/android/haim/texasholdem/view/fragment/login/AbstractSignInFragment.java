@@ -78,7 +78,7 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         Log.d(getLogTag(), this.toString() + ": onCreateView");
-        return inflater.inflate(R.layout.fragment_signin, container,false);
+        return inflater.inflate(R.layout.fragment_login, container,false);
     }
 
     @Override

@@ -8,8 +8,8 @@
     <string name="prompt_nickname">Nickname</string>
     <string name="prompt_date_of_birth">Date of birth (yyyy-MM-dd)</string>
     <string name="prompt_date_of_birth_auto_fill">Date of birth</string>
-    <string name="action_sign_in">Sign in</string>
-    <string name="action_sign_up">Sign Up</string>
+    <string name="action_sign_in">SIGN IN</string>
+    <string name="action_sign_up">SIGN UP</string>
     <string name="action_quit">Quit</string>
     <string name="welcome">"Welcome %s!"</string>
     <string name="signing_in">"We are signing you in"</string>

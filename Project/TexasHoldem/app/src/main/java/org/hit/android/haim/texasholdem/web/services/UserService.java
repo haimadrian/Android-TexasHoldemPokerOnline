@@ -47,16 +47,30 @@ public interface UserService {
      * Remember to reset the JWT token, so no request will succeed after signing out.
      * @return String or Error
      */
-    @PUT("/user/disconnect")
+    @PUT("/user/signout")
     Call<JsonNode> signOut();
 
     /** @return User or Error */
-    @GET("/user/info/{userId}")
+    @GET("/user/{userId}/info")
     Call<JsonNode> getUserInfo(@Path("userId") String userId);
 
     /** @return {@code List<User>} or Error */
     @GET("/user/info")
     Call<JsonNode> getUsersInfo(@Body List<String> usersId);
+
+    /**
+     * Update the amount of coins a user have.
+     * @return User or Error
+     */
+    @POST("/user/{userId}/coins")
+    Call<JsonNode> updateCoins(@Path("userId") String userId, @Body User user);
+
+    /**
+     * Update the profile picture of a user.
+     * @return User or Error
+     */
+    @POST("/user/{userId}/image")
+    Call<JsonNode> updateImage(@Path("userId") String userId, @Body User user);
 
     /**
      * A response of signin API.<br/>

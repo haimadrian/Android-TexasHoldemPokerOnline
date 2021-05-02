@@ -15,6 +15,12 @@
     <color name="light_blue_400">#29B6F6</color>
     <color name="gray_400">#BDBDBD</color>
     <color name="gray_600">#757575</color>
+    <color name="edit_text_tint_focused_color">@android:color/holo_green_dark</color>
+    <color name="edit_text_tint_color">@android:color/darker_gray</color>
+    <color name="gray_button_stroke">#D9D9D9</color>
+    <color name="gray_button_start_color">@android:color/darker_gray</color>
+    <color name="gray_button_center_color">@color/gray_600</color>
+    <color name="gray_button_end_color">@android:color/darker_gray</color>
     <color name="green_button_stroke">#EBFBDF</color>
     <color name="green_button_start_color">#0EA100</color>
     <color name="green_button_center_color">#009000</color>

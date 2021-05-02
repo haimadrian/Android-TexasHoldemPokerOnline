@@ -67,7 +67,6 @@ public class TexasHoldemWebService {
      * This way the server can authorize us after signing in, and we keep it transparent for user.
      * @see AuthorizationHeaderInterceptor
      */
-    // TODO: Reset this when we have a sign in dialog.
     @Getter
     @Setter
     private String jwtToken;
