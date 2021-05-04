@@ -1,13 +1,12 @@
 package org.hit.android.haim.chat.server.controller;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.util.Arrays;
 
 /**
  * @author Haim Adrian
@@ -22,8 +21,10 @@ public class HomeController {
     }
 
     @GetMapping(path = "/favicon.ico", produces = "image/ico")
-    public byte[] favIcon() throws IOException, URISyntaxException {
-        return Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource("favicon.ico").toURI()));
+    public byte[] favIcon() throws IOException {
+        byte[] icon = new byte[32768];
+        int read = IOUtils.read(getClass().getClassLoader().getResourceAsStream("favicon.ico"), icon, 0, 32768);
+        return Arrays.copyOf(icon, read);
     }
 }
 

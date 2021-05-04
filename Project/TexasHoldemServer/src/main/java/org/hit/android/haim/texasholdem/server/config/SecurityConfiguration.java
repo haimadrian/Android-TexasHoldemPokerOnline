@@ -52,7 +52,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable().cors()
             .and()
-            .authorizeRequests().antMatchers("/user/signin", "/user/signup", "/").permitAll() // Do not authenticate these requests
+            .authorizeRequests().antMatchers("/user/signin", "/user/signup", "/", "/favicon.ico").permitAll() // Do not authenticate these requests
             .anyRequest().authenticated() // All other requests need to be authenticated
             .and()
             .requiresChannel().anyRequest().requiresSecure()

@@ -3,6 +3,7 @@ package org.hit.android.haim.texasholdem.web;
 import android.content.Context;
 import android.util.Log;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.hit.android.haim.texasholdem.R;
@@ -23,6 +24,7 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.tls.HandshakeCertificates;
 import retrofit2.Retrofit;
@@ -35,7 +37,8 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  * @since 23-Mar-21
  */
 public class TexasHoldemWebService {
-    private static final String BACKEND_URL = "https://vm-h-ds.westeurope.cloudapp.azure.com:8443";
+    //private static final String BACKEND_URL = "https://vm-h-ds.westeurope.cloudapp.azure.com:8443";
+    private static final String BACKEND_URL = "https://192.168.115.129:8443";
 
     /**
      * The unique instance of this class
@@ -142,6 +145,43 @@ public class TexasHoldemWebService {
                 .addInterceptor(interceptor)
                 .addInterceptor(new AuthorizationHeaderInterceptor())
                 .build();
+    }
+
+    /**
+     * Extract error body from an http response
+     * @param response The response to get error body from
+     */
+    public String readHttpErrorResponse(retrofit2.Response<?> response) {
+        String errorMessage;
+
+        try {
+            ResponseBody responseBody = response.errorBody();
+            if (responseBody == null) {
+                errorMessage = response.message();
+            } else {
+                String errorBody = responseBody.string();
+                try {
+                    // Server returns an error as json in this format: {"timestamp":"2021-05-04T22:11:13.029+00:00","status":401,"error":"Unauthorized","message":"","path":"/user/haim/info"}
+                    JsonNode jsonNode = TexasHoldemWebService.getInstance().getObjectMapper().readValue(errorBody, JsonNode.class);
+                    int status = jsonNode.get("status").intValue();
+                    String error = jsonNode.get("error").asText();
+                    errorMessage = status + " " + error;
+                    if (jsonNode.has("message")) {
+                        String messageText = jsonNode.get("message").asText();
+                        if (!messageText.isEmpty()) {
+                            errorMessage += " - " + messageText;
+                        }
+                    }
+                } catch (Exception e) {
+                    errorMessage = errorBody;
+                }
+            }
+        } catch (Exception e) {
+            Log.w("Web", "Error has occurred while reading response error as string: " + e);
+            errorMessage = response.message();
+        }
+
+        return errorMessage;
     }
 
     /**

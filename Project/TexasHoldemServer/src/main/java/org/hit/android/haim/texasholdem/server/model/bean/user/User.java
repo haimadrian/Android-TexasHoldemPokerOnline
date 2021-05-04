@@ -12,29 +12,29 @@ import java.time.LocalDate;
  */
 @JsonDeserialize(as = UserImpl.class) // Deserialize it as UserImpl rather than UserDBImpl
 public interface User {
-   /**
-    * @return User identifier. This is the email address a user is registered with
-    */
-   String getId();
+    /**
+     * @return User identifier. This is the email address a user is registered with
+     */
+    String getId();
 
-   /**
-    * @return Display name of the user, so we will use it at UI instead of email address.
-    */
-   String getName();
+    /**
+     * @return Display name of the user, so we will use it at UI instead of email address.
+     */
+    String getName();
 
-   /**
-    * @return Date of birth of this user
-    */
-   LocalDate getDateOfBirth();
+    /**
+     * @return Date of birth of this user
+     */
+    LocalDate getDateOfBirth();
 
-   /**
-    * @return How many coins this user has earned
-    */
-   long getCoins();
+    /**
+     * @return How many coins this user has earned
+     */
+    long getCoins();
 
-   /**
-    * @return Profile image of the user
-    */
-   byte[] getImage();
+    /**
+     * @return Profile image of the user
+     */
+    byte[] getImage();
 }
 

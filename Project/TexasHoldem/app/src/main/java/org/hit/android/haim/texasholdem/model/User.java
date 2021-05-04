@@ -3,6 +3,9 @@ package org.hit.android.haim.texasholdem.model;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -43,6 +46,8 @@ public class User {
     */
    @Setter(AccessLevel.PRIVATE)
    @Getter(AccessLevel.PRIVATE)
+   @JsonProperty
+   @JsonInclude(JsonInclude.Include.NON_DEFAULT)
    private char[] pwd;
 
    /**
@@ -85,6 +90,7 @@ public class User {
     * @param height The height to scale to
     * @return A scaled bitmap
     */
+   @JsonIgnore
    public Bitmap getImageScaled(int width, int height) {
       Bitmap bmp = getImageBitmap();
       if (bmp != null) {
@@ -97,6 +103,7 @@ public class User {
    /**
     * @see #getImageScaled(int, int)
     */
+   @JsonIgnore
    public Bitmap getImageBitmap() {
       if (image != null) {
          return BitmapFactory.decodeByteArray(image, 0, image.length);
@@ -105,6 +112,7 @@ public class User {
       return null;
    }
 
+   @JsonIgnore
    public void setImageBitmap(Bitmap bmp) {
       if (bmp != null) {
          ByteArrayOutputStream stream = new ByteArrayOutputStream();

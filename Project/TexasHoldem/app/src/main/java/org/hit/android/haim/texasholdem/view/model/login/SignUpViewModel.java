@@ -24,26 +24,23 @@ public class SignUpViewModel extends AbstractSignInViewModel {
     /**
      * Constructs a new {@link SignUpViewModel}
      * @param userService A reference to {@link UserService} so we will be able to sign up
-     * @param signUpFailedMessage error message to use when sign up fails
      * @param listenerOwner The LifeCycle owner which controls the observer
      * @param formStateListener A listener to be notified upon form state changes
      * @param signUpListener A listener to be notified upon sign up responses (success/failure)
      */
     public SignUpViewModel(@NonNull UserService userService,
-                           @NonNull String signUpFailedMessage,
                            @Nullable LifecycleOwner listenerOwner,
                            @Nullable Observer<? super LoginFormState> formStateListener,
                            @Nullable Observer<? super LoginResult> signUpListener) {
-        super(userService, signUpFailedMessage, listenerOwner, formStateListener, signUpListener);
+        super(userService, listenerOwner, formStateListener, signUpListener);
     }
 
     @Override
     public void onFormDataChanged(@Nullable String nickname, @Nullable String dateOfBirth) {
-        Log.d("SignUp", this.toString() + ": SignUp data changed. [dateOfBirth=" + dateOfBirth + "]");
         if (!isDateOfBirthValid(dateOfBirth)) {
-            formStateNotifier.setValue(LoginFormState.builder().topEditTextError(R.string.invalid_birth_date).build());
+            formStateNotifier.setValue(LoginFormState.builder().bottomEditTextError(R.string.invalid_birth_date).build());
         } else if (!isNicknameValid(nickname)) {
-            formStateNotifier.setValue(LoginFormState.builder().bottomEditTextError(R.string.invalid_nickname).build());
+            formStateNotifier.setValue(LoginFormState.builder().topEditTextError(R.string.invalid_nickname).build());
         } else {
             formStateNotifier.setValue(LoginFormState.builder().isDataValid(true).build());
         }
@@ -62,9 +59,9 @@ public class SignUpViewModel extends AbstractSignInViewModel {
         Log.d("SignUp", this.toString() + ": Signing up user to server. [username=" + username + "]");
 
         if (!isDateOfBirthValid(dateOfBirth)) {
-            loginResultNotifier.setValue(LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: Illegal date format. (Use yyyy-MM-dd)").build());
+            loginResultNotifier.setValue(LoginResult.builder().errorMessage("Illegal date format. (Use yyyy-MM-dd)").build());
         } else if (!isNicknameValid(nickname)) {
-            loginResultNotifier.setValue(LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: Illegal nickname. (Use non-empty nickname)").build());
+            loginResultNotifier.setValue(LoginResult.builder().errorMessage("Illegal nickname. (Use non-empty nickname)").build());
         } else {
             User user = new User(username, password.toCharArray(), nickname, LocalDate.parse(dateOfBirth), 0, null);
             userService.signUp(user).enqueue(new LoginCallbackHandler("SignUp", "Signed up successfully"));

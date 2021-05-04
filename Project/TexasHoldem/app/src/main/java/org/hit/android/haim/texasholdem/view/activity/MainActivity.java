@@ -92,7 +92,13 @@ public class MainActivity extends AppCompatActivity {
 
             // First check if user clicked one of the buttons
             if (itemId == R.id.nav_sign_out) {
-                LoginActivity.doSignOut(MainActivity.this);
+                // Execute it later, so we will not break the event handling.
+                new Handler().post(() -> {
+                    LoginActivity.doSignOut(MainActivity.this);
+
+                    // Finish this activity as we went to login activity
+                    MainActivity.this.finish();
+                });
             } else if (itemId == R.id.nav_exit) {
                 // Execute it later, so we will not break the event handling.
                 new Handler().post(() -> {
@@ -199,14 +205,7 @@ public class MainActivity extends AppCompatActivity {
      * @param response The response to get error body from
      */
     public void handleHttpErrorResponse(String message, Response<?> response) {
-        String errorMessage;
-        try {
-            errorMessage = message + ". Reason: " + response.errorBody().string();
-        } catch (IOException e) {
-            Log.w("Web", "Error has occurred while reading response error as string: " + e);
-            errorMessage = message + ". Reason: " + response.message();
-        }
-
+        String errorMessage = message + ": " + TexasHoldemWebService.getInstance().readHttpErrorResponse(response);
         showSnack(errorMessage);
     }
 

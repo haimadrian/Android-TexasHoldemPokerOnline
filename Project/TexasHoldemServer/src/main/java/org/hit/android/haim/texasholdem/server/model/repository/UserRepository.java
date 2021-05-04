@@ -17,17 +17,18 @@ import java.util.Optional;
  * @since 21-Mar-21
  */
 public interface UserRepository extends CrudRepository<UserDBImpl, String> {
-   Optional<UserDBImpl> findByIdIgnoreCase(String id);
-   boolean existsByIdIgnoreCase(String id);
+    Optional<UserDBImpl> findByIdIgnoreCase(String id);
 
-   @Transactional
-   @Modifying
-   @Query("UPDATE th_user SET coins = :coins WHERE id = :id")
-   void updateCoins(@Param(value = "id") String id, @Param(value = "coins") long coins);
+    boolean existsByIdIgnoreCase(String id);
 
-   @Transactional
-   @Modifying
-   @Query("UPDATE th_user SET image = :image WHERE id = :id")
-   void updateImage(@Param(value = "id") String id, @Param(value = "image") byte[] image);
+    @Transactional
+    @Modifying
+    @Query("UPDATE th_user SET coins = :coins WHERE id = :id")
+    void updateCoins(@Param(value = "id") String id, @Param(value = "coins") long coins);
+
+    @Transactional
+    @Modifying
+    @Query("UPDATE th_user SET image = :image WHERE id = :id")
+    void updateImage(@Param(value = "id") String id, @Param(value = "image") byte[] image);
 }
 

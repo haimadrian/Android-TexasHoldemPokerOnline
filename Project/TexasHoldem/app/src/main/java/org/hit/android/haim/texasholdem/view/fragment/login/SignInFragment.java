@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.view.fragment.login;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
@@ -20,6 +21,7 @@ import org.hit.android.haim.texasholdem.view.model.login.SignInViewModel;
  */
 public class SignInFragment extends AbstractSignInFragment<SignInViewModel> {
     private String userId;
+    private boolean isAlreadyCreated;
 
     public SignInFragment() {
     }
@@ -31,11 +33,6 @@ public class SignInFragment extends AbstractSignInFragment<SignInViewModel> {
     @Override
     protected String getLogTag() {
         return "SignIn";
-    }
-
-    @Override
-    protected int getGoActionErrorMessage() {
-        return R.string.sign_in_failed;
     }
 
     @Override
@@ -77,19 +74,34 @@ public class SignInFragment extends AbstractSignInFragment<SignInViewModel> {
 
         getButton().setText(R.string.action_sign_in);
         getLink().setText(R.string.action_sign_up);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // Call it here because listener is not notified during construction, so it is leaving buttons
+        // enabled even though the state is illegal.
+        setEnabledToButtons(false);
 
         // Check if we have a valid token, to skip sign in.
         if (userId != null) {
+            Log.d("SignIn", "isAlreadyCreated=" + isAlreadyCreated);
             getTopEditText().setText(userId);
-            if (getContext() != null && getContext().getApplicationContext() != null) {
-                Toast.makeText(getContext().getApplicationContext(), getString(R.string.signing_in), Toast.LENGTH_SHORT).show();
+
+            // Do not sign in automatically when the fragment is reconstructed. e.g. when user presses back button
+            if (!isAlreadyCreated) {
+                isAlreadyCreated = true;
+                if (getContext() != null && getContext().getApplicationContext() != null) {
+                    Toast.makeText(getContext().getApplicationContext(), getString(R.string.signing_in), Toast.LENGTH_SHORT).show();
+                }
+
+                getLoadingProgressBar().setVisibility(View.VISIBLE);
+
+                // Set the token, so it will be used as header.
+                // In case it is invalid, server will respond with error 401 unauthorized.
+                getViewModel().fastLogin(userId);
             }
-
-            getLoadingProgressBar().setVisibility(View.VISIBLE);
-
-            // Set the token, so it will be used as header.
-            // In case it is invalid, server will respond with error 401 unauthorized.
-            getViewModel().fastLogin(userId);
         }
     }
 }

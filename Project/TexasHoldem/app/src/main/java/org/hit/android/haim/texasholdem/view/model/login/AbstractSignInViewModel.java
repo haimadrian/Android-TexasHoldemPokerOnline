@@ -15,8 +15,6 @@ import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 import org.hit.android.haim.texasholdem.web.services.UserService;
 
-import java.io.IOException;
-
 import lombok.Data;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -33,24 +31,20 @@ public abstract class AbstractSignInViewModel extends ViewModel {
     protected final MutableLiveData<LoginFormState> formStateNotifier;
     protected final MutableLiveData<LoginResult> loginResultNotifier;
 
-    protected final String loginFailedMessage;
     protected final UserService userService;
 
     /**
      * Constructs a new {@link AbstractSignInViewModel}
      * @param userService A reference to {@link UserService} so we will be able to sign in
-     * @param loginFailedMessage error message to use when login fails
      * @param listenerOwner The LifeCycle owner which controls the observer
      * @param formStateListener A listener to be notified upon form state changes
      * @param loginListener A listener to be notified upon login responses (success/failure)
      */
     public AbstractSignInViewModel(@NonNull UserService userService,
-                                   @NonNull String loginFailedMessage,
                                    @Nullable LifecycleOwner listenerOwner,
                                    @Nullable Observer<? super LoginFormState> formStateListener,
                                    @Nullable Observer<? super LoginResult> loginListener) {
         this.userService = userService;
-        this.loginFailedMessage = loginFailedMessage;
         formStateNotifier = new MutableLiveData<>();
         loginResultNotifier = new MutableLiveData<>();
 
@@ -89,21 +83,17 @@ public abstract class AbstractSignInViewModel extends ViewModel {
             LoginResult loginResult;
 
             if (!response.isSuccessful()) {
-                try {
-                    loginResult = LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + response.errorBody().string()).build();
-                } catch (IOException e) {
-                    Log.w(logTag, "Error has occurred while reading response error as string: " + e);
-                    loginResult = LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + response.message()).build();
-                }
+                String errorMessage = TexasHoldemWebService.getInstance().readHttpErrorResponse(response);
+                loginResult = LoginResult.builder().errorMessage(errorMessage).build();
             } else {
                 JsonNode body = response.body();
                 try {
                     User userInfo = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), User.class);
                     Log.d(logTag, successLogMessage + ": [" + userInfo + "]");
                     loginResult = LoginResult.builder().user(userInfo).build();
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Log.e(logTag, "Failed parsing response. Response was: " + body, e);
-                    loginResult = LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + e.getMessage()).build();
+                    loginResult = LoginResult.builder().errorMessage(e.getMessage()).build();
                 }
             }
 
@@ -114,7 +104,7 @@ public abstract class AbstractSignInViewModel extends ViewModel {
         @EverythingIsNonNull
         public void onFailure(Call<JsonNode> call, Throwable t) {
             Log.d(logTag, "Error has occurred while trying to " + logTag + ": " + t.getMessage());
-            loginResultNotifier.setValue(LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + t.getMessage()).build());
+            loginResultNotifier.setValue(LoginResult.builder().errorMessage(t.getMessage()).build());
         }
     }
 }

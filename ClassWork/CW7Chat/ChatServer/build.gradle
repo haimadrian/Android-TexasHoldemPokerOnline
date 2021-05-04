@@ -59,7 +59,7 @@ bootJar {
                 'Created-By': "Gradle ${gradle.gradleVersion}",
                 'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
                 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}",
-                'Start-Class': 'org.bravetogether.mapstories.server.MapStoriesServerMain'
+                'Start-Class': 'org.hit.android.haim.chat.server.ChatServerMain'
     }
     launchScript {
         properties 'logFilename': 'example-app.log'

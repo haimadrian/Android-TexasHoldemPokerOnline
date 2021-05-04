@@ -25,7 +25,7 @@
         <RollingRandomAccessFile name="mainLog" fileName="${baseLogDir}\main.log" filePattern="${baseLogDir}\archive\main-%i.log" immediateFlush="false">
             <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
             <Policies>
-                <OnStartupTriggeringPolicy />
+                <OnStartupTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="5 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10" fileIndex="min"/>
@@ -34,7 +34,7 @@
         <RollingRandomAccessFile name="stdoutlog" fileName="${baseLogDir}\stdout.log" filePattern="${baseLogDir}\archive\stdout-%i.log">
             <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
             <Policies>
-                <OnStartupTriggeringPolicy />
+                <OnStartupTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="5 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10" fileIndex="min"/>
@@ -43,7 +43,7 @@
         <RollingRandomAccessFile name="stderrlog" fileName="${baseLogDir}\stderr.log" filePattern="${baseLogDir}\archive\stderr-%i.log">
             <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
             <Policies>
-                <OnStartupTriggeringPolicy />
+                <OnStartupTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="5 MB"/>
             </Policies>
             <DefaultRolloverStrategy max="10" fileIndex="min"/>

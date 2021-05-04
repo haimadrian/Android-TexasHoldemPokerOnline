@@ -54,8 +54,12 @@ test {
     useJUnitPlatform()
 }
 
+springBoot {
+    mainClass.set('org.hit.android.haim.texasholdem.server.TexasHoldemServerMain')
+}
+
 bootJar {
-    mainClass = 'org.hit.android.haim.texasholdem.server.TexasHoldemServerMain'
+    mainClass.set('org.hit.android.haim.texasholdem.server.TexasHoldemServerMain')
     manifest {
         attributes 'Built-By': 'Haim Adrian',
                 'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),

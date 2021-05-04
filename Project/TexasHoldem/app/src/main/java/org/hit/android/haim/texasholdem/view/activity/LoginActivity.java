@@ -4,6 +4,7 @@ import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -64,6 +65,14 @@ public class LoginActivity extends AppCompatActivity {
     private FragmentTransaction fragmentTransaction;
 
     /**
+     * Keep a flag to know when we are at the sign in fragment.<br/>
+     * We use this flag so we will be able to exit the app when user presses back and the current fragment is the sign in fragment.
+     * We would like to let the user press back when the current fragment is the sign up, so a user can modify email/password during
+     * the sign up process.
+     */
+    private boolean isSignInFragment = true;
+
+    /**
      * Use this method when user selects to sign out, so we will clear shared preferences and sign him out of server.<br/>
      * When signing out, we immediately switch to the sign in activity.
      * @param context The context for initializing an intent with.
@@ -121,6 +130,25 @@ public class LoginActivity extends AppCompatActivity {
         fragmentTransaction = fragmentManager.beginTransaction();
         SignInFragment signInFragment = new SignInFragment(userId);
         fragmentTransaction.add(R.id.loginFragmentsFrame, signInFragment).addToBackStack(null).commit();
+        isSignInFragment = true;
+    }
+
+    // Implement onBackPressed so we will not get struggle with sign in / sign up fragments.
+    // When user presses back at the login activity, exit the app.
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        if (isSignInFragment) {
+            // Execute it later, so we will not break the event handling.
+            new Handler().post(() -> {
+                ExitActivity.exit(LoginActivity.this.getApplicationContext());
+                LoginActivity.this.finish();
+            });
+        } else {
+            // Turn the flag on cause we were back from SignUpFragment
+            isSignInFragment = true;
+        }
     }
 
     /**
@@ -132,6 +160,7 @@ public class LoginActivity extends AppCompatActivity {
         fragmentTransaction = fragmentManager.beginTransaction();
         SignUpFragment signUpFragment = new SignUpFragment(userName, password);
         fragmentTransaction.replace(R.id.loginFragmentsFrame, signUpFragment).addToBackStack(null).commit();
+        isSignInFragment = false;
     }
 
     /**
@@ -143,6 +172,7 @@ public class LoginActivity extends AppCompatActivity {
         fragmentTransaction = fragmentManager.beginTransaction();
         SignInFragment signInFragment = new SignInFragment();
         fragmentTransaction.replace(R.id.loginFragmentsFrame, signInFragment).addToBackStack(null).commit();
+        isSignInFragment = true;
     }
 
     /**

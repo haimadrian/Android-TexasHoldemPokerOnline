@@ -92,9 +92,11 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
         button = view.findViewById(R.id.goButton);
         link = view.findViewById(R.id.navigationLink);
 
-        setEnabledToButtons(false);
-
-        viewModel = new ViewModelProvider(this, new LoginViewModelFactory(getString(getGoActionErrorMessage()))).get(getViewModelClass());
+        // I commented this shit out cause when we switch to SignUpFragment and then user presses back, the observers are cleared
+        // so we do not get notified upon text changes. So instead of the cache of ViewModelProvider, just create a new view model and
+        // release us of this shit
+        //viewModel = new ViewModelProvider(getActivity(), new LoginViewModelFactory()).get(getViewModelClass());
+        viewModel = new LoginViewModelFactory().create(getViewModelClass());
 
         // Update login view model with every data modification, so we can respond to user input
         // immediately and check if there is something wrong with the input.
@@ -122,11 +124,6 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      * @return The tag to use while logging
      */
     protected abstract String getLogTag();
-
-    /**
-     * @return The resource identifier of a message to be used when there is something wrong while executing "Go" action (sign-in, sign-up)
-     */
-    protected abstract int getGoActionErrorMessage();
 
     /**
      * @return The view model class so we will pass it to a view model provider, for getting an instance of that class
@@ -211,6 +208,7 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      */
     private void onFormStateChanged(LoginFormState loginFormState) {
         if (loginFormState == null) {
+            setEnabledToButtons(false);
             return;
         }
 
@@ -233,6 +231,7 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
         loadingProgressBar.setVisibility(View.GONE);
 
         if (loginResult == null) {
+            setEnabledToButtons(false);
             return;
         }
 
@@ -250,7 +249,9 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      * @param errorMessage The error message to display
      */
     private void showLoginFailed(String errorMessage) {
-        setEnabledToButtons(true);
+        // In order to update buttons enabled state, raise fictive form data changed event, to validate input
+        viewModel.onFormDataChanged(topEditText.getText().toString(), bottomEditTxt.getText().toString());
+
         if (getContext() != null && getContext().getApplicationContext() != null) {
             Toast.makeText(getContext().getApplicationContext(), errorMessage, Toast.LENGTH_LONG).show();
         }
@@ -260,7 +261,7 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      * Enable or disable the sign in button and the sign up link
      * @param isEnabled Whether to enable or disable them
      */
-    private void setEnabledToButtons(boolean isEnabled) {
+    protected void setEnabledToButtons(boolean isEnabled) {
         button.setEnabled(isEnabled);
         link.setEnabled(isEnabled);
     }
@@ -271,20 +272,13 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      * We use this mechanism for updating UI components based on model actions (sign in / sign up)
      */
     private class LoginViewModelFactory implements ViewModelProvider.Factory {
-        private final String loginFailedMessage;
-
-        public LoginViewModelFactory(String loginFailedMessage) {
-            this.loginFailedMessage = loginFailedMessage;
-        }
-
         @SuppressWarnings("unchecked")
         @NonNull
         @Override
         public <TT extends ViewModel> TT create(@NonNull Class<TT> modelClass) {
             try {
-                Constructor<TT> ctor = modelClass.getDeclaredConstructor(UserService.class, String.class, LifecycleOwner.class, Observer.class, Observer.class);
+                Constructor<TT> ctor = modelClass.getDeclaredConstructor(UserService.class, LifecycleOwner.class, Observer.class, Observer.class);
                 return ctor.newInstance(TexasHoldemWebService.getInstance().getUserService(),
-                        loginFailedMessage,
                         getViewLifecycleOwner(),
                         (Observer<LoginFormState>) AbstractSignInFragment.this::onFormStateChanged,
                         (Observer<LoginResult>) AbstractSignInFragment.this::onCompleted);
@@ -293,7 +287,6 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
             }
 
             return (TT) new SignInViewModel(TexasHoldemWebService.getInstance().getUserService(),
-                    loginFailedMessage,
                     getViewLifecycleOwner(),
                     AbstractSignInFragment.this::onFormStateChanged,
                     AbstractSignInFragment.this::onCompleted);

@@ -35,15 +35,18 @@ public class TexasHoldemServerMain {
         configureLog4j2();
         redirectStreamsToLog4j();
         log = LogManager.getLogger(TexasHoldemServerMain.class);
+        log.info("Log was initialized");
     }
 
     public static void main(String[] args) {
+        log.info("Enter Main");
         SpringApplicationBuilder builder = new SpringApplicationBuilder(TexasHoldemServerMain.class);
         builder.headless(false); // So we will be able to use AWT (TrayIcon)
         applicationContext = builder.run(args);
 
         showTrayIcon();
         Runtime.getRuntime().addShutdownHook(new Thread(TexasHoldemServerMain::shutdown, "ServerShutdownThread"));
+        log.info("Exit Main");
     }
 
     private static void configureLog4j2() {

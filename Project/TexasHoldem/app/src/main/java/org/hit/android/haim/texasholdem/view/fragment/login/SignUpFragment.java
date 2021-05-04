@@ -38,11 +38,6 @@ public class SignUpFragment extends AbstractSignInFragment<SignUpViewModel> {
     }
 
     @Override
-    protected int getGoActionErrorMessage() {
-        return R.string.sign_up_failed;
-    }
-
-    @Override
     protected Class<SignUpViewModel> getViewModelClass() {
         return SignUpViewModel.class;
     }

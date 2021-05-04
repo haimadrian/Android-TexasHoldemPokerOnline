@@ -32,22 +32,19 @@ public class SignInViewModel extends AbstractSignInViewModel {
     /**
      * Constructs a new {@link SignInViewModel}
      * @param userService A reference to {@link UserService} so we will be able to sign in
-     * @param loginFailedMessage error message to use when login fails
      * @param listenerOwner The LifeCycle owner which controls the observer
      * @param formStateListener A listener to be notified upon form state changes
      * @param loginListener A listener to be notified upon login responses (success/failure)
      */
     public SignInViewModel(@NonNull UserService userService,
-                           @NonNull String loginFailedMessage,
                            @Nullable LifecycleOwner listenerOwner,
                            @Nullable Observer<? super LoginFormState> formStateListener,
                            @Nullable Observer<? super LoginResult> loginListener) {
-        super(userService, loginFailedMessage, listenerOwner, formStateListener, loginListener);
+        super(userService, listenerOwner, formStateListener, loginListener);
     }
 
     @Override
     public void onFormDataChanged(@Nullable String username, @Nullable String password) {
-        Log.d("SignIn", this.toString() + ": Login data changed. [username=" + username + "]");
         if (!isUserNameValid(username)) {
             formStateNotifier.setValue(LoginFormState.builder().topEditTextError(R.string.invalid_username).build());
         } else if (!isPasswordValid(password)) {
@@ -76,12 +73,8 @@ public class SignInViewModel extends AbstractSignInViewModel {
                 LoginResult loginResult = null;
 
                 if (!response.isSuccessful()) {
-                    try {
-                        loginResult = LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + response.errorBody().string()).build();
-                    } catch (IOException e) {
-                        Log.w("SignIn", "Error has occurred while reading response error as string: " + e);
-                        loginResult = LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + response.message()).build();
-                    }
+                    String errorMessage = TexasHoldemWebService.getInstance().readHttpErrorResponse(response);
+                    loginResult = LoginResult.builder().errorMessage(errorMessage).build();
                 } else {
                     JsonNode body = response.body();
                     try {
@@ -92,11 +85,11 @@ public class SignInViewModel extends AbstractSignInViewModel {
                             fastLogin(user.getId());
                         } else {
                             Log.e("SignIn", "Server has not responded with a valid JWT token");
-                            loginResult = LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: Server returned invalid token").build();
+                            loginResult = LoginResult.builder().errorMessage("Server returned invalid token").build();
                         }
                     } catch (IOException e) {
                         Log.e("SignIn", "Failed parsing response. Response was: " + body, e);
-                        loginResult = LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + e.getMessage()).build();
+                        loginResult = LoginResult.builder().errorMessage(e.getMessage()).build();
                     }
                 }
 
@@ -109,7 +102,7 @@ public class SignInViewModel extends AbstractSignInViewModel {
             @EverythingIsNonNull
             public void onFailure(Call<JsonNode> call, Throwable t) {
                 Log.d("SignIn", "Error has occurred while trying to sign in: " + t.getMessage());
-                loginResultNotifier.setValue(LoginResult.builder().errorMessage(loginFailedMessage + ". Reason: " + t.getMessage()).build());
+                loginResultNotifier.setValue(LoginResult.builder().errorMessage(t.getMessage()).build());
             }
         });
     }
