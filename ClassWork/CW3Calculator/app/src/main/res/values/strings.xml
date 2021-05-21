@@ -34,6 +34,10 @@
     <string name="login">Login</string>
     <string name="exit">Exit</string>
     <string name="android1_calculator">Android1 Calculator</string>
-    <string name="username">Username</string>
+    <string name="email">Email</string>
     <string name="password">Password</string>
+    <string name="display_name">Display name</string>
+    <string name="date_of_birth">Date of birth</string>
+    <string name="sign_up">SIGN UP</string>
+    <string name="sign_in">SIGN IN</string>
 </resources>

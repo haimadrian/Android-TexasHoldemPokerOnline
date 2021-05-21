@@ -3,11 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background_design"
     android:layout_gravity="center"
+    android:background="@drawable/background_design"
     android:gravity="center_vertical"
     android:orientation="vertical"
-    tools:context=".activities.LoginActivity">
+    tools:context="org.hit.android.haim.calc.activities.LoginActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,22 +18,21 @@
         tools:ignore="UselessParent">
 
         <EditText
-            android:id="@+id/userNameEditText"
+            android:id="@+id/userEmailEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
             android:layout_marginEnd="32dp"
             android:layout_marginBottom="5dp"
-            android:autofillHints="Username"
+            android:autofillHints="Email"
             android:background="@drawable/design_edit_text"
-            android:drawableStart="@drawable/design_username_edit_text"
+            android:drawableStart="@drawable/design_email_edit_text"
             android:drawablePadding="10dp"
-            android:hint="@string/username"
-            android:inputType="textPersonName"
+            android:hint="@string/email"
+            android:inputType="textEmailAddress"
             android:padding="10dp"
             android:selectAllOnFocus="true"
             android:textColor="@color/black"
-            android:textColorHint="@color/material_on_primary_emphasis_medium"
             android:textSize="18sp" />
 
         <EditText
@@ -55,8 +54,60 @@
             android:padding="10dp"
             android:selectAllOnFocus="true"
             android:textColor="@color/black"
-            android:textColorHint="@color/material_on_primary_emphasis_medium"
             android:textSize="18sp" />
+
+        <FrameLayout
+            android:id="@+id/signUpFragmentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/userDisplayNameEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginBottom="5dp"
+                    android:autofillHints="PersonName"
+                    android:background="@drawable/design_edit_text"
+                    android:drawableStart="@drawable/design_displayname_edit_text"
+                    android:drawablePadding="10dp"
+                    android:hint="@string/display_name"
+                    android:inputType="textPersonName"
+                    android:padding="10dp"
+                    android:selectAllOnFocus="true"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+
+                <EditText
+                    android:id="@+id/userDateOfBirthEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:autofillHints="DateOfBirth"
+                    android:background="@drawable/design_edit_text"
+                    android:drawableStart="@drawable/design_dateofbirth_edit_text"
+                    android:drawablePadding="10dp"
+                    android:hint="@string/date_of_birth"
+                    android:inputType="date"
+                    android:padding="10dp"
+                    android:selectAllOnFocus="true"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+
+            </LinearLayout>
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -74,7 +125,7 @@
                 android:gravity="center"
                 android:onClick="onSignInClicked"
                 android:padding="10dp"
-                android:text="Sign In"
+                android:text="@string/sign_in"
                 android:textColor="@color/white"
                 android:textSize="24sp" />
 
@@ -82,9 +133,11 @@
                 android:id="@+id/navigationLink"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_marginEnd="86dp"
                 android:clickable="true"
+                android:focusable="true"
                 android:gravity="center"
+                android:onClick="onSignUpClicked"
+                android:text="@string/sign_up"
                 android:textColor="#1565C0"
                 android:textSize="24sp" />
         </LinearLayout>

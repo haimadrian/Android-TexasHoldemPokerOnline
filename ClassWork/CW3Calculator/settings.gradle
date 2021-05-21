@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name = "CW3-Calculator"
+rootProject.name = "Calculator"

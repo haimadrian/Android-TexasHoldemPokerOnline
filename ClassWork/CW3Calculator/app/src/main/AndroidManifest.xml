@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.calc">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="org.hit.android.haim.calc">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -11,9 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="false"
         android:theme="@style/Theme.CW3Calculator">
-        <activity android:name=".activities.LoginActivity">
+        <activity android:name="org.hit.android.haim.calc.activities.LoginActivity">
         </activity>
-        <activity android:name=".activities.MainActivity">
+        <activity android:name="org.hit.android.haim.calc.activities.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

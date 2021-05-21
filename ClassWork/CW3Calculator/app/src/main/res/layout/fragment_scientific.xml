@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    tools:context=".fragments.FragmentScientific">
+    tools:context="org.hit.android.haim.calc.fragments.FragmentScientific">
 
     <LinearLayout
         android:layout_width="match_parent"

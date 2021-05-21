@@ -15,7 +15,7 @@
     android:paddingStart="4dp"
     android:paddingEnd="4dp"
     android:elevation="5dp"
-    tools:context=".activities.MainActivity">
+    tools:context="org.hit.android.haim.calc.activities.MainActivity">
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/userImage"
