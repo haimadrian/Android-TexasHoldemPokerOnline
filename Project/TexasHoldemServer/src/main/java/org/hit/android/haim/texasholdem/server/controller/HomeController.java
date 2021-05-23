@@ -6,8 +6,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * @author Haim Adrian
@@ -15,38 +20,23 @@ import java.util.Arrays;
  */
 @Controller
 public class HomeController {
-    public static final String HTML_PAGE = "<!DOCTYPE html>\n" +
-        "<html lang=\"en\">\n" +
-        "<style>\n" +
-        "    html, body {\n" +
-        "        min-height: 100%;\n" +
-        "        min-width: 100%;\n" +
-        "        height: 100%;\n" +
-        "        width: 100%;\n" +
-        "        padding: 0;\n" +
-        "        margin: 0;\n" +
-        "    }\n" +
-        "\n" +
-        "    div {\n" +
-        "        height: 100%;\n" +
-        "        background: linear-gradient(rgb(0, 148, 245), rgb(12, 45, 85), rgb(0, 148, 245));\n" +
-        "        padding-top: 10px;\n" +
-        "        padding-bottom: 10px;\n" +
-        "        padding-left: 30px;\n" +
-        "    }\n" +
-        "</style>\n" +
-        "<body style=\"color:white\">\n" +
-        "<div>\n" +
-        "    <h1>Welcome to Texas Holdem Server</h1>\n" +
-        "    <font size=\"+2\">##<br/>\n" +
-        "    Meanwhile, enjoy:</font>\n" +
-        "    <p style=\"text-align:center\"><iframe width=\"1080\" height=\"600\" src=\"https://www.youtube.com/embed/CgvhpvOHPFo?playlist=CgvhpvOHPFo&ab_channel=skaatharel&autoplay=1&loop=1\"></iframe></p>\n" +
-        "    <font size=\"+1\">Teacher: Effi Profus the King<br/>\n" +
-        "        Student: Haim Adrian the Carpenter<br/>\n" +
-        "        &#169; Haim Adrian, HIT, Android1 2021 &#169;</font>\n" +
-        "</div>\n" +
-        "</body>\n" +
-        "</html>\n";
+    public static final String HTML_PAGE;
+
+    static {
+        String content;
+        try {
+            InputStream resourceAsStream = HomeController.class.getClassLoader().getResourceAsStream("templates/index.html");
+            if (resourceAsStream != null) {
+                content = new BufferedReader(new InputStreamReader(resourceAsStream, StandardCharsets.UTF_8)).lines().collect(Collectors.joining("\n"));
+            } else {
+                content = "##";
+            }
+        } catch (Exception e) {
+            content = "##";
+        }
+
+        HTML_PAGE = content;
+    }
 
     @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody

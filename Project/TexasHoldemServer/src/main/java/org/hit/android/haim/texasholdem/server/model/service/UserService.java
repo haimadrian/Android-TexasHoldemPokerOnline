@@ -12,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
@@ -22,7 +23,7 @@ import java.util.Optional;
  * @author Haim Adrian
  * @since 21-Mar-21
  */
-@Component
+@Service
 public class UserService implements UserDetailsService {
     @Autowired
     private UserRepository userRepository;

@@ -16,10 +16,9 @@ import java.io.PrintStream;
 
 /**
  * @author Haim Adrian
- * @see org.hit.android.haim.chat.server.controller.UserController
- * @see org.hit.android.haim.chat.server.controller.ChannelController
- * @see org.hit.android.haim.chat.server.controller.MessageController
  * @since 14-Apr-21
+ * @see org.hit.android.haim.texasholdem.server.controller.UserController
+ * @see org.hit.android.haim.texasholdem.server.controller.MessageController
  */
 @SpringBootApplication
 public class TexasHoldemServerMain {

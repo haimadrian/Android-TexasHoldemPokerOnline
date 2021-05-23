@@ -60,7 +60,6 @@ public class UserImpl implements User {
      * See {@link User#getCoins()}
      */
     @Getter
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private long coins;
 
     /**
