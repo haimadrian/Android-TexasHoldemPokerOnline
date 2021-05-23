@@ -17,6 +17,10 @@ import org.hit.android.haim.calc.server.CalculatorWebService;
 import org.hit.android.haim.calc.server.Response;
 import org.hit.android.haim.calc.server.User;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
+import java.util.Date;
 import java.util.function.Consumer;
 
 public class LoginActivity extends AppCompatActivity {
@@ -64,9 +68,16 @@ public class LoginActivity extends AppCompatActivity {
 
         if (signUpFrame.getVisibility() == View.VISIBLE) {
             String displayName = displayNameEditText.getText().toString();
-            //String dateOfBirth = dateEditText.getText().toString();
+            String dateOfBirth = dateEditText.getText().toString();
+            Date date = null;
+            try {
+                LocalDate localDate = LocalDate.parse(dateOfBirth);
+                date = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            } catch (DateTimeParseException ignore) {
 
-            CalculatorWebService.getInstance().signUp(new User(email, displayName, null), pwd, new LoginResponseConsumer());
+            }
+
+            CalculatorWebService.getInstance().signUp(new User(email, displayName, date, null), pwd, new LoginResponseConsumer());
         } else {
             CalculatorWebService.getInstance().signIn(email, pwd, new LoginResponseConsumer());
         }

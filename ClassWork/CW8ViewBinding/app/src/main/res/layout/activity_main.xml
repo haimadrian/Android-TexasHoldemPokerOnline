@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.15"
+        app:srcCompat="@drawable/png_clipart_deadpool_marvel_deadpool_illustration" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.87"
+        android:gravity="center"
+        android:textSize="34sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/goButton"
+        style="@style/ButtonBlueStyle"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.85"
+        android:enabled="true"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="Go"
+        android:textColor="@color/white"
+        android:textSize="24sp" />
+
+</LinearLayout>

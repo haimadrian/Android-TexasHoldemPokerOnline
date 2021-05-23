@@ -41,7 +41,7 @@ public class APIServiceSocketImpl implements APIService {
 
     @Override
     public void signIn(String email, String pwd, Consumer<Response> responseConsumer) {
-        user = new User(email, email, null);
+        user = new User(email, email, null, null);
         executeDynamicAction(email + "##" + pwd, ActionType.CONNECT, responseConsumer);
     }
 

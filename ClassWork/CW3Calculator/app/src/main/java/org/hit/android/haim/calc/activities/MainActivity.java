@@ -222,7 +222,10 @@ public class MainActivity extends AppCompatActivity {
             setIsServerMode(getIntent().getBooleanExtra(STORED_SERVER_KEY, false));
             serverSwitch.setChecked(isServer);
 
-            Toast.makeText(this, "Welcome!", Toast.LENGTH_LONG).show();
+            // When it is server mode, we already display a toast at LoginActivity.LoginResponseConsumer
+            if (!isServer) {
+                Toast.makeText(this, "Welcome!", Toast.LENGTH_LONG).show();
+            }
         } else {
             Log.d("Lifecycle", this.toString() + ".onCreate: Restoring saved instance state");
             value = savedInstanceState.getDouble(STORED_VALUE_KEY, 0);
