@@ -14,6 +14,16 @@
         android:layout_weight="0.15"
         app:srcCompat="@drawable/png_clipart_deadpool_marvel_deadpool_illustration" />
 
+    <EditText
+        android:id="@+id/textEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="none"
+        android:longClickable="false"
+        android:focusable="false"
+        android:onClick="onEditTextClick"
+        />
+
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"

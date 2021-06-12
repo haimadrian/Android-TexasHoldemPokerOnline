@@ -2,10 +2,15 @@ package org.hit.android.haim.cw8;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.view.View;
 
 import org.hit.android.haim.cw8.databinding.ActivityMainBinding;
 
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -62,5 +67,26 @@ public class MainActivity extends AppCompatActivity {
                 }
             }, 3000);
         });
+    }
+
+    public void onEditTextClick(View view) {
+        final Calendar cldr = Calendar.getInstance();
+        int currYear = cldr.get(Calendar.YEAR) - 18, currMonth = Month.JANUARY.ordinal(), currDay = 1;
+        String currentDate = binding.textEdit.getText().toString();
+        if (!currentDate.isEmpty()) {
+            LocalDate date = LocalDate.parse(currentDate);
+            currYear = date.getYear();
+            currMonth = date.getMonthValue() - 1;
+            currDay = date.getDayOfMonth();
+        }
+
+        DatePickerDialog picker = new DatePickerDialog(this,
+                R.style.MySpinnerDatePickerStyle,
+                (view1, year, month, day) -> binding.textEdit.setText(LocalDate.of(year, month + 1, day).toString()),
+                currYear,
+                currMonth,
+                currDay);
+        picker.setTitle("Select date of birth");
+        picker.show();
     }
 }
