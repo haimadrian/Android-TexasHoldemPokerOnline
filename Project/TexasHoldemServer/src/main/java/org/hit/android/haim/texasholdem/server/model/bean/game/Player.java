@@ -36,9 +36,9 @@ public class Player {
     private long chips;
 
     /**
-     * Tells whether player is in or out
-     * Players can be out if they fold or went all-in. In case player went all-in, he is still
-     * part of the match, but we will skip him when there are bet rounds.
+     * Tells whether player is in or out.<br/>
+     * Players can be out if they fold only. when a player is going all-in, he is still
+     * part of the match, but we will skip him when there are bet rounds. For this we will check how many chips this player got.
      */
     private boolean isPlaying;
 

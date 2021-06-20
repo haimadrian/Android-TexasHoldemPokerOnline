@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.server.model.service;
 
-import org.hit.android.haim.texasholdem.server.model.GameEngine;
+import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
+import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.server.model.repository.GameRepository;
 import org.hit.android.haim.texasholdem.server.model.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +23,10 @@ public class GameService {
     private UserRepository userRepository;
 
     /**
-     * See {@link GameRepository#createNewGame()}
+     * See {@link GameRepository#createNewGame(GameSettings)}
      */
-    public GameEngine createNewGame() {
-        return gameRepository.createNewGame();
+    public GameEngine createNewGame(GameSettings settings) {
+        return gameRepository.createNewGame(settings);
     }
 
     /**

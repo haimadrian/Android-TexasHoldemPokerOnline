@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.server.model.repository;
 
-import org.hit.android.haim.texasholdem.server.model.GameEngine;
+import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
+import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
 
 import java.util.Map;
 import java.util.Optional;
@@ -26,10 +27,11 @@ public class GameRepository {
 
     /**
      * Create and get a new {@link GameEngine}
+     * @param settings Settings of a game
      * @return the newly created game
      */
-    public GameEngine createNewGame() {
-        GameEngine game = new GameEngine();
+    public GameEngine createNewGame(GameSettings settings) {
+        GameEngine game = new GameEngine(settings);
         games.put(game.getId(), game);
         return game;
     }
@@ -59,7 +61,7 @@ public class GameRepository {
             return Optional.empty();
         }
 
-        existingGame.close();
+        existingGame.stop();
         return Optional.of(existingGame);
     }
 

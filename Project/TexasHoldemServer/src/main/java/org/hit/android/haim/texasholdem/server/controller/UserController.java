@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.server.controller;
 
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
+import org.hit.android.haim.texasholdem.server.model.bean.user.UserDBImpl;
 import org.hit.android.haim.texasholdem.server.model.bean.user.UserImpl;
 import org.hit.android.haim.texasholdem.server.model.service.UserService;
 import org.hit.android.haim.texasholdem.server.security.JwtUtils;
@@ -156,8 +157,7 @@ public class UserController {
             if (userEntity.isEmpty()) {
                 return ResponseEntity.badRequest().body(USER_IS_NOT_SIGNED_UP_BAD_REQUEST);
             } else {
-                userService.updateImage(userEntity.get(), user.getImage());
-                return ResponseEntity.ok(userService.findById(userId).get());
+                return ResponseEntity.ok(userService.updateImage(userEntity.get(), user.getImage()));
             }
         } catch (Throwable t) {
             return ControllerErrorHandler.returnInternalServerError(t);
@@ -178,8 +178,7 @@ public class UserController {
             if (userEntity.isEmpty()) {
                 return ResponseEntity.badRequest().body(USER_IS_NOT_SIGNED_UP_BAD_REQUEST);
             } else {
-                userService.updateCoins(userEntity.get(), user.getCoins());
-                return ResponseEntity.ok(userService.findById(userId).get());
+                return ResponseEntity.ok(userService.updateCoins(userEntity.get(), user.getCoins()));
             }
         } catch (Throwable t) {
             return ControllerErrorHandler.returnInternalServerError(t);

@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -64,9 +63,13 @@ public class UserService implements UserDetailsService {
      * @param user The user to update its amount of coins
      * @param coins The new amount of coins
      */
-    @CacheEvict(value = "userCache", key = "#user.id") // When we save, we want to remove item from cache, in order to have the up to date item in the cache.
-    public void updateCoins(User user, long coins) {
+    @CachePut(value = "userCache", key = "#user.id") // When we save, we want to remove item from cache, in order to have the up to date item in the cache.
+    public User updateCoins(User user, long coins) {
         userRepository.updateCoins(user.getId(), coins);
+
+        UserDBImpl updatedUser = new UserDBImpl(findById(user.getId()).get());
+        updatedUser.setCoins(coins);
+        return updatedUser;
     }
 
     /**
@@ -75,9 +78,13 @@ public class UserService implements UserDetailsService {
      * @param user The user to update its profile picture
      * @param image The image
      */
-    @CacheEvict(value = "userCache", key = "#user.id") // When we save, we want to remove item from cache, in order to have the up to date item in the cache.
-    public void updateImage(User user, byte[] image) {
+    @CachePut(value = "userCache", key = "#user.id") // When we save, we want to remove item from cache, in order to have the up to date item in the cache.
+    public User updateImage(User user, byte[] image) {
         userRepository.updateImage(user.getId(), image);
+
+        UserDBImpl updatedUser = new UserDBImpl(findById(user.getId()).get());
+        updatedUser.setImage(image);
+        return updatedUser;
     }
 
     /**

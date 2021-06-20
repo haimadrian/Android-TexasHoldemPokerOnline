@@ -3,6 +3,7 @@ package org.hit.android.haim.texasholdem.server.model.bean.game;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
  * @since 08-May-21
  */
 @Data
+@ToString(exclude = {"backedBy"})
 public abstract class CardsHolder {
     /**
      * The cards this cards holder have. We access cards by index.<br/>

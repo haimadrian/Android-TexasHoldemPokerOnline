@@ -3,7 +3,7 @@ package org.hit.android.haim.texasholdem.server.model.service;
 import org.apache.logging.log4j.util.Strings;
 import org.hit.android.haim.texasholdem.server.controller.common.Base64;
 import org.hit.android.haim.texasholdem.server.model.bean.chat.Message;
-import org.hit.android.haim.texasholdem.server.model.GameEngine;
+import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
