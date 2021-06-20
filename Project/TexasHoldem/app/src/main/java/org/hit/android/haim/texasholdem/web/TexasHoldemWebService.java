@@ -3,6 +3,8 @@ package org.hit.android.haim.texasholdem.web;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -10,7 +12,6 @@ import org.hit.android.haim.texasholdem.R;
 import org.hit.android.haim.texasholdem.web.services.ChatService;
 import org.hit.android.haim.texasholdem.web.services.GameService;
 import org.hit.android.haim.texasholdem.web.services.UserService;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,13 +38,10 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  * @since 23-Mar-21
  */
 public class TexasHoldemWebService {
-    //private static final String BACKEND_URL = "https://vm-h-ds.westeurope.cloudapp.azure.com:8443";
-    private static final String BACKEND_URL = "https://192.168.115.129:8443";
+    private static final String LOGGER = TexasHoldemWebService.class.getSimpleName();
 
-    /**
-     * The unique instance of this class
-     */
-    private static final TexasHoldemWebService instance = new TexasHoldemWebService();
+    //private static final String BACKEND_URL = "https://vm-h-ds.westeurope.cloudapp.azure.com:8443";
+    private static final String BACKEND_URL = "https://192.168.0.5:8443";
 
     /** @see UserService */
     @Getter
@@ -89,7 +87,7 @@ public class TexasHoldemWebService {
      * @return The unique instance of {@link TexasHoldemWebService}
      */
     public static TexasHoldemWebService getInstance() {
-        return instance;
+        return TexasHoldemWebServiceHolder.INSTANCE;
     }
 
     /**
@@ -109,7 +107,7 @@ public class TexasHoldemWebService {
             try {
                 httpClient = createSecuredHttpClient(context, interceptor);
             } catch (Throwable t) {
-                Log.d("Security", "Error has occurred while trying to add custom trust.", t);
+                Log.d(LOGGER, "Error has occurred while trying to add custom trust.", t);
                 httpClient = new OkHttpClient.Builder()
                         .addInterceptor(interceptor)
                         .addInterceptor(new AuthorizationHeaderInterceptor())
@@ -128,7 +126,7 @@ public class TexasHoldemWebService {
         }
     }
 
-    @NotNull
+    @NonNull
     private OkHttpClient createSecuredHttpClient(Context context, HttpLoggingInterceptor interceptor) throws CertificateException {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
         InputStream serverCert = context.getResources().openRawResource(R.raw.server);
@@ -177,7 +175,7 @@ public class TexasHoldemWebService {
                 }
             }
         } catch (Exception e) {
-            Log.w("Web", "Error has occurred while reading response error as string: " + e);
+            Log.w(LOGGER, "Error has occurred while reading response error as string: " + e);
             errorMessage = response.message();
         }
 
@@ -194,9 +192,9 @@ public class TexasHoldemWebService {
         private static final String AUTH_HEADER = "Authorization";
         private static final String BEARER_FORMAT = "Bearer %s";
 
-        @NotNull
+        @NonNull
         @Override
-        public Response intercept(@NotNull Chain chain) throws IOException {
+        public Response intercept(@NonNull Chain chain) throws IOException {
             Request.Builder requestBuilder  = chain.request().newBuilder();
             if ((jwtToken != null) && !jwtToken.isEmpty()) {
                 requestBuilder.addHeader(AUTH_HEADER, String.format(BEARER_FORMAT, jwtToken));
@@ -204,5 +202,9 @@ public class TexasHoldemWebService {
 
             return chain.proceed(requestBuilder.build());
         }
+    }
+
+    private static class TexasHoldemWebServiceHolder {
+        private static final TexasHoldemWebService INSTANCE = new TexasHoldemWebService();
     }
 }

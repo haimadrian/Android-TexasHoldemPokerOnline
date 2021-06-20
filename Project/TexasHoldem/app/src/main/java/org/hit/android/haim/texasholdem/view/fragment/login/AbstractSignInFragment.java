@@ -4,9 +4,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -16,15 +14,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.databinding.FragmentLoginBinding;
 import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.view.activity.LoginActivity;
+import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;
 import org.hit.android.haim.texasholdem.view.model.login.AbstractSignInViewModel;
 import org.hit.android.haim.texasholdem.view.model.login.LoginFormState;
 import org.hit.android.haim.texasholdem.view.model.login.LoginResult;
@@ -40,57 +39,21 @@ import java.lang.reflect.Constructor;
  * @author Haim Adrian
  * @since 26-Mar-21
  */
-public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> extends Fragment {
+public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> extends ViewBindedFragment<FragmentLoginBinding> {
     /**
      * The view model that derived class works with.<br/>
      * One of {@link org.hit.android.haim.texasholdem.view.model.login.SignInViewModel} or {@link org.hit.android.haim.texasholdem.view.model.login.SignUpViewModel}
      */
     private T viewModel;
 
-    /**
-     * A progress bar to show while working
-     */
-    private ProgressBar loadingProgressBar;
-
-    /**
-     * A reference to the top edit text. (username for sign-in, and nickname for sign-up)
-     */
-    private EditText topEditText;
-
-    /**
-     * A reference to the bottom edit text. (password for sign-in, and birth date for sign-up)
-     */
-    private EditText bottomEditTxt;
-
-    /**
-     * The "Go" button. ("Sign In" or "Sign Up")
-     */
-    private Button button;
-
-    /**
-     * A navigation link to navigate to another fragment. Used by sign-in, and invisible by sign-up)
-     */
-    private TextView link;
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        Log.d(getLogTag(), this.toString() + ": onCreateView");
-        return inflater.inflate(R.layout.fragment_login, container,false);
+    public AbstractSignInFragment() {
+        super(R.layout.fragment_login, FragmentLoginBinding::bind);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         Log.d(getLogTag(), this.toString() + ": onViewCreated");
         super.onViewCreated(view, savedInstanceState);
-
-        topEditText = view.findViewById(R.id.topEditText);
-        bottomEditTxt = view.findViewById(R.id.bottomEditText);
-        loadingProgressBar = view.findViewById(R.id.workProgressBar);
-        button = view.findViewById(R.id.goButton);
-        link = view.findViewById(R.id.navigationLink);
 
         // I commented this shit out cause when we switch to SignUpFragment and then user presses back, the observers are cleared
         // so we do not get notified upon text changes. So instead of the cache of ViewModelProvider, just create a new view model and
@@ -101,11 +64,11 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
         // Update login view model with every data modification, so we can respond to user input
         // immediately and check if there is something wrong with the input.
         TextWatcher afterTextChangedListener = new LoginTextFieldsWatcher();
-        topEditText.addTextChangedListener(afterTextChangedListener);
-        bottomEditTxt.addTextChangedListener(afterTextChangedListener);
+        getTopEditText().addTextChangedListener(afterTextChangedListener);
+        getBottomEditText().addTextChangedListener(afterTextChangedListener);
 
         // Listen to when user presses "Done" button (keyboard)
-        bottomEditTxt.setOnEditorActionListener((textView, actionId, event) -> {
+        getBottomEditText().setOnEditorActionListener((textView, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 doGoActions();
             }
@@ -114,10 +77,10 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
         });
 
         // Listen to the sign in button
-        button.setOnClickListener(v -> doGoActions());
+        getButton().setOnClickListener(v -> doGoActions());
 
         // When user presses sign up, switch to sign up fragment
-        link.setOnClickListener(link -> ((LoginActivity) requireActivity()).navigateToSignUp(topEditText.getText().toString(), bottomEditTxt.getText().toString()));
+        getLink().setOnClickListener(link -> ((LoginActivity) requireActivity()).navigateToSignUp(getTopEditText().getText().toString(), getBottomEditText().getText().toString()));
     }
 
     /**
@@ -158,35 +121,35 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      * @return A reference to the top edit text. (username for sign-in, and nickname for sign-up)
      */
     protected EditText getTopEditText() {
-        return topEditText;
+        return getBinding().topEditText;
     }
 
     /**
      * @return A reference to the bottom edit text. (password for sign-in, and birth date for sign-up)
      */
-    protected EditText getBottomEditTxt() {
-        return bottomEditTxt;
+    protected EditText getBottomEditText() {
+        return getBinding().bottomEditText;
     }
 
     /**
      * @return The "Go" button. ("Sign In" or "Sign Up")
      */
     protected Button getButton() {
-        return button;
+        return getBinding().goButton;
     }
 
     /**
      * @return A navigation link to navigate to another fragment. Used by sign-in, and invisible by sign-up)
      */
     protected TextView getLink() {
-        return link;
+        return getBinding().navigationLink;
     }
 
     /**
      * @return A progress bar to show while working
      */
     protected ProgressBar getLoadingProgressBar() {
-        return loadingProgressBar;
+        return getBinding().workProgressBar;
     }
 
     /**
@@ -196,9 +159,9 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
     private void doGoActions() {
         // Disable buttons until we finish, so user will not flood the server
         setEnabledToButtons(false);
-        loadingProgressBar.setVisibility(View.VISIBLE);
+        getLoadingProgressBar().setVisibility(View.VISIBLE);
 
-        executeGoActions(topEditText.getText().toString(), bottomEditTxt.getText().toString());
+        executeGoActions(getTopEditText().getText().toString(), getBottomEditText().getText().toString());
     }
 
     /**
@@ -215,11 +178,11 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
         setEnabledToButtons(loginFormState.isDataValid());
 
         if (loginFormState.getTopEditTextError() != null) {
-            topEditText.setError(getString(loginFormState.getTopEditTextError()));
+            getTopEditText().setError(getString(loginFormState.getTopEditTextError()));
         }
 
         if (loginFormState.getBottomEditTextError() != null) {
-            bottomEditTxt.setError(getString(loginFormState.getBottomEditTextError()));
+            getBottomEditText().setError(getString(loginFormState.getBottomEditTextError()));
         }
     }
 
@@ -228,7 +191,7 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      * @param loginResult The {@link LoginResult} indicates success or failure
      */
     private void onCompleted(LoginResult loginResult) {
-        loadingProgressBar.setVisibility(View.GONE);
+        getLoadingProgressBar().setVisibility(View.INVISIBLE);
 
         if (loginResult == null) {
             setEnabledToButtons(false);
@@ -250,7 +213,7 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      */
     private void showLoginFailed(String errorMessage) {
         // In order to update buttons enabled state, raise fictive form data changed event, to validate input
-        viewModel.onFormDataChanged(topEditText.getText().toString(), bottomEditTxt.getText().toString());
+        viewModel.onFormDataChanged(getTopEditText().getText().toString(), getBottomEditText().getText().toString());
 
         if (getContext() != null && getContext().getApplicationContext() != null) {
             Toast.makeText(getContext().getApplicationContext(), errorMessage, Toast.LENGTH_LONG).show();
@@ -262,8 +225,8 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
      * @param isEnabled Whether to enable or disable them
      */
     protected void setEnabledToButtons(boolean isEnabled) {
-        button.setEnabled(isEnabled);
-        link.setEnabled(isEnabled);
+        getButton().setEnabled(isEnabled);
+        getLink().setEnabled(isEnabled);
     }
 
     /**
@@ -309,8 +272,8 @@ public abstract class AbstractSignInFragment<T extends AbstractSignInViewModel> 
 
         @Override
         public void afterTextChanged(Editable s) {
-            Log.d(getLogTag(), "After text changed. [topEditText=" + topEditText.getText().toString() + "]");
-            viewModel.onFormDataChanged(topEditText.getText().toString(), bottomEditTxt.getText().toString());
+            Log.d(getLogTag(), "After text changed. [topEditText=" + getTopEditText().getText().toString() + "]");
+            viewModel.onFormDataChanged(getTopEditText().getText().toString(), getBottomEditText().getText().toString());
         }
     }
 }

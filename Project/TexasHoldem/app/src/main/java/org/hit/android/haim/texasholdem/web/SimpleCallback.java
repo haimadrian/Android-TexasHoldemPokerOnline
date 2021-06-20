@@ -14,9 +14,11 @@ import retrofit2.internal.EverythingIsNonNull;
  * @since 01-May-21
  */
 public abstract class SimpleCallback<T> implements Callback<T> {
+    private static final String LOGGER = SimpleCallback.class.getSimpleName();
+
     @Override
     @EverythingIsNonNull
     public void onFailure(Call<T> call, Throwable t) {
-        Log.e("Web", "Error has occurred while sending HTTP request: " + call.request().toString(), t);
+        Log.e(LOGGER, "Error has occurred while sending HTTP request: " + call.request().toString(), t);
     }
 }

@@ -21,6 +21,8 @@ import java.time.format.DateTimeParseException;
  * @since 26-Mar-21
  */
 public class SignUpViewModel extends AbstractSignInViewModel {
+    private static final String LOGGER = SignUpViewModel.class.getSimpleName();
+
     /**
      * Constructs a new {@link SignUpViewModel}
      * @param userService A reference to {@link UserService} so we will be able to sign up
@@ -56,7 +58,7 @@ public class SignUpViewModel extends AbstractSignInViewModel {
      * @param dateOfBirth Birth date to use
      */
     public void signUp(@NonNull String username, @NonNull String password, @NonNull String nickname, @NonNull String dateOfBirth) {
-        Log.d("SignUp", this.toString() + ": Signing up user to server. [username=" + username + "]");
+        Log.d(LOGGER, this.toString() + ": Signing up user to server. [username=" + username + "]");
 
         if (!isDateOfBirthValid(dateOfBirth)) {
             loginResultNotifier.setValue(LoginResult.builder().errorMessage("Illegal date format. (Use yyyy-MM-dd)").build());

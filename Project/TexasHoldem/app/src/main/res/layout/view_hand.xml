@@ -1,0 +1,38 @@
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <ImageView
+        android:id="@+id/dealer"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_weight="0.8"
+        android:padding="2dp"
+        android:src="@drawable/dealer" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.2"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/firstCard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:src="@drawable/pack" />
+
+        <ImageView
+            android:id="@+id/secondCard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="-60dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="6dp"
+            android:rotation="14"
+            android:src="@drawable/pack" />
+    </LinearLayout>
+
+</merge>

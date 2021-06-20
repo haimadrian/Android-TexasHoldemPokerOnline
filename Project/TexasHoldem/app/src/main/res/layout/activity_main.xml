@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/background"
     android:fitsSystemWindows="true"
-    android:theme="@style/Theme.TexasHoldem"
     tools:openDrawer="start">
 
     <fragment

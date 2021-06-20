@@ -1,49 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".view.fragment.AboutFragment">
 
-    <TextView
-        android:id="@+id/textAboutCaption"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:gravity="center_horizontal"
-        android:text="@string/nav_header_desc"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="36sp"
-        android:textStyle="bold" />
+        android:layout_gravity="center"
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textAboutBy"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:gravity="center_horizontal"
-        android:text="@string/by_haim_adrian"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="24sp" />
+        <TextView
+            android:id="@+id/textAboutCaption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:shadowColor="#FFFFFF"
+            android:shadowDx="4.0"
+            android:shadowDy="4.0"
+            android:shadowRadius="5.0"
+            android:text="@string/nav_header_desc"
+            android:textAlignment="center"
+            android:textSize="52sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textAboutBy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:shadowColor="#FFFFFF"
+            android:shadowDx="2.0"
+            android:shadowDy="2.0"
+            android:shadowRadius="4.0"
+            android:text="@string/by_haim_adrian"
+            android:textAlignment="center"
+            android:textSize="24sp" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/textAboutContent2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
         android:gravity="start"
         android:paddingHorizontal="10dp"
         android:text="@string/about_content"
         android:textAlignment="viewStart"
         android:textColor="@color/white"
-        android:textSize="24sp" />
+        android:textSize="20sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:paddingHorizontal="10dp">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/icon" />
+
+        <TextView
+            android:id="@+id/textViewGithubLink"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:layout_marginLeft="32dp"
+            android:clickable="true"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            android:text="@string/texas_holdem_poker"
+            android:textColor="@color/light_blue_A400"
+            android:textSize="16sp"
+            app:drawableLeftCompat="@drawable/github_24" />
+    </LinearLayout>
 </LinearLayout>

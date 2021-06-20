@@ -2,14 +2,20 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_enabled="true">
         <shape android:shape="rectangle">
-            <gradient android:centerColor="@color/green_button_center_color" android:endColor="@color/green_button_end_color" android:gradientRadius="50dp" android:startColor="@color/green_button_start_color" android:type="radial" />
+            <gradient android:angle="90"
+                android:centerColor="@color/green_button_center_color"
+                android:endColor="@color/green_button_end_color"
+                android:startColor="@color/green_button_start_color" />
             <corners android:radius="6dp" />
             <stroke android:width="2dp" android:color="@color/green_button_stroke" />
         </shape>
     </item>
     <item android:state_enabled="false">
         <shape android:shape="rectangle">
-            <gradient android:centerColor="@color/gray_button_center_color" android:endColor="@color/gray_button_end_color" android:gradientRadius="50dp" android:startColor="@color/gray_button_start_color" android:type="radial" />
+            <gradient android:angle="90"
+                android:centerColor="@color/gray_button_center_color"
+                android:endColor="@color/gray_button_end_color"
+                android:startColor="@color/gray_button_start_color" />
             <corners android:radius="6dp" />
             <stroke android:width="2dp" android:color="@color/gray_button_stroke" />
         </shape>

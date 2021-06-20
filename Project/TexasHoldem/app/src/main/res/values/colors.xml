@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#BB86FC</color>
-    <color name="purple_500">#6200EE</color>
-    <color name="purple_700">#3700B3</color>
-    <color name="teal_200">#03DAC5</color>
-    <color name="teal_700">#018786</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
+    <color name="light_blue">#C7EEFF</color>
     <color name="light_blue_600">#039BE5</color>
     <color name="light_blue_900">#01579B</color>
     <color name="light_blue_A200">#40C4FF</color>
@@ -15,6 +11,7 @@
     <color name="light_blue_400">#29B6F6</color>
     <color name="gray_400">#BDBDBD</color>
     <color name="gray_600">#757575</color>
+    <color name="dark_gray">#CC43454A</color>
     <color name="edit_text_tint_focused_color">@android:color/holo_green_dark</color>
     <color name="edit_text_tint_color">@android:color/darker_gray</color>
     <color name="gray_button_stroke">#D9D9D9</color>
@@ -22,9 +19,12 @@
     <color name="gray_button_center_color">@color/gray_600</color>
     <color name="gray_button_end_color">@android:color/darker_gray</color>
     <color name="green_button_stroke">#EBFBDF</color>
+    <color name="green_button_no_border_start_color">@android:color/holo_green_dark</color>
+    <color name="green_button_no_border_center_color">#3F5E00</color>
+    <color name="green_button_no_border_end_color">@android:color/holo_green_dark</color>
     <color name="green_button_start_color">#0EA100</color>
-    <color name="green_button_center_color">#009000</color>
-    <color name="green_button_end_color">#006000</color>
+    <color name="green_button_center_color">#006000</color>
+    <color name="green_button_end_color">#0EA100</color>
     <color name="red_button_stroke">#FBDFDF</color>
     <color name="red_button_start_color">#F50008</color>
     <color name="red_button_center_color">#550C12</color>

@@ -1,26 +1,34 @@
 package org.hit.android.haim.texasholdem.view.fragment;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.databinding.FragmentAboutBinding;
 
 /**
  * @author Haim Adrian
  * @since 27-Mar-21
  */
-public class AboutFragment extends Fragment {
+public class AboutFragment extends ViewBindedFragment<FragmentAboutBinding> {
+    private static final String LOGGER = AboutFragment.class.getSimpleName();
+
+    public AboutFragment() {
+        super(R.layout.fragment_about, FragmentAboutBinding::bind);
+    }
+
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_about, container, false);
-        final TextView textView = root.findViewById(R.id.textAboutCaption);
-        return root;
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        getBinding().textViewGithubLink.setOnClickListener(v -> {
+            Log.d(LOGGER, "Navigating to GitHub");
+            Uri uriUrl = Uri.parse("https://github.com/haimadrian/Android1/tree/main/Project");
+            Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+            startActivity(launchBrowser);
+        });
     }
 }

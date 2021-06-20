@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -13,10 +14,10 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.TexasHoldem.NoActionBar">
         <activity
-            android:name=".view.activity.LoginActivity"
+            android:name=".view.activity.SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
-            android:theme="@style/Theme.TexasHoldem.NoActionBar">
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,14 +25,22 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".view.activity.LoginActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/app_name"/>
+        <activity
             android:name=".view.activity.MainActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.TexasHoldem.NoActionBar" />
+            android:label="@string/app_name" />
         <activity
             android:name=".view.activity.ExitActivity"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.TexasHoldem.NoActionBar" />
+            android:label="@string/app_name" />
+        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"/>
+
+        <service
+            android:name=".view.GameService"
+            android:enabled="true" />
 
     </application>
 

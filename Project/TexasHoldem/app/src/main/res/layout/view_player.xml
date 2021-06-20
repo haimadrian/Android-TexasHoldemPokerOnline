@@ -2,12 +2,29 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/playerImageView"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_weight="1"
-        android:src="@drawable/user" />
+    <FrameLayout
+        android:layout_width="62dp"
+        android:layout_height="62dp"
+        android:layout_weight="1">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/playerImageView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/user"
+            android:layout_gravity="center"/>
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="62dp"
+            android:layout_height="62dp"
+            android:background="@drawable/circle_shape"
+            android:indeterminate="false"
+            android:max="100"
+            android:progress="65"
+            android:progressDrawable="@drawable/circular_progress_bar" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="80dp"
@@ -20,6 +37,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:paddingTop="1dp"
+            android:text="@string/player_name"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textColor="@color/white"
             android:textSize="14sp" />
@@ -48,6 +66,7 @@
                 android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:paddingStart="8dp"
+                android:text="@string/zero"
                 android:textColor="@color/white"
                 android:textSize="12sp" />
         </LinearLayout>

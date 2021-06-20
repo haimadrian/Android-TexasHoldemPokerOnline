@@ -1,4 +1,4 @@
-package org.hit.android.haim.texasholdem.server.model;
+package org.hit.android.haim.texasholdem.server.model.game;
 
 import org.hit.android.haim.texasholdem.server.model.bean.game.Board;
 import org.hit.android.haim.texasholdem.server.model.bean.game.Card;

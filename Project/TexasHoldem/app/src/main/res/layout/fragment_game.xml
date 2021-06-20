@@ -18,8 +18,185 @@
         android:paddingHorizontal="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <org.hit.android.haim.texasholdem.view.custom.HandView
+            android:id="@+id/hand0"
+            android:layout_width="wrap_content"
+            android:layout_height="64dp"
+            app:dealerPosition="right"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.862"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.289" />
+
+        <org.hit.android.haim.texasholdem.view.custom.HandView
+            android:id="@+id/hand1"
+            android:layout_width="wrap_content"
+            android:layout_height="64dp"
+            app:dealerPosition="right"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.9"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.593" />
+
+        <org.hit.android.haim.texasholdem.view.custom.HandView
+            android:id="@+id/hand2"
+            android:layout_width="96dp"
+            android:layout_height="90dp"
+            app:dealerPosition="bottom"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.739"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.85" />
+
+        <org.hit.android.haim.texasholdem.view.custom.HandView
+            android:id="@+id/hand3"
+            android:layout_width="96dp"
+            android:layout_height="90dp"
+            app:dealerPosition="bottom"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.49"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.82" />
+
+        <org.hit.android.haim.texasholdem.view.custom.HandView
+            android:id="@+id/hand4"
+            android:layout_width="96dp"
+            android:layout_height="90dp"
+            app:dealerPosition="bottom"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.259"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.85" />
+
+        <org.hit.android.haim.texasholdem.view.custom.HandView
+            android:id="@+id/hand5"
+            android:layout_width="wrap_content"
+            android:layout_height="64dp"
+            app:dealerPosition="left"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.095"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.593" />
+
+        <org.hit.android.haim.texasholdem.view.custom.HandView
+            android:id="@+id/hand6"
+            android:layout_width="wrap_content"
+            android:layout_height="64dp"
+            app:dealerPosition="left"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.133"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.289" />
+
+        <TextView
+            android:id="@+id/player0bet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zero"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.7"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.26999998" />
+
+        <TextView
+            android:id="@+id/player1bet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zero"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.74"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.52" />
+
+        <TextView
+            android:id="@+id/player2bet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zero"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.66"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.61" />
+
+        <TextView
+            android:id="@+id/player3bet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zero"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.45"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.6" />
+
+        <TextView
+            android:id="@+id/player4bet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zero"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.35"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.7" />
+
+        <TextView
+            android:id="@+id/player5bet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zero"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.24"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.55" />
+
+        <TextView
+            android:id="@+id/player6bet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/zero"
+            android:textColor="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.27"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.26999998" />
 
         <org.hit.android.haim.texasholdem.view.custom.PlayerView
             android:id="@+id/player0"
@@ -27,10 +204,10 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.93"
+            app:layout_constraintHorizontal_bias="0.933"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.07999998"
+            app:layout_constraintVertical_bias="0.037"
             app:reverse="true" />
 
         <org.hit.android.haim.texasholdem.view.custom.PlayerView
@@ -39,10 +216,10 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.96"
+            app:layout_constraintHorizontal_bias="0.965"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.79" />
+            app:layout_constraintVertical_bias="0.825" />
 
         <org.hit.android.haim.texasholdem.view.custom.PlayerView
             android:id="@+id/player3"
@@ -50,10 +227,10 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.57"
+            app:layout_constraintHorizontal_bias="0.582"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.98"
+            app:layout_constraintVertical_bias="0.99"
             app:orientation="horizontal" />
 
         <org.hit.android.haim.texasholdem.view.custom.PlayerView
@@ -62,10 +239,10 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.04"
+            app:layout_constraintHorizontal_bias="0.035"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.78" />
+            app:layout_constraintVertical_bias="0.825" />
 
         <org.hit.android.haim.texasholdem.view.custom.PlayerView
             android:id="@+id/player6"
@@ -73,10 +250,10 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.07"
+            app:layout_constraintHorizontal_bias="0.065"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.07999998"
+            app:layout_constraintVertical_bias="0.037"
             app:reverse="true" />
 
         <LinearLayout
@@ -89,10 +266,10 @@
             android:layout_marginBottom="130dp"
             android:gravity="center"
             android:orientation="horizontal"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/card0"
@@ -144,10 +321,10 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="@+id/buttonCheck"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.76"
+        app:layout_constraintHorizontal_bias="0.755"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.96" />
+        app:layout_constraintVertical_bias="0.985" />
 
     <org.hit.android.haim.texasholdem.view.custom.PlayerView
         android:id="@+id/player4"
@@ -158,7 +335,7 @@
         app:layout_constraintHorizontal_bias="0.24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.96" />
+        app:layout_constraintVertical_bias="0.985" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonRaise"
@@ -200,25 +377,42 @@
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonChat"
-        style="@style/ButtonYellowStyle"
-        android:layout_width="50dp"
+        style="@style/ButtonYellowLeftStyle"
+        android:layout_width="46dp"
         android:layout_height="40dp"
-        android:textSize="14sp"
-        android:text="@string/chat"
+        android:drawableStart="@drawable/ic_twotone_message_32"
+        android:drawablePadding="10dp"
+        android:padding="6dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.84000003" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/buttonLog"
+        style="@style/ButtonGreenRightStyle"
+        android:layout_width="46dp"
+        android:layout_height="40dp"
+        android:drawableStart="@drawable/ic_twotone_history_edu_32"
+        android:drawablePadding="10dp"
+        android:padding="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/buttonChat"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.84000003" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonQuit"
-        style="@style/ButtonRedStyle"
-        android:layout_width="50dp"
+        android:background="@android:color/transparent"
+        android:layout_width="40dp"
         android:layout_height="40dp"
-        android:textSize="14sp"
-        android:text="@string/quit"
+        android:drawableStart="@drawable/ic_twotone_close_32"
+        android:drawablePadding="10dp"
+        android:padding="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"

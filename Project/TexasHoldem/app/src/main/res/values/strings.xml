@@ -40,8 +40,9 @@
     <string name="action_fold">Fold</string>
 
     <!-- About fragment. The &#160; is used as space. Otherwise whitespace characters are trimmed -->
-    <string name="by_haim_adrian">&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;By Haim Adrian</string>
-    <string name="about_content">This application has been developed as a final project of Android1 course.\nTeacher: Efi Profus\nCollege: Holon Institute of Technology\nVersion: 1.0.0</string>
+    <string name="by_haim_adrian">By Haim Adrian</string>
+    <string name="about_content">This application has been developed as a final project of Android1 course.\nTeacher:\u0009\u0009Efi Profus the King\nStudent:\u0009\u0009Haim Adrian the Carpenter\nCollege:\u0009\u0009\u0009Holon Institute of Technology\nVersion:\u0009\u0009\u00091.0.0</string>
+    <string name="texas_holdem_poker">Texas Holdem Poker</string>
 
     <!-- Play against AI -->
     <string name="amount_of_bots">Amount of bots</string>
@@ -56,4 +57,11 @@
     <string name="raise">RAISE</string>
     <string name="quit">QUIT</string>
     <string name="chat">CHAT</string>
+    <string name="log">LOG</string>
+    <string name="player_name">Player</string>
+    <string name="zero">0</string>
+
+    <!-- Chat -->
+    <string name="write_something">Write something…</string>
+    <string name="participants">Participants: %d</string>
 </resources>

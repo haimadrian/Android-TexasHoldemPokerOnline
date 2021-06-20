@@ -1,4 +1,4 @@
-package org.hit.android.haim.texasholdem.server.model;
+package org.hit.android.haim.texasholdem.server.model.game;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +16,10 @@ import java.util.stream.Collectors;
  * @since 09-May-21
  */
 public class HandRankCalculator {
+    private HandRankCalculator() {
+
+    }
+
     /**
      * (7 P 5): All possible permutations when selecting 5 cards out of 7.<br/>
      * We check all of the permutations in order to find the highest hand rank out of all 7 cards.

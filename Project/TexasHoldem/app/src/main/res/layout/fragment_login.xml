@@ -44,7 +44,7 @@
 
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/goButton"
-            style="@style/ButtonGreenStyle"
+            style="@style/ButtonGreenNoBorderStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="32dp"
@@ -69,6 +69,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:visibility="gone" />
+        android:visibility="invisible" />
 
 </LinearLayout>

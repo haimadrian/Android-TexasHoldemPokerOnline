@@ -1,4 +1,7 @@
-package org.hit.android.haim.texasholdem.server.model.bean.game;
+package org.hit.android.haim.texasholdem.server.model.game;
+
+import org.hit.android.haim.texasholdem.server.model.bean.game.Card;
+import org.hit.android.haim.texasholdem.server.model.bean.game.CardsHolder;
 
 import java.security.SecureRandom;
 import java.util.Collection;

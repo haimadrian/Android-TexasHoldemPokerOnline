@@ -29,6 +29,8 @@ import retrofit2.internal.EverythingIsNonNull;
  * @since 26-Mar-21
  */
 public class SignInViewModel extends AbstractSignInViewModel {
+    private static final String LOGGER = SignInViewModel.class.getSimpleName();
+
     /**
      * Constructs a new {@link SignInViewModel}
      * @param userService A reference to {@link UserService} so we will be able to sign in
@@ -62,7 +64,7 @@ public class SignInViewModel extends AbstractSignInViewModel {
      * @param password Password to use
      */
     public void login(@NonNull String username, @NonNull String password) {
-        Log.d("SignIn", this.toString() + ": Authenticating user in front of server. [username=" + username + "]");
+        Log.d(LOGGER, this.toString() + ": Authenticating user in front of server. [username=" + username + "]");
 
         User user = new User(username, password.toCharArray());
 
@@ -80,15 +82,15 @@ public class SignInViewModel extends AbstractSignInViewModel {
                     try {
                         UserService.JwtTokenResponse jwtTokenResponse = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), UserService.JwtTokenResponse.class);
                         if ((jwtTokenResponse != null) && (jwtTokenResponse.getToken() != null)) {
-                            Log.d("SignIn", "Server responded with a valid JWT token: " + jwtTokenResponse.getToken());
+                            Log.d(LOGGER, "Server responded with a valid JWT token: " + jwtTokenResponse.getToken());
                             TexasHoldemWebService.getInstance().setJwtToken(jwtTokenResponse.getToken());
                             fastLogin(user.getId());
                         } else {
-                            Log.e("SignIn", "Server has not responded with a valid JWT token");
+                            Log.e(LOGGER, "Server has not responded with a valid JWT token");
                             loginResult = LoginResult.builder().errorMessage("Server returned invalid token").build();
                         }
                     } catch (IOException e) {
-                        Log.e("SignIn", "Failed parsing response. Response was: " + body, e);
+                        Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                         loginResult = LoginResult.builder().errorMessage(e.getMessage()).build();
                     }
                 }
@@ -101,7 +103,7 @@ public class SignInViewModel extends AbstractSignInViewModel {
             @Override
             @EverythingIsNonNull
             public void onFailure(Call<JsonNode> call, Throwable t) {
-                Log.d("SignIn", "Error has occurred while trying to sign in: " + t.getMessage());
+                Log.d(LOGGER, "Error has occurred while trying to sign in: " + t.getMessage());
                 loginResultNotifier.setValue(LoginResult.builder().errorMessage(t.getMessage()).build());
             }
         });

@@ -3,11 +3,14 @@ package org.hit.android.haim.texasholdem.view.custom;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.hit.android.haim.texasholdem.R;
@@ -42,6 +45,13 @@ public class PlayerView extends LinearLayout {
     @Getter
     private TextView playerChipsTextView;
 
+    /**
+     * The progress bar of a player is used to count down the time of
+     * a player's turn, and show an indication of it.
+     */
+    @Getter
+    private ProgressBar playerProgressBar;
+
     public PlayerView(Context context) {
         this(context, null, 0);
     }
@@ -65,8 +75,9 @@ public class PlayerView extends LinearLayout {
             Orientation: Control the orientation of PlayerView main linear layout, such that we can
             configure it to be either horizontal or vertical, based on the location of
             the player around the table.
+            0 = HORIZ, 1 = VERT
          */
-        int orientation = a.getInt(R.styleable.PlayerView_orientation, 1);
+        int orientation = a.getInt(R.styleable.PlayerView_orientation, VERTICAL);
 
         /*
             Reverse: Whether to reverse the order of children of PlayerView or not.
@@ -83,9 +94,15 @@ public class PlayerView extends LinearLayout {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.view_player, this, true);
 
-        playerImageView = (ImageView) getChildAt(2);
-        playerNameTextView = (TextView) getChildAt(3);
-        playerChipsTextView = (TextView) getChildAt(6);
+        FrameLayout imageAndProgress = (FrameLayout) getChildAt(0);
+        playerImageView = (ImageView) imageAndProgress.getChildAt(0);
+        playerProgressBar = (ProgressBar) imageAndProgress.getChildAt(1);
+
+        LinearLayout nameAndChipsContainer = (LinearLayout) getChildAt(1);
+        playerNameTextView = (TextView) nameAndChipsContainer.getChildAt(0);
+
+        LinearLayout container = (LinearLayout) nameAndChipsContainer.getChildAt(1);
+        playerChipsTextView = (TextView) container.getChildAt(1);
 
         if (isReversed) {
             // Backup children
@@ -102,5 +119,29 @@ public class PlayerView extends LinearLayout {
                 addView(views.get(i));
             }
         }
+
+        // Set padding to the name and chips container, based on orientation,
+        // so the texts will have some space between them to the image
+        setPaddingBasedOnLayout(nameAndChipsContainer, orientation, isReversed);
+    }
+
+    private void setPaddingBasedOnLayout(LinearLayout container, int orientation, boolean isReversed) {
+        int paddingValue = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
+
+        LayoutParams params = new LayoutParams(container.getLayoutParams());
+        if (orientation == HORIZONTAL) {
+            int left = isReversed ? 0 : paddingValue;
+            int right = isReversed ? paddingValue : 0;
+            params.setMargins(paddingValue, 0, right, 0);
+            //container.setPadding(left, 0, right, 0);
+            //playerNameTextView.setPadding(paddingValue, 0, right, 0);
+        } else {
+            int top = isReversed ? 0 : paddingValue;
+            int bottom = isReversed ? paddingValue : 0;
+            params.setMargins(0, top, 0, bottom);
+            //container.setPadding(0, top, 0, bottom);
+        }
+
+        container.setLayoutParams(params);
     }
 }

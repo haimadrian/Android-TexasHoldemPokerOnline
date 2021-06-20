@@ -9,15 +9,15 @@
         android:menuCategory="container">
         <item
             android:id="@+id/nav_home"
-            android:icon="@drawable/home_24"
+            android:icon="@drawable/ic_home_24"
             android:title="@string/menu_home" />
         <item
             android:id="@+id/nav_preferences"
-            android:icon="@drawable/settings_24"
+            android:icon="@drawable/ic_settings_24"
             android:title="@string/menu_settings" />
         <item
             android:id="@+id/nav_about"
-            android:icon="@drawable/about_24"
+            android:icon="@drawable/ic_info_24"
             android:title="@string/menu_about" />
     </group>
     <group
@@ -26,11 +26,11 @@
         android:menuCategory="system">
         <item
             android:id="@+id/nav_sign_out"
-            android:icon="@drawable/logout_24"
+            android:icon="@drawable/ic_logout_24"
             android:title="@string/menu_sign_out" />
         <item
             android:id="@+id/nav_exit"
-            android:icon="@drawable/close_24"
+            android:icon="@drawable/ic_close_24"
             android:title="@string/action_quit" />
     </group>
 </menu>

@@ -7,22 +7,14 @@
             android:pivotY="0%"
             android:toDegrees="0" >
             <shape android:shape="rectangle" >
-                <gradient
-                    android:angle="225"
-                    android:centerColor="#FFFFFF"
-                    android:endColor="#FFF5DC"
-                    android:startColor="#FFF5DC" />
+                <solid android:color="#FFF5DC" />
                 <corners android:radius="4dp" />
             </shape>
         </rotate>
     </item>
     <item android:right="20dp">
         <shape android:shape="rectangle" >
-            <gradient
-                android:angle="225"
-                android:centerColor="#FFFFFF"
-                android:endColor="#FFF5DC"
-                android:startColor="#FFF5DC" />
+            <solid android:color="#FFF5DC" />
             <corners android:radius="10dp" />
         </shape>
     </item>

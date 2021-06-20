@@ -1,15 +1,14 @@
 package org.hit.android.haim.texasholdem.view.fragment.home;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.databinding.FragmentHomeBinding;
 import org.hit.android.haim.texasholdem.view.activity.MainActivity;
 
 /**
@@ -18,18 +17,25 @@ import org.hit.android.haim.texasholdem.view.activity.MainActivity;
  * @since 27-Mar-21
  */
 public class HomeFragment extends Fragment {
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_home, container, false);
+    private FragmentHomeBinding binding;
+
+    public HomeFragment() {
+        super(R.layout.fragment_home);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        view.findViewById(R.id.buttonPlayAi).setOnClickListener(this::onPlayAiButtonClicked);
-        view.findViewById(R.id.buttonPlayNetwork).setOnClickListener(this::onPlayNetworkButtonClicked);
+        binding = FragmentHomeBinding.bind(view);
+        binding.buttonPlayAi.setOnClickListener(this::onPlayAiButtonClicked);
+        binding.buttonPlayNetwork.setOnClickListener(this::onPlayNetworkButtonClicked);
+    }
+
+    @Override
+    public void onDestroyView() {
+        binding = null;
+        super.onDestroyView();
     }
 
     private void onPlayAiButtonClicked(View imageView) {

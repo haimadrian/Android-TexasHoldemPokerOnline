@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <corners android:radius="20dp" />
-    <!-- Angle should be 45*n -->
-    <gradient
-        android:angle="225"
-        android:centerColor="@color/light_blue_A200"
-        android:endColor="@color/cardview_light_background"
-        android:startColor="@color/cardview_light_background" />
-    <stroke
-        android:width="2dp"
-        android:color="@color/white" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <corners android:radius="20dp" />
+            <!-- Angle should be 45*n -->
+            <solid android:color="@color/light_blue" />
+        </shape>
+    </item>
+</layer-list>

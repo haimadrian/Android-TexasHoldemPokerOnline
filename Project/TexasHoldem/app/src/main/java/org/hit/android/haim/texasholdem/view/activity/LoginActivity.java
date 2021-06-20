@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +15,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.databinding.ActivityLoginBinding;
 import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.view.fragment.login.SignInFragment;
 import org.hit.android.haim.texasholdem.view.fragment.login.SignUpFragment;
@@ -35,10 +35,12 @@ import retrofit2.internal.EverythingIsNonNull;
  * @since 26-Mar-21
  */
 public class LoginActivity extends AppCompatActivity {
+    private static final String LOGGER = LoginActivity.class.getSimpleName();
+
     /**
      * Name of our shared preferences file, which is private to our app only
      */
-    public static final String TEXAS_HOLDEM_PREFS = "texasHoldemPrefs";
+    public static final String TEXAS_HOLDEM_PREFS = LoginActivity.class.getName() + ".PREFS";
 
     /**
      * Name of userId key in our shared preferences file.<br/>
@@ -55,6 +57,8 @@ public class LoginActivity extends AppCompatActivity {
      * will authorize the userInfo request. In case jwt is invalid, server will respond with 401 unauthorized.
      */
     public static final String USER_JWT_TOKEN = "jwtToken";
+
+    private ActivityLoginBinding binding;
 
     /**
      * Used to switch between sign in fragment and sign up fragment.<br/>
@@ -84,14 +88,14 @@ public class LoginActivity extends AppCompatActivity {
             public void onResponse(Call<JsonNode> call, Response<JsonNode> response) {
                 TexasHoldemWebService.getInstance().setLoggedInUserId(null);
 
-                Log.d("WEB", "Server responded with: " + response);
+                Log.d(LOGGER, "Server responded with: " + response);
                 Toast.makeText(context, "Signed out successfully", Toast.LENGTH_LONG).show();
             }
 
             @Override
             @EverythingIsNonNull
             public void onFailure(Call<JsonNode> call, Throwable t) {
-                Log.e("WEB", "Error has occurred while signing out", t);
+                Log.e(LOGGER, "Error has occurred while signing out", t);
             }
         });
         TexasHoldemWebService.getInstance().setJwtToken(null); // Nothing will be authorized after sign out.
@@ -108,13 +112,14 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        Log.d("Login", this.toString() + ": onCreate");
+        Log.d(LOGGER, this.toString() + ": onCreate");
         super.onCreate(savedInstanceState);
 
         // Initialize it so it will be able to access resources (certificate)
         TexasHoldemWebService.getInstance().init(getApplicationContext());
 
-        setContentView(R.layout.activity_login);
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         // Try to see if we have a stored token, so we will skip sign in
         SharedPreferences sharedPreferences = getSharedPreferences(TEXAS_HOLDEM_PREFS, MODE_PRIVATE);
@@ -192,11 +197,6 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(i);
 
         // Finish this activity as we went to home activity
-        finish();
-    }
-
-    public void onQuitButtonClicked(View view) {
-        ExitActivity.exit(this.getApplicationContext());
         finish();
     }
 }

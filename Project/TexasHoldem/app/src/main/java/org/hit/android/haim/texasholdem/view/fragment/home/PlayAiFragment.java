@@ -1,14 +1,14 @@
 package org.hit.android.haim.texasholdem.view.fragment.home;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.databinding.FragmentPlayAiBinding;
+import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;
 
 
 /**
@@ -17,10 +17,16 @@ import org.hit.android.haim.texasholdem.R;
  * @author Haim Adrian
  * @since 27-Mar-21
  */
-public class PlayAiFragment extends Fragment {
+public class PlayAiFragment extends ViewBindedFragment<FragmentPlayAiBinding> {
+
+    public PlayAiFragment() {
+        super(R.layout.fragment_play_ai, FragmentPlayAiBinding::bind);
+    }
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_play_ai, container, false);
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        getBinding();
     }
 }

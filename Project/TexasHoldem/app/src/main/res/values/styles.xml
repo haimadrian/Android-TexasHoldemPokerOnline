@@ -11,10 +11,28 @@
         <item name="android:background">@drawable/button_green</item>
     </style>
 
+    <style name="ButtonGreenNoBorderStyle" parent="ButtonStyle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:background">@drawable/button_green_no_border</item>
+    </style>
+
+    <style name="ButtonGreenRightStyle" parent="ButtonStyle">
+        <item name="android:textSize">20sp</item>
+        <item name="android:padding">8dp</item>
+        <item name="android:background">@drawable/button_dark_gray_right</item>
+    </style>
+
     <style name="ButtonBlueStyle" parent="ButtonStyle">
         <item name="android:textSize">18sp</item>
         <item name="android:padding">4dp</item>
         <item name="android:background">@drawable/button_blue</item>
+    </style>
+
+    <style name="ButtonBlueNoBorderStyle" parent="ButtonStyle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/button_blue_no_border</item>
     </style>
 
     <style name="ButtonRedStyle" parent="ButtonStyle">
@@ -29,6 +47,12 @@
         <item name="android:background">@drawable/button_yellow</item>
     </style>
 
+    <style name="ButtonYellowLeftStyle" parent="ButtonStyle">
+        <item name="android:textSize">18sp</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:background">@drawable/button_dark_gray_left</item>
+    </style>
+
     <style name="EditTextStyle" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textColor">@color/white</item>
         <item name="android:backgroundTint">@color/background_tint_colors</item>
@@ -38,5 +62,13 @@
         <item name="android:drawablePadding">10dp</item>
         <item name="android:singleLine">true</item>
         <item name="android:textColorHint">@color/material_on_primary_emphasis_medium</item>
+    </style>
+
+    <style name="SpinnerDatePickerStyle" parent="android:Theme.Holo.Panel">
+        <item name="android:datePickerStyle">@style/SpinnerDatePicker</item>
+    </style>
+
+    <style name="SpinnerDatePicker" parent="android:Widget.Holo.DatePicker">
+        <item name="android:datePickerMode">spinner</item>
     </style>
 </resources>

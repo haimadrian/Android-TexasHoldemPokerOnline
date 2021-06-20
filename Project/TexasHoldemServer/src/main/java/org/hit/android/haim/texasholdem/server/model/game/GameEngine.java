@@ -1,15 +1,16 @@
-package org.hit.android.haim.texasholdem.server.model;
+package org.hit.android.haim.texasholdem.server.model.game;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
 import lombok.ToString;
 import org.hit.android.haim.texasholdem.server.controller.common.Base64;
 import org.hit.android.haim.texasholdem.server.model.bean.chat.Channel;
 import org.hit.android.haim.texasholdem.server.model.bean.game.Board;
-import org.hit.android.haim.texasholdem.server.model.bean.game.Deck;
+import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
 import org.hit.android.haim.texasholdem.server.model.bean.game.Player;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -21,22 +22,30 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 08-May-21
  */
 @Data
-@ToString
+@ToString(exclude = {"chat", "deck"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class GameEngine {
     private static final AtomicInteger gameCounter = new AtomicInteger(100); // Assume there can be 900 games running in parallel
 
     /**
      * A unique identifier of this game
      */
+    @EqualsAndHashCode.Include
     private final int id;
 
     /**
-     * All of the players in a game
+     * Game preferences. See {@link GameSettings}
      */
-    private final Set<Player> players;
+    private final GameSettings gameSettings;
 
     /**
-     * The player chosen as dealer
+     * The {@link Players} playing in this game
+     */
+    private final Players players;
+
+    /**
+     * The player assigned the Dealer role.<br/>
+     * This player is modified in every single round, clockwise.
      */
     private Player dealer;
 
@@ -58,17 +67,22 @@ public class GameEngine {
 
     /**
      * Constructs a new {@link GameEngine}
+     * @param gameSettings Preferences of a game.
      */
-    public GameEngine() {
+    public GameEngine(@NonNull GameSettings gameSettings) {
+        this.gameSettings = gameSettings;
         id = gameCounter.getAndIncrement();
-        players = new HashSet<>();
-        chat = Channel.builder().name(Base64.encodeToString(id)).users(players).build();
+        players = new Players();
+        chat = Channel.builder().name(getGameHash()).build();
         deck = new Deck();
         board = new Board();
     }
 
-    public void close() {
-
+    /**
+     * @return A unique hash (~4 characters) representing this game
+     */
+    public String getGameHash() {
+        return Base64.encodeToString(id);
     }
 
     /**
@@ -76,7 +90,8 @@ public class GameEngine {
      * @param player The player to add
      */
     public void addPlayer(Player player) {
-        players.add(player);
+        players.addPlayer(player);
+        chat.getUsers().add(player);
     }
 
     /**
@@ -84,7 +99,28 @@ public class GameEngine {
      * @param player The player to add
      */
     public void removePlayer(Player player) {
-        players.remove(player);
+        players.removePlayer(player);
+        chat.getUsers().remove(player);
+    }
+
+    /**
+     * Starts a game.<br/>
+     * Shuffling the deck, generating random dealer, setting the current player as the player after the dealer.
+     */
+    public void start() {
+        // Shuffle cards
+        deck.shuffle();
+
+        // Generate random dealer
+        int dealerIndex = new Random().nextInt(players.size());
+        dealer = players.getPlayer(dealerIndex);
+
+        // Small bet is the first player who is playing, so we set it as the current player.
+        players.setCurrentPlayerIndex(dealerIndex + 3);
+    }
+
+    public void stop() {
+
     }
 }
 

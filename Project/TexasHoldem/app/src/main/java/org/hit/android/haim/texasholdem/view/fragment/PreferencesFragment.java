@@ -8,16 +8,20 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.databinding.FragmentPreferencesBinding;
 import org.hit.android.haim.texasholdem.view.model.PreferencesViewModel;
 
-public class PreferencesFragment extends Fragment {
+public class PreferencesFragment extends ViewBindedFragment<FragmentPreferencesBinding> {
 
     private PreferencesViewModel preferencesViewModel;
+
+    public PreferencesFragment() {
+        super(R.layout.fragment_preferences, FragmentPreferencesBinding::bind);
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
