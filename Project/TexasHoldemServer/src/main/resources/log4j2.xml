@@ -22,7 +22,7 @@
                 <ThresholdFilter level="warn" onMatch="ACCEPT" onMismatch="DENY"/>
             </Filters>
         </Console>
-        <RollingRandomAccessFile name="mainLog" fileName="${baseLogDir}\main.log" filePattern="${baseLogDir}\archive\main-%i.log" immediateFlush="false">
+        <RollingRandomAccessFile name="mainLog" fileName="${baseLogDir}/main.log" filePattern="${baseLogDir}/archive/main-%i.log" immediateFlush="false">
             <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
             <Policies>
                 <OnStartupTriggeringPolicy/>
@@ -31,7 +31,7 @@
             <DefaultRolloverStrategy max="10" fileIndex="min"/>
         </RollingRandomAccessFile>
         <!-- stdout logger template -->
-        <RollingRandomAccessFile name="stdoutlog" fileName="${baseLogDir}\stdout.log" filePattern="${baseLogDir}\archive\stdout-%i.log">
+        <RollingRandomAccessFile name="stdoutlog" fileName="${baseLogDir}/stdout.log" filePattern="${baseLogDir}/archive/stdout-%i.log">
             <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
             <Policies>
                 <OnStartupTriggeringPolicy/>
@@ -40,7 +40,7 @@
             <DefaultRolloverStrategy max="10" fileIndex="min"/>
         </RollingRandomAccessFile>
         <!-- stderr logger template -->
-        <RollingRandomAccessFile name="stderrlog" fileName="${baseLogDir}\stderr.log" filePattern="${baseLogDir}\archive\stderr-%i.log">
+        <RollingRandomAccessFile name="stderrlog" fileName="${baseLogDir}/stderr.log" filePattern="${baseLogDir}/archive/stderr-%i.log">
             <PatternLayout pattern="${mainLogPattern}" charset="UTF-8"/>
             <Policies>
                 <OnStartupTriggeringPolicy/>

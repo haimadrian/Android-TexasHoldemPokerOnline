@@ -62,7 +62,11 @@ public class TexasHoldemServerMain {
 
         // Set default log directory in case it was not specified outside the application
         if (System.getProperty("org.hit.android.haim.texasholdem.logdir") == null) {
-            System.setProperty("org.hit.android.haim.texasholdem.logdir", "C:/temp/AndroidProjects/TexasHoldem/log");
+            if (System.getProperty("os.name").toLowerCase().contains("win")) {
+                System.setProperty("org.hit.android.haim.texasholdem.logdir", "C:/temp/AndroidProjects/TexasHoldem/log");
+            } else {
+                System.setProperty("org.hit.android.haim.texasholdem.logdir", "/home/ec2-user/TexasHoldem/log");
+            }
         }
     }
 
