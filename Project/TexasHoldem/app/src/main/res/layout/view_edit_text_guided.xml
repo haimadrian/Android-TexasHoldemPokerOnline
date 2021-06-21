@@ -2,10 +2,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <EditText
+        style="@style/EditTextBlueStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="numberSigned" />
+        android:textColorHint="@color/edit_text_tint_color"
+        android:ems="10" />
 
     <ImageView
         android:layout_width="wrap_content"

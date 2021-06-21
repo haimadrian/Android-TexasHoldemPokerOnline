@@ -55,13 +55,22 @@
 
     <style name="EditTextStyle" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textColor">@color/white</item>
-        <item name="android:backgroundTint">@color/background_tint_colors</item>
-        <item name="android:drawableTint">@color/background_tint_colors</item>
         <item name="android:selectAllOnFocus">true</item>
         <item name="android:padding">10dp</item>
         <item name="android:drawablePadding">10dp</item>
         <item name="android:singleLine">true</item>
-        <item name="android:textColorHint">@color/material_on_primary_emphasis_medium</item>
+        <item name="android:textColorHint">@color/edit_text_tint_color</item>
+    </style>
+
+    <style name="EditTextGreenStyle" parent="EditTextStyle">
+        <item name="android:backgroundTint">@color/background_tint_colors</item>
+        <item name="android:drawableTint">@color/background_tint_colors</item>
+    </style>
+
+    <style name="EditTextBlueStyle" parent="EditTextStyle">
+        <item name="android:textColor">@color/blue_button_center_color</item>
+        <item name="android:backgroundTint">@color/background_tint_colors_blue</item>
+        <item name="android:drawableTint">@color/background_tint_colors_blue</item>
     </style>
 
     <style name="SpinnerDatePickerStyle" parent="android:Theme.Holo.Panel">

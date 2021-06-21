@@ -20,8 +20,8 @@
             android:layout_height="wrap_content"
             android:alpha="0.97"
             android:background="@drawable/group_box"
-            android:padding="6dp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="6dp">
 
             <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
                 android:id="@+id/editTextPlayersCount"
@@ -68,9 +68,9 @@
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/buttonPlayNetwork"
             style="@style/ButtonBlueNoBorderStyle"
-            android:layout_marginTop="4dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="@string/go" />
     </LinearLayout>
 

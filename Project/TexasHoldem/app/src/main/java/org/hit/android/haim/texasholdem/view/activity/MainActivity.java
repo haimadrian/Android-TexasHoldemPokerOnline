@@ -19,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.navigation.NavBackStackEntry;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -240,6 +241,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        // When the current focused fragment is Home's fragment, exit the application.
+        // We do this such that in case user travelled the navigation, and went to home screen over and over
+        // we will not go back over and over to the home screen. Instead, we will exit from fome screen.
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavBackStackEntry currentBackStackEntry = navController.getCurrentBackStackEntry();
+        if ((currentBackStackEntry != null) && (currentBackStackEntry.getDestination().getId() == R.id.nav_home)) {
+            // Execute it later, so we will not break the event handling.
+            new Handler().post(() -> {
+                ExitActivity.exit(MainActivity.this.getApplicationContext());
+                MainActivity.this.finish();
+            });
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     /**
      * Used when user clicks a button to switch to another fragment
      * @param fragmentActionId Action identifier from navigation\mobile_navigation.xml to perform. (To which fragment to switch)
@@ -256,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
     public void navigateToFragment(int fragmentActionId, @Nullable Bundle args) {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         navController.navigate(fragmentActionId, args);
+        binding.drawerLayout.closeDrawers();
     }
 
     /**

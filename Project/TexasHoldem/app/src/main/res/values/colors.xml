@@ -13,6 +13,7 @@
     <color name="gray_600">#757575</color>
     <color name="dark_gray">#CC43454A</color>
     <color name="edit_text_tint_focused_color">@android:color/holo_green_dark</color>
+    <color name="edit_text_tint_focused_blue_color">@android:color/holo_blue_dark</color>
     <color name="edit_text_tint_color">@android:color/darker_gray</color>
     <color name="gray_button_stroke">#D9D9D9</color>
     <color name="gray_button_start_color">@android:color/darker_gray</color>

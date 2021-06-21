@@ -12,7 +12,7 @@
     <!-- See SignInFragment and SignUpFragment for more properties (drawable, etc.) -->
     <EditText
         android:id="@+id/topEditText"
-        style="@style/EditTextStyle"
+        style="@style/EditTextGreenStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
@@ -24,7 +24,7 @@
     <!-- See SignInFragment and SignUpFragment for more properties (drawable, etc.) -->
     <EditText
         android:id="@+id/bottomEditText"
-        style="@style/EditTextStyle"
+        style="@style/EditTextGreenStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
