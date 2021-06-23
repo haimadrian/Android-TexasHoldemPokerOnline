@@ -1,8 +1,8 @@
 package org.hit.android.haim.texasholdem.server.model.game;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
+import org.hit.android.haim.texasholdem.server.model.bean.game.Board;
 import org.hit.android.haim.texasholdem.server.model.bean.game.Player;
 
 import java.util.*;
@@ -49,8 +49,9 @@ public class Players {
     /**
      * Add a player to this game.
      * @param player The player to add
+     * @throws IllegalArgumentException In case player is already part of the game
      */
-    public void addPlayer(Player player) {
+    public void addPlayer(Player player) throws IllegalArgumentException {
         if (!players.containsKey(player)) {
             // Put the player and map it to its index (position)
             players.put(player, playersList.size());
@@ -102,6 +103,15 @@ public class Players {
     }
 
     /**
+     * Use this method to get a reference to the current playing player.<br/>
+     * We depend on {@link #getCurrentPlayerIndex()} to know which player is the active one.
+     * @return A reference to the current player.
+     */
+    public Player getCurrentPlayer() {
+        return getPlayer(getCurrentPlayerIndex());
+    }
+
+    /**
      * @return How many players there are
      */
     public int size() {
@@ -113,6 +123,14 @@ public class Players {
      */
     public Set<Player> getPlayers() {
         return new HashSet<>(players.keySet());
+    }
+
+    /**
+     * Remove all players from this reference
+     */
+    public void clear() {
+        players.clear();
+        playersList.clear();
     }
 
     /**
@@ -130,17 +148,25 @@ public class Players {
         do {
             currentPlayerIndex = ((currentPlayerIndex + 1) % playersList.size());
             player = playersList.get(currentPlayerIndex);
-        } while ((!player.isPlaying() || player.getChips() == 0) && (currentPlayerIndex != lastPlayer));
+        } while ((!player.isPlaying() || player.getChips().get() == 0) && (currentPlayerIndex != lastPlayer));
 
         return player;
     }
 
     /**
      * Use this method at the end of a round, to collect all players that are in. ({@link Player#isPlaying()}
-     * @return A set of involved players, to send to {@link Pot#applyWinning(Set, HandRankCalculator.HandNumericRank)}
+     * @return A set of involved players, to send to {@link Pot#applyWinning(Set, Board)}
      */
     public Set<Player> getInvolvedPlayers() {
         return playersList.stream().filter(Player::isPlaying).collect(Collectors.toSet());
+    }
+
+    /**
+     * Mark all players as currently playing.<br/>
+     * Use this method whenever a round is started, to mark all of the players as currently playing.
+     */
+    public void markAllPlayersAsPlaying() {
+        playersList.forEach(player -> player.setPlaying(true));
     }
 }
 

@@ -29,5 +29,12 @@ public class Channel {
 
     @Builder.Default
     private List<Message> messages = new ArrayList<>();
+
+    /**
+     * Clear all messages in chat
+     */
+    public void clear() {
+        messages.clear();
+    }
 }
 

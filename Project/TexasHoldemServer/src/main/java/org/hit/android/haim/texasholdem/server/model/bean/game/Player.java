@@ -1,9 +1,7 @@
 package org.hit.android.haim.texasholdem.server.model.bean.game;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hit.android.haim.texasholdem.server.model.game.Chips;
 
 /**
  * A lightweight version of {@link org.hit.android.haim.texasholdem.server.model.bean.user.User}<br/>
@@ -17,6 +15,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Builder
+@ToString(exclude = { "hand" })
 public class Player {
     /**
      * The identifier of this player is the user identifier of a registered user, so we can
@@ -33,7 +33,7 @@ public class Player {
     /**
      * How many coins this player has in a game
      */
-    private long chips;
+    private Chips chips;
 
     /**
      * Tells whether player is in or out.<br/>

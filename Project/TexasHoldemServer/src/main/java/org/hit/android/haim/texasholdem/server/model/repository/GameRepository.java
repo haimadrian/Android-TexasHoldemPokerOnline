@@ -28,10 +28,11 @@ public class GameRepository {
     /**
      * Create and get a new {@link GameEngine}
      * @param settings Settings of a game
+     * @param listener A listener to get notified upon player updates, so we can persist changes in chips amount.
      * @return the newly created game
      */
-    public GameEngine createNewGame(GameSettings settings) {
-        GameEngine game = new GameEngine(settings);
+    public GameEngine createNewGame(GameSettings settings, GameEngine.PlayerUpdateListener listener) {
+        GameEngine game = new GameEngine(settings, listener);
         games.put(game.getId(), game);
         return game;
     }

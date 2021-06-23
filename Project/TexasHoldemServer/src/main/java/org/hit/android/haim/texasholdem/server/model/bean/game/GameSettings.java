@@ -29,4 +29,10 @@ public class GameSettings {
      */
     @Builder.Default
     private long turnTime = TimeUnit.MINUTES.toMillis(1);
+
+    /**
+     * True when the code is running at the server, cause it means network game.<br/>
+     * Otherwise, when the game engine is running at the client side, this is an AI game.
+     */
+    private boolean isNetwork;
 }

@@ -1,7 +1,6 @@
 package org.hit.android.haim.texasholdem.server.controller;
 
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
-import org.hit.android.haim.texasholdem.server.model.bean.user.UserDBImpl;
 import org.hit.android.haim.texasholdem.server.model.bean.user.UserImpl;
 import org.hit.android.haim.texasholdem.server.model.service.UserService;
 import org.hit.android.haim.texasholdem.server.security.JwtUtils;

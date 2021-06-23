@@ -18,32 +18,32 @@ import java.util.Set;
  * @since 09-May-21
  */
 public class HandRankCalculatorTest {
-    private static final String TWO_CLUB = "2♣";
-    private static final String TWO_DIAMOND = "2♦";
-    private static final String TWO_HEART = "2♥";
-    private static final String TWO_SPADE = "2♠";
-    private static final String THREE_DIAMOND = "3♦";
-    private static final String THREE_HEART = "3♥";
-    private static final String FOUR_DIAMOND = "4♦";
-    private static final String FIVE_DIAMOND = "5♦";
-    private static final String SIX_SPADE = "6♠";
-    private static final String SEVEN_CLUB = "7♣";
-    private static final String SEVEN_DIAMOND = "7♦";
-    private static final String SEVEN_HEART = "7♥";
-    private static final String NINE_DIAMOND = "9♦";
-    private static final String TEN_CLUB = "T♣";
-    private static final String TEN_DIAMOND = "T♦";
-    private static final String JACK_CLUB = "J♣";
-    private static final String JACK_DIAMOND = "J♦";
-    private static final String JACK_HEART = "J♥";
-    private static final String JACK_SPADE = "J♠";
-    private static final String QUEEN_CLUB = "Q♣";
-    private static final String QUEEN_DIAMOND = "Q♦";
-    private static final String QUEEN_HEART = "Q♥";
-    private static final String QUEEN_SPADE = "Q♠";
-    private static final String KING_CLUB = "K♣";
-    private static final String KING_DIAMOND = "K♦";
-    private static final String ACE_DIAMOND = "A♦";
+    public static final String TWO_CLUB = "2♣";
+    public static final String TWO_DIAMOND = "2♦";
+    public static final String TWO_HEART = "2♥";
+    public static final String TWO_SPADE = "2♠";
+    public static final String THREE_DIAMOND = "3♦";
+    public static final String THREE_HEART = "3♥";
+    public static final String FOUR_DIAMOND = "4♦";
+    public static final String FIVE_DIAMOND = "5♦";
+    public static final String SIX_SPADE = "6♠";
+    public static final String SEVEN_CLUB = "7♣";
+    public static final String SEVEN_DIAMOND = "7♦";
+    public static final String SEVEN_HEART = "7♥";
+    public static final String NINE_DIAMOND = "9♦";
+    public static final String TEN_CLUB = "T♣";
+    public static final String TEN_DIAMOND = "T♦";
+    public static final String JACK_CLUB = "J♣";
+    public static final String JACK_DIAMOND = "J♦";
+    public static final String JACK_HEART = "J♥";
+    public static final String JACK_SPADE = "J♠";
+    public static final String QUEEN_CLUB = "Q♣";
+    public static final String QUEEN_DIAMOND = "Q♦";
+    public static final String QUEEN_HEART = "Q♥";
+    public static final String QUEEN_SPADE = "Q♠";
+    public static final String KING_CLUB = "K♣";
+    public static final String KING_DIAMOND = "K♦";
+    public static final String ACE_DIAMOND = "A♦";
 
     private Board board;
 
