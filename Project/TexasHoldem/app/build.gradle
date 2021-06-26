@@ -24,7 +24,7 @@ android {
     buildToolsVersion "30.0.2"
 
     defaultConfig {
-        applicationId "org.hit.android.haim.texasholdem"
+        applicationId "org.hit.android.haim"
         minSdkVersion 26
         targetSdkVersion 30
         versionCode 1
@@ -49,10 +49,12 @@ android {
 }
 
 dependencies {
-
     // Project Lombok to make classes implementation clearer
     compileOnly "org.projectlombok:lombok:1.18.18"
     annotationProcessor "org.projectlombok:lombok:${lombokVer}"
+
+    // Depend on common module which brings jackson libs with it
+    implementation project (":texas-holdem-common")
 
     // Android refs. Navigation, RecyclerView, animations, etc.
     implementation "androidx.annotation:annotation:${annotationVer}"
@@ -69,12 +71,6 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp-tls:${okHttpVer}" // HandshakeCertificates class
     implementation "com.squareup.okhttp3:logging-interceptor:${okHttpVer}" // See HTTP logs
     implementation "com.squareup.retrofit2:retrofit:${retrofitVer}"
-    implementation (
-            [group: "com.fasterxml.jackson.core", name: "jackson-core", version: jacksonVer],
-            [group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: jacksonVer],
-            [group: "com.fasterxml.jackson.core", name: "jackson-databind", version: jacksonVer],
-            [group: "com.fasterxml.jackson.datatype", name: "jackson-datatype-jsr310", version: jacksonVer]
-    )
     implementation "com.squareup.retrofit2:converter-jackson:${retrofitVer}"
 
     // Animations

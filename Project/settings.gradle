@@ -1,0 +1,5 @@
+rootProject.name = 'project'
+include 'texas-holdem-common'
+project(':texas-holdem-common').projectDir = new File('TexasHoldemCommon')
+include 'texas-holdem-server'
+project(':texas-holdem-server').projectDir = new File('TexasHoldemServer')

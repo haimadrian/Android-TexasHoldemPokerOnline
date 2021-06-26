@@ -20,9 +20,8 @@ repositories {
 }
 
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 configurations.all {
@@ -31,10 +30,11 @@ configurations.all {
 }
 
 dependencies {
-    compile "org.springframework.boot:spring-boot-starter-web:${springBootVer}" // Spring web for RESTful web services
-    compile "org.springframework.boot:spring-boot-starter-log4j2:${springBootVer}" // Working with log4j2
-    compile "org.springframework.boot:spring-boot-starter-security:${springBootVer}" // Encode passwords and authenticate users
-    compile "io.jsonwebtoken:jjwt-api:${jjwtVer}" // Working with JWT
+    implementation project (":texas-holdem-common")
+    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVer}" // Spring web for RESTful web services
+    implementation "org.springframework.boot:spring-boot-starter-log4j2:${springBootVer}" // Working with log4j2
+    implementation "org.springframework.boot:spring-boot-starter-security:${springBootVer}" // Encode passwords and authenticate users
+    implementation "io.jsonwebtoken:jjwt-api:${jjwtVer}" // Working with JWT
     implementation "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVer}" // Java beans to SQL and vice versa
     implementation "org.springframework.boot:spring-boot-starter-cache:${springBootVer}"
     runtimeOnly "org.springframework.boot:spring-boot-starter-thymeleaf:${springBootVer}" // Encode passwords and authenticate users
@@ -44,9 +44,9 @@ dependencies {
     runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVer}"
     runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVer}"
 
-    testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVer}"
-    testCompile "org.mockito:mockito-junit-jupiter:3.8.0"
-    testCompile "org.junit.jupiter:junit-jupiter-api:5.7.1"
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVer}"
+    testImplementation "org.mockito:mockito-junit-jupiter:3.8.0"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.1"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
 }
 

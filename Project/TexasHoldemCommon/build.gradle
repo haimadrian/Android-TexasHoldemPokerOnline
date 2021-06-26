@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+    id 'application'
+    id "io.freefair.lombok" version "5.3.0" // Project lombok, to generate getters, setters, ctors etc.
+}
+
+group 'org.hit.android.haim'
+version '1.0.0'
+
+ext {
+    jacksonVer = '2.12.3'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation (
+            [group: "com.fasterxml.jackson.core", name: "jackson-core", version: jacksonVer],
+            [group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: jacksonVer],
+            [group: "com.fasterxml.jackson.core", name: "jackson-databind", version: jacksonVer],
+            [group: "com.fasterxml.jackson.datatype", name: "jackson-datatype-jsr310", version: jacksonVer]
+    )
+
+    testImplementation "org.mockito:mockito-junit-jupiter:3.8.0"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.1"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine"
+}
+
+test {
+    useJUnitPlatform()
+}

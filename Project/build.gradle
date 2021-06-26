@@ -1,0 +1,13 @@
+group 'org.hit.android.haim'
+
+buildscript {
+   repositories {
+      mavenCentral()
+   }
+}
+
+allprojects {
+   repositories {
+      mavenCentral()
+   }
+}

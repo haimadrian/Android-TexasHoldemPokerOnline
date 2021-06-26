@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.server.model.bean.game;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 @Data
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class GameSettings {
     /**
      * Small bet of a game.

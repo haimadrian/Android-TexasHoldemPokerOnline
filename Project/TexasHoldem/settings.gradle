@@ -1,2 +1,4 @@
 include ':app'
 rootProject.name = "TexasHoldem"
+include ':texas-holdem-common'
+project(':texas-holdem-common').projectDir = new File('../TexasHoldemCommon')
