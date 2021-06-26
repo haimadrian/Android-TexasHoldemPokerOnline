@@ -1,5 +1,6 @@
 package org.hit.android.haim.texasholdem.server.model.bean.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hit.android.haim.texasholdem.server.model.game.Chips;
 
@@ -45,6 +46,7 @@ public class Player {
     /**
      * The {@link Hand} this player holds
      */
+    @JsonIgnore // Hide players hand from json, to avoid of revealing their secrets
     private Hand hand;
 
     /**

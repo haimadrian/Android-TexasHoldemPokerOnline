@@ -1,9 +1,7 @@
 package org.hit.android.haim.texasholdem.server.model.game;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 import lombok.extern.log4j.Log4j2;
 import org.hit.android.haim.texasholdem.server.controller.common.Base64;
 import org.hit.android.haim.texasholdem.server.model.bean.chat.Channel;
@@ -18,7 +16,11 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * A class that represents a game between several players<br/>
@@ -29,28 +31,34 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 08-May-21
  */
 @Data
-@ToString(exclude = {"chat", "deck", "gameLog", "listener"})
+@NoArgsConstructor
+@ToString(exclude = {"chat", "deck", "gameLog", "listener", "playersLock"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Log4j2
 public class GameEngine {
     private static final AtomicInteger gameCounter = new AtomicInteger(100); // Assume there can be 900 games running in parallel
 
     /**
+     * Accept 7 players at most.
+     */
+    private static final int MAXIMUM_AMOUNT_OF_PLAYERS = 7;
+
+    /**
      * A unique identifier of this game
      */
     @EqualsAndHashCode.Include
-    private final int id;
+    private int id;
 
     /**
      * Game preferences.
      * @see GameSettings
      */
-    private final GameSettings gameSettings;
+    private GameSettings gameSettings;
 
     /**
      * The {@link Players} playing in this game
      */
-    private final Players players;
+    private Players players;
 
     /**
      * The player assigned the Dealer role.<br/>
@@ -62,39 +70,41 @@ public class GameEngine {
      * The chat of current game.
      * @see Channel
      */
-    private final Channel chat;
+    @JsonIgnore
+    private Channel chat;
 
     /**
      * The log of current round in a game.
      * @see GameLog
      */
-    private final GameLog gameLog;
+    private GameLog gameLog;
 
     /**
      * Deck of cards we use in order to play.<br/>
      * Selecting cards for players and board.
      * @see Deck
      */
-    private final Deck deck;
+    @JsonIgnore // Do not expose the deck, to avoid of revealing next cards
+    private Deck deck;
 
     /**
      * The board at which we set game cards: 3 X flop, 1 X Turn and 1 X River.
      * @see Board
      */
-    private final Board board;
+    private Board board;
 
     /**
      * The pot of a running game.
      * @see Pot
      */
-    private final Pot pot;
+    private Pot pot;
 
     /**
      * Use a {@link PlayerTurnTimer} in network games to limit the time for each player turn
      * to {@link GameSettings#getTurnTime()} minute, such that the game continues.<br/>
      * In case of a timeout, the current player is forced to fold.
      */
-    private final PlayerTurnTimer playerTurnTimer;
+    private PlayerTurnTimer playerTurnTimer;
 
     /**
      * Keep a reference to the last action kind, so we can make sure there are no illegal
@@ -107,7 +117,8 @@ public class GameEngine {
      * A listener to get notified upon player updates, so we can persist changes in chips amount.
      */
     @NonNull
-    private final PlayerUpdateListener listener;
+    @JsonIgnore
+    private PlayerUpdateListener listener;
 
     /**
      * When a round is over, we keep a reference to each player's earnings so the client can
@@ -115,7 +126,25 @@ public class GameEngine {
      * After several seconds, a new round will be started automatically.<br/>
      * Note that as long as this variable differs from null, all player actions are ignored.
      */
-    private Map<Player, Long> playerToEarnings;
+    private Map<Player, Pot.PlayerWinning> playerToEarnings;
+
+    /**
+     * When this engine was created, time is in milliseconds since epoch.<br/>
+     * We keep it to automatically cleanup inactive games. A game is consider inactive when it
+     * is opened for 1 hour, and there is no player, or one player only.
+     */
+    private long timeCreated;
+
+    /**
+     * A state machine containing the current state of game engine. See {@link GameState}
+     */
+    private AtomicReference<GameState> gameState;
+
+    /**
+     * A lock to protect {@link #players}, such that we will not allow for more than 7 players to join
+     */
+    @JsonIgnore
+    private final Lock playersLock = new ReentrantLock();
 
     /**
      * Constructs a new {@link GameEngine}
@@ -125,6 +154,7 @@ public class GameEngine {
     public GameEngine(@NonNull GameSettings gameSettings, @NonNull PlayerUpdateListener listener) {
         this.gameSettings = gameSettings;
         this.listener = listener;
+        timeCreated = System.currentTimeMillis();
         id = gameCounter.getAndIncrement();
         players = new Players();
         chat = Channel.builder().name(getGameHash()).build();
@@ -133,8 +163,29 @@ public class GameEngine {
         board = new Board();
         pot = new Pot();
         playerTurnTimer = gameSettings.isNetwork() ? new PlayerTurnTimer(this::onPlayerTurnTimeout, gameSettings.getTurnTime()) : null;
+        gameState = new AtomicReference<>(GameState.READY);
 
         log.info("GameEngine created: " + this);
+    }
+
+    /**
+     * Decode a game hash to game identifier.<br/>
+     * This method created in order to get game identifier when we receive a game hash from clients.
+     * @param gameHash A game hash to decode.
+     * @return Game identifier
+     * @throws IllegalArgumentException In case the specified hash is null or empty, or it does not represent a game identifier (int)
+     */
+    public static int gameIdFromGameHash(String gameHash) throws IllegalArgumentException {
+        if ((gameHash == null) || (gameHash.isBlank())) {
+            throw new IllegalArgumentException("Game hash cannot be null or empty.");
+        }
+
+        int gameId = Base64.decodeToInt(gameHash);
+        if (gameId < 0) {
+            throw new IllegalArgumentException(gameHash + " does not represent a game identifier.");
+        }
+
+        return gameId;
     }
 
     /**
@@ -149,13 +200,28 @@ public class GameEngine {
      * @param player The player to add
      */
     public void addPlayer(Player player) {
-        log.info(getId() + " - Adding player: " + player);
-        players.addPlayer(player);
-        chat.getUsers().add(player);
+        if (isActive()) {
+            throw new IllegalArgumentException("Cannot join an active game. Wait for round to end.");
+        } else {
+            // Lock on players, to make sure we do not let more than 7 players to join a game.
+            if (players.size() < MAXIMUM_AMOUNT_OF_PLAYERS) {
+                playersLock.lock();
+                try {
+                    if (players.size() < MAXIMUM_AMOUNT_OF_PLAYERS) {
+                        log.info(getId() + " - Adding player: " + player);
+                        players.addPlayer(player);
+                        chat.getUsers().add(player);
+                    }
+                } finally {
+                    playersLock.unlock();
+                }
+            }
+        }
     }
 
     /**
      * Add a player to this game.
+     *
      * @param player The player to add
      */
     public void removePlayer(Player player) {
@@ -171,19 +237,22 @@ public class GameEngine {
      * we {@link #moveTurnForward()} to the next player.
      */
     public void start() {
-        log.info(getId() + " - Starting new game.");
+        if (gameState.compareAndSet(GameState.READY, GameState.STARTED)) {
+            log.info(getId() + " - Starting new game.");
 
-        // Generate random dealer
-        int dealerIndex = new Random().nextInt(players.size());
-        dealer = players.getPlayer(dealerIndex);
+            // Generate random dealer
+            int dealerIndex = new Random().nextInt(players.size());
+            dealer = players.getPlayer(dealerIndex);
 
-        // Start the round. (Set min player as the current player, and take mandatory bets)
-        startRound();
+            // Start the round. (Set min player as the current player, and take mandatory bets)
+            startRound();
+        }
     }
 
     /**
      * Execute a player move. This can be check, call, raise or fold.<br/>
      * We ask for the acting player to ensure that it is his turn. If not, an IllegalArgumentException will be thrown.
+     *
      * @param player The player who makes the move
      * @param action What move to make
      * @throws IllegalArgumentException In case the specified player is not the current player, or not playing, or action is illegal
@@ -192,11 +261,14 @@ public class GameEngine {
         log.info(getId() + " - Executing player action. [player=" + player + ", action=" + action + "]");
         validatePlayerAction(player, action);
 
+        if (playerToEarnings != null) {
+            log.info("Player action was ignored because there is currently player earnings available. So as long as it is available," +
+                " all player actions are ignored. Clients expected to read game state and wait for next round. [player=" + player + ", action=" + action + "]");
+            return;
+        }
+
         Player currPlayer = players.getCurrentPlayer();
         switch (action.getActionKind()) {
-            case CHECK: {
-                break;
-            }
             case CALL: {
                 long chips = pot.bet(currPlayer, pot.getLastBet() == null ? action.getChips().get() : pot.getLastBet());
                 action.setChips(chips);
@@ -217,7 +289,8 @@ public class GameEngine {
                 currPlayer.setPlaying(false);
                 break;
             }
-
+            default:
+                // Nothing special.
         }
 
         gameLog.logAction(action);
@@ -241,6 +314,7 @@ public class GameEngine {
 
     /**
      * Validates that a player can run the specified player action
+     *
      * @param player A player to validate
      * @param action The action to validate
      * @throws IllegalArgumentException In case the specified player is not the current player, or not playing, or action is illegal
@@ -266,6 +340,7 @@ public class GameEngine {
 
     /**
      * Use this method when it was the dealer turn and we are ready to open new card.
+     *
      * @return Whether a new card was opened or not
      */
     private boolean showNextCard() {
@@ -311,19 +386,28 @@ public class GameEngine {
                 players.getCurrentPlayer().equals(dealer) &&
                 (lastActionKind != PlayerAction.ActionKind.RAISE) &&
                 (pot.getLastBet() != null))) {
+            // Sign that we are ready to restart a round, letting new players to join now
+            gameState.set(GameState.RESTART);
+
             log.info(getId() + " - Apply winning.");
             playerToEarnings = pot.applyWinning(involvedPlayers, board);
             log.info(getId() + " - The winners: " + playerToEarnings);
 
             // Log winners
-            playerToEarnings.forEach((key, value) -> gameLog.logAction(PlayerAction.builder().name(key.getName()).chips(new Chips(value)).build()));
+            //@formatter:off
+            playerToEarnings.forEach((key, value) -> gameLog.logAction(PlayerAction.builder()
+                                                                                   .name(key.getName())
+                                                                                   .chips(new Chips(value.getSum()))
+                                                                                   .handRank(value.getHandRank())
+                                                                                   .build()));
+            //@formatter:on
 
-            // Wait for 5 seconds in background before starting a new round.
+            // Wait for 10 seconds in background before starting a new round.
             // We wait so clients can draw winning indications
             ExecutorService service = Executors.newSingleThreadExecutor(new CustomizableThreadFactory("RoundLauncher"));
             service.submit(() -> {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(TimeUnit.SECONDS.toMillis(10));
                 } catch (InterruptedException ignore) {
                 }
 
@@ -343,6 +427,8 @@ public class GameEngine {
      * updated.
      */
     private void startRound() {
+        gameState.set(GameState.STARTED);
+
         log.info(getId() + " - Starting new round");
         playerToEarnings = null;
 
@@ -419,28 +505,42 @@ public class GameEngine {
      * We will stop and if there are bets, we return them back to the players.
      */
     public void stop() {
-        log.info(getId() + " - Stopping game.");
+        // Do this in case game is not already stopped
+        if (gameState.compareAndSet(GameState.READY, GameState.STOPPED) ||
+            gameState.compareAndSet(GameState.STARTED, GameState.STOPPED) ||
+            gameState.compareAndSet(GameState.RESTART, GameState.STOPPED)) {
+            log.info(getId() + " - Stopping game.");
 
-        playerTurnTimer.stop();
-        gameLog.clear();
-        players.clear();
-        chat.clear();
-        chat.getUsers().clear();
-        board.clear();
-        dealer = null;
-        lastActionKind = null;
+            gameState.set(GameState.STOPPED);
+            playerTurnTimer.stop();
+            gameLog.clear();
+            players.clear();
+            chat.clear();
+            chat.getUsers().clear();
+            board.clear();
+            dealer = null;
+            lastActionKind = null;
 
-        // In case there are pots, return the chips back to their owners.
-        Map<Player, Long> pots = pot.getPots();
-        if (!pots.isEmpty()) {
-            for (Map.Entry<Player, Long> entry : pots.entrySet()) {
-                entry.getKey().getChips().add(entry.getValue());
+            // In case there are pots, return the chips back to their owners.
+            Map<Player, Long> pots = pot.getPots();
+            if (!pots.isEmpty()) {
+                for (Map.Entry<Player, Long> entry : pots.entrySet()) {
+                    entry.getKey().getChips().add(entry.getValue());
 
-                // Update listener about update of chips
-                listener.onPlayerChipsUpdated(entry.getKey(), entry.getValue());
+                    // Update listener about update of chips
+                    listener.onPlayerChipsUpdated(entry.getKey(), entry.getValue());
+                }
             }
+            pot.clear();
         }
-        pot.clear();
+    }
+
+    /**
+     * Tests whether this game is currently active. A game does not accept new players when it is active.
+     * @return Whether current game engine is active (during a round) or not.
+     */
+    public boolean isActive() {
+        return gameState.get() == GameState.STARTED;
     }
 
     /**
@@ -456,6 +556,37 @@ public class GameEngine {
          * @param chips The chips value that was modified. Can be negative when player loses chips
          */
         void onPlayerChipsUpdated(Player player, long chips);
+    }
+
+    /**
+     * An enum representing current game engine's state:
+     * <ul>
+     *     <li>{@link #READY}</li>
+     *     <li>{@link #RESTART}</li>
+     *     <li>{@link #STARTED}</li>
+     *     <li>{@link #STOPPED}</li>
+     * </ul>
+     */
+    private enum GameState {
+        /**
+         * Game is ready to be started. This state is set when a game engine is created, and before it is started at {@link GameEngine#start()}.
+         */
+        READY,
+
+        /**
+         * When a round is over and we have applied winnings, the game is in RESTART state, allowing new players to join.
+         */
+        RESTART,
+
+        /**
+         * Game is started and is about to move to one of the other states.
+         */
+        STARTED,
+
+        /**
+         * Game was stopped by calling {@link GameEngine#stop()}
+         */
+        STOPPED
     }
 }
 

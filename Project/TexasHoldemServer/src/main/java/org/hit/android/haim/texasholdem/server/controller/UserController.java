@@ -60,7 +60,7 @@ public class UserController {
         } catch (BadCredentialsException e) {
             return ResponseEntity.badRequest().body(USER_DETAILS_ARE_MANDATORY_SIGN_UP_BAD_REQUEST);
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 
@@ -88,7 +88,7 @@ public class UserController {
             String token = jwtUtils.generateToken(userEntity.get());
             return ResponseEntity.ok("{ \"token\" : \"" + token + "\" }");
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 
@@ -117,7 +117,7 @@ public class UserController {
                 return ResponseEntity.ok("Good Bye");
             }
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 
@@ -138,7 +138,7 @@ public class UserController {
                 return ResponseEntity.ok(responseUser);
             }
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 
@@ -159,7 +159,7 @@ public class UserController {
                 return ResponseEntity.ok(userService.updateImage(userEntity.get(), user.getImage()));
             }
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 
@@ -180,7 +180,7 @@ public class UserController {
                 return ResponseEntity.ok(userService.updateCoins(userEntity.get(), user.getCoins()));
             }
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 

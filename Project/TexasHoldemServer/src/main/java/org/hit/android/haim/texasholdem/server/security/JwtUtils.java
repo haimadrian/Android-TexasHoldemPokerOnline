@@ -47,21 +47,23 @@ public class JwtUtils {
      * @return The User object extracted from specified token or null if the token is invalid.
      */
     public User parseToken(String jwtToken) {
-        initKeyIfNeeded();
         User user = null;
+        if ((jwtToken != null) && !jwtToken.isBlank()) {
+            initKeyIfNeeded();
 
-        try {
-            //@formatter:off
-         Claims body = Jwts.parserBuilder()
-                           .setSigningKey(key)
-                           .build()
-                           .parseClaimsJws(jwtToken.replace("Bearer ", ""))
-                           .getBody();
-         //@formatter:on
+            try {
+                //@formatter:off
+                 Claims body = Jwts.parserBuilder()
+                                   .setSigningKey(key)
+                                   .build()
+                                   .parseClaimsJws(jwtToken.replace("Bearer ", ""))
+                                   .getBody();
+                 //@formatter:on
 
-            user = new UserImpl(body.getSubject(), String.valueOf(body.get(USER_NAME)));
-        } catch (Exception e) {
-            log.error("Error has occurred while parsing JWT token: " + e.toString(), e);
+                user = new UserImpl(body.getSubject(), String.valueOf(body.get(USER_NAME)));
+            } catch (Exception e) {
+                log.error("Error has occurred while parsing JWT token: " + e, e);
+            }
         }
 
         return user;

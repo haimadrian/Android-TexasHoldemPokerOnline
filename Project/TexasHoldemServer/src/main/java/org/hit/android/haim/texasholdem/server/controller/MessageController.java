@@ -24,7 +24,7 @@ public class MessageController {
         try {
             return ResponseEntity.ok(messageService.sendMessage(channelName, userId, content));
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 
@@ -33,7 +33,7 @@ public class MessageController {
         try {
             return ResponseEntity.ok(messageService.findByChannelName(channelName));
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 
@@ -42,7 +42,7 @@ public class MessageController {
         try {
             return ResponseEntity.ok(messageService.findLatestByChannelName(channelName, LocalDateTime.parse(lastMessageDateTime)));
         } catch (Throwable t) {
-            return ControllerErrorHandler.returnInternalServerError(t);
+            return ControllerErrorHandler.handleServerError(t);
         }
     }
 }

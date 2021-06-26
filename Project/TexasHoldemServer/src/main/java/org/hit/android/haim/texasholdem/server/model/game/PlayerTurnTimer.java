@@ -1,5 +1,6 @@
 package org.hit.android.haim.texasholdem.server.model.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
@@ -24,6 +25,7 @@ public class PlayerTurnTimer {
      * Keep a reference to {@link GameEngine}, so we can get and modify the current player, and
      * manage turn timeouts.
      */
+    @JsonIgnore
     private final PlayerTurnTimerListener listener;
 
     /**
@@ -49,6 +51,7 @@ public class PlayerTurnTimer {
      * finishing the turn within that time frame, we force him to fold.<br/>
      * In case of AI game, this data member refers to null.
      */
+    @JsonIgnore
     private ScheduledExecutorService turnTimeCounter;
 
     /**

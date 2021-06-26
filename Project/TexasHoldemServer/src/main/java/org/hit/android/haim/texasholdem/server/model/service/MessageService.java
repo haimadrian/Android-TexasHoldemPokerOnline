@@ -1,7 +1,6 @@
 package org.hit.android.haim.texasholdem.server.model.service;
 
 import org.apache.logging.log4j.util.Strings;
-import org.hit.android.haim.texasholdem.server.controller.common.Base64;
 import org.hit.android.haim.texasholdem.server.model.bean.chat.Message;
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
 import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
@@ -36,17 +35,17 @@ public class MessageService {
      * @param channelName Name of the channel to collect messages from
      */
     public Collection<Message> findByChannelName(String channelName) {
-        return findByGameId(Base64.decodeToInt(channelName));
+        return findByGameId(channelName);
     }
 
     /**
      * Collects all messages in a game, sorted by timestamp<br/>
      * Channel name is the hash of a game, for which we want to retrieve the messages
      *
-     * @param gameId The game identifier to collect messages from its chat
+     * @param gameHash The game identifier to collect messages from its chat
      */
-    public Collection<Message> findByGameId(int gameId) {
-        Optional<GameEngine> game = gameService.findById(gameId);
+    public Collection<Message> findByGameId(String gameHash) {
+        Optional<GameEngine> game = gameService.findById(gameHash);
 
         //@formatter:off
         return game.map(value -> value.getChat().getMessages()
@@ -65,17 +64,7 @@ public class MessageService {
      * @param lastMessageDateTime To collect all messages that arrived after this date time
      */
     public Collection<Message> findLatestByChannelName(String channelName, LocalDateTime lastMessageDateTime) {
-        return findLatestByGameId(Base64.decodeToInt(channelName), lastMessageDateTime);
-    }
-
-    /**
-     * Collects all messages in a game, that arrived after the given {@code lastMessageDateTime}, sorted by timestamp
-     *
-     * @param gameId The game identifier to collect messages from its chat
-     * @param lastMessageDateTime To collect all messages that arrived after this date time
-     */
-    public Collection<Message> findLatestByGameId(int gameId, LocalDateTime lastMessageDateTime) {
-        Optional<GameEngine> game = gameService.findById(gameId);
+        Optional<GameEngine> game = gameService.findById(channelName);
 
         //@formatter:off
         return game.map(value -> value.getChat().getMessages()
@@ -96,24 +85,13 @@ public class MessageService {
      * @return A message reference
      */
     public Message sendMessage(String channelName, String userId, String messageContent) {
-        return sendMessage(Base64.decodeToInt(channelName), userId, messageContent);
-    }
-
-    /**
-     * Sends a message to game's chat
-     * @param gameId The game identifier, to which we will send the message to
-     * @param userId The user identifier, who sent the message
-     * @param messageContent The message to send
-     * @return A message reference
-     */
-    public Message sendMessage(int gameId, String userId, String messageContent) {
         if (Strings.isBlank(messageContent)) {
             throw new IllegalArgumentException("Cannot send empty message");
         }
 
-        Optional<GameEngine> game = gameService.findById(gameId);
+        Optional<GameEngine> game = gameService.findById(channelName);
         if (game.isEmpty()) {
-            throw new IllegalArgumentException("Game not found: " + Base64.encodeToString(gameId));
+            throw new IllegalArgumentException("Game not found: " + channelName);
         }
 
         Optional<? extends User> user = userService.findById(userId);

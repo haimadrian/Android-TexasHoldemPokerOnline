@@ -1,5 +1,6 @@
 package org.hit.android.haim.texasholdem.server.model.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.ToString;
 import org.hit.android.haim.texasholdem.server.model.bean.game.Board;
@@ -23,6 +24,7 @@ public class Players {
      * and make sure there can't be a situation where player is added twice.<br/>
      * Implementation that supports add/remove/random access in O(1)
      */
+    @JsonIgnore
     private final Map<Player, Integer> players;
 
     /**
@@ -30,6 +32,13 @@ public class Players {
      * thus saving the same order as players are sitting around a table.
      */
     private final List<Player> playersList;
+
+    /**
+     * Keep a map of the identifiers of all players in a game.<br/>
+     * We keep that in a set to win the ability to check if a user is part of a game in O(1), by user identifier
+     */
+    @JsonIgnore
+    private final Map<String, Player> playersById;
 
     /**
      * Index of the player we are waiting for, to finish its turn. (Current player)<br/>
@@ -44,6 +53,7 @@ public class Players {
     public Players() {
         players = new HashMap<>();
         playersList = new ArrayList<>();
+        playersById = new HashMap<>();
     }
 
     /**
@@ -56,6 +66,7 @@ public class Players {
             // Put the player and map it to its index (position)
             players.put(player, playersList.size());
             playersList.add(player);
+            playersById.put(player.getId(), player);
         } else {
             throw new IllegalArgumentException("Player " + player + " is already part of the game");
         }
@@ -83,6 +94,7 @@ public class Players {
         if (players.containsKey(player)) {
             players.remove(player);
             playersList.remove(player);
+            playersById.remove(player.getId());
         }
     }
 
@@ -92,6 +104,15 @@ public class Players {
      */
     public int indexOfPlayer(Player player) {
         return players.getOrDefault(player, -1);
+    }
+
+    /**
+     * Retrieve a player by user identifier
+     * @param playerId The user identifier
+     * @return A player or {@code null} in case this user is not one of the players
+     */
+    public Player getPlayerById(String playerId) {
+        return playersById.get(playerId);
     }
 
     /**
@@ -131,6 +152,7 @@ public class Players {
     public void clear() {
         players.clear();
         playersList.clear();
+        playersById.clear();
     }
 
     /**

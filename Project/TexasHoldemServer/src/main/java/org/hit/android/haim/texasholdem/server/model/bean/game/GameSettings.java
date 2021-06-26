@@ -1,7 +1,9 @@
 package org.hit.android.haim.texasholdem.server.model.bean.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.concurrent.TimeUnit;
 
@@ -13,6 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Data
 @Builder
+@NoArgsConstructor
 public class GameSettings {
     /**
      * Small bet of a game.
@@ -31,8 +34,17 @@ public class GameSettings {
     private long turnTime = TimeUnit.MINUTES.toMillis(1);
 
     /**
+     * The identifier of the user that creates a game.<br/>
+     * It is set by {@link org.hit.android.haim.texasholdem.server.controller.GameController#createNewGame(String, GameSettings)}<br/>
+     * We need the creator identifier to give a client the ability to retrieve a game hash by creating user identifier.
+     */
+    @JsonIgnore
+    private String creatorId;
+
+    /**
      * True when the code is running at the server, cause it means network game.<br/>
      * Otherwise, when the game engine is running at the client side, this is an AI game.
      */
+    @JsonIgnore
     private boolean isNetwork;
 }

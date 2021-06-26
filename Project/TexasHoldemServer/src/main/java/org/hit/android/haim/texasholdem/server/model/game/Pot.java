@@ -1,7 +1,9 @@
 package org.hit.android.haim.texasholdem.server.model.game;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hit.android.haim.texasholdem.server.model.bean.game.Board;
 import org.hit.android.haim.texasholdem.server.model.bean.game.Player;
 import org.springframework.data.util.Pair;
@@ -90,20 +92,20 @@ public class Pot {
      * In this case, the "dead" money will be split between the other involved winners.
      * @param involvedPlayers See {@link Players#getInvolvedPlayers()}
      * @param board The {@link Board}, to find winning hands.
-     * @return A list of pairs, where each pair represents a pot (amount) and the players that the pot has been split between them.
+     * @return A map between a winner and {@link PlayerWinning} reference holding the amount of chips and hand rank.
      */
-    public Map<Player, Long> applyWinning(Set<Player> involvedPlayers, Board board) {
-        Map<Player, Long> result = new HashMap<>();
+    public Map<Player, PlayerWinning> applyWinning(Set<Player> involvedPlayers, Board board) {
+        Map<Player, PlayerWinning> result = new HashMap<>();
 
         // Use a tree map so we will sort the map based on keys (ranks)
         // We use a reverse order comparator, so the best rank will be first.
-        Map<HandRankCalculator.HandNumericRank, Set<Player>> rankToPlayers = new TreeMap<>(Comparator.reverseOrder());
+        Map<HandRankCalculator.HandRankCalculatorResult, Set<Player>> rankToPlayers = new TreeMap<>(Comparator.reverseOrder());
         for (Player player : involvedPlayers) {
-            HandRankCalculator.HandNumericRank rank = HandRankCalculator.calculate(board, player.getHand()).getRank();
+            HandRankCalculator.HandRankCalculatorResult rank = HandRankCalculator.calculate(board, player.getHand());
             rankToPlayers.computeIfAbsent(rank, r -> new HashSet<>()).add(player);
         }
 
-        for (Map.Entry<HandRankCalculator.HandNumericRank, Set<Player>> currRankToPlayers : rankToPlayers.entrySet()) {
+        for (Map.Entry<HandRankCalculator.HandRankCalculatorResult, Set<Player>> currRankToPlayers : rankToPlayers.entrySet()) {
             Set<Player> winners = currRankToPlayers.getValue();
 
             // Keep spreading pots until we handle all winning players.
@@ -114,12 +116,12 @@ public class Pot {
                 Player firstWinner = winners.iterator().next();
 
                 // Now iterate over all winners to share the pots among them.
-                sharePotsAmongWinners(result, winners, winShareAndRemainder.getFirst());
+                sharePotsAmongWinners(result, winners, winShareAndRemainder.getFirst(), currRankToPlayers.getKey());
 
                 // Now add the remainder to the first player
                 if (firstWinner != null) {
                     firstWinner.getChips().add(winShareAndRemainder.getSecond());
-                    result.put(firstWinner, result.get(firstWinner) + winShareAndRemainder.getSecond());
+                    result.get(firstWinner).sum += winShareAndRemainder.getSecond();
                 }
             }
 
@@ -145,8 +147,9 @@ public class Pot {
      * @param winnerToWinSum How many chips each player earned.
      * @param winners Set of winners to go over and share the pots among them.
      * @param winningSum To know how many chips each winner deserves
+     * @param handRank The hand rank of a winner, to save it to the value we put in {@code winnerToWinSum}
      */
-    private void sharePotsAmongWinners(Map<Player, Long> winnerToWinSum, Set<Player> winners, long winningSum) {
+    private void sharePotsAmongWinners(Map<Player, PlayerWinning> winnerToWinSum, Set<Player> winners, long winningSum, HandRankCalculator.HandRankCalculatorResult handRank) {
         for (Iterator<Player> winnerIter = winners.iterator(); winnerIter.hasNext();) {
             Player winner = winnerIter.next();
 
@@ -159,12 +162,12 @@ public class Pot {
             // Add the chips to the winner
             winner.getChips().add(winningSum);
             if (!winnerToWinSum.containsKey(winner)) {
-                winnerToWinSum.put(winner, 0L);
+                winnerToWinSum.put(winner, new PlayerWinning(0L, handRank));
             }
 
             // Add the winning amount to the total amount of current winner.
             // It might be that there will be several iterations, hence we aggregate.
-            winnerToWinSum.put(winner, winnerToWinSum.get(winner) + winningSum);
+            winnerToWinSum.get(winner).sum += winningSum;
         }
     }
 
@@ -242,6 +245,26 @@ public class Pot {
 
             return result;
         }
+    }
+
+    /**
+     * A class to hold how many chips a player earns, and what his hand rank is.<br/>
+     * The hand rank is needed so we will be able to show what hand a winner had.
+     */
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PlayerWinning {
+        /**
+         * How many chips a player earns
+         */
+        @Getter
+        private long sum = 0;
+
+        /**
+         * The hand rank of a player, containing the selected cards, so client can show the hand rank of a winner
+         */
+        @Getter
+        private HandRankCalculator.HandRankCalculatorResult handRank;
     }
 }
 

@@ -95,13 +95,16 @@ public class PotTest {
         }
 
         // Act
-        Map<Player, Long> playerToEarnings = pot.applyWinning(new HashSet<>(Arrays.asList(players)), board);
+        Map<Player, Pot.PlayerWinning> playerToEarnings = pot.applyWinning(new HashSet<>(Arrays.asList(players)), board);
 
         // Assert
         Assertions.assertEquals(1, playerToEarnings.size(), "One winner is expected");
         Assertions.assertTrue(playerToEarnings.containsKey(players[0]), "First player supposed to be the winner");
-        Assertions.assertEquals(sum, playerToEarnings.get(players[0]), "Sum supposed to be total bets");
+        Assertions.assertEquals(sum, playerToEarnings.get(players[0]).getSum(), "Sum supposed to be total bets");
         Assertions.assertEquals(sum, players[0].getChips().get(), "First player supposed to have updated amount of chips");
+        Assertions.assertNotNull(playerToEarnings.get(players[0]).getHandRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertNotNull(playerToEarnings.get(players[0]).getHandRank().getRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertEquals(Hand.HandRank.TRIPS, playerToEarnings.get(players[0]).getHandRank().getRank().getHandRank(), "Expected hand rank is three of a kind");
     }
 
     @Test
@@ -121,16 +124,22 @@ public class PotTest {
         players[2].getHand().addCard(players[0].getHand().getCardAt(1).get());
 
         // Act
-        Map<Player, Long> playerToEarnings = pot.applyWinning(new HashSet<>(Arrays.asList(players)), board);
+        Map<Player, Pot.PlayerWinning> playerToEarnings = pot.applyWinning(new HashSet<>(Arrays.asList(players)), board);
 
         // Assert
         Assertions.assertEquals(2, playerToEarnings.size(), "Two winners are expected");
         Assertions.assertTrue(playerToEarnings.containsKey(players[0]), "First player supposed to be a winner");
         Assertions.assertTrue(playerToEarnings.containsKey(players[2]), "Third player supposed to be a winner");
-        Assertions.assertEquals(sum / 2, playerToEarnings.get(players[0]), "Sum supposed to be half of total bets");
-        Assertions.assertEquals(sum / 2, playerToEarnings.get(players[2]), "Sum supposed to be half of total bets");
+        Assertions.assertEquals(sum / 2, playerToEarnings.get(players[0]).getSum(), "Sum supposed to be half of total bets");
+        Assertions.assertEquals(sum / 2, playerToEarnings.get(players[2]).getSum(), "Sum supposed to be half of total bets");
         Assertions.assertEquals(sum / 2, players[0].getChips().get(), "First player supposed to have updated amount of chips");
         Assertions.assertEquals(sum / 2, players[2].getChips().get(), "Third player supposed to have updated amount of chips");
+        Assertions.assertNotNull(playerToEarnings.get(players[0]).getHandRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertNotNull(playerToEarnings.get(players[0]).getHandRank().getRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertEquals(Hand.HandRank.TRIPS, playerToEarnings.get(players[0]).getHandRank().getRank().getHandRank(), "Expected hand rank is three of a kind");
+        Assertions.assertNotNull(playerToEarnings.get(players[2]).getHandRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertNotNull(playerToEarnings.get(players[2]).getHandRank().getRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertEquals(Hand.HandRank.TRIPS, playerToEarnings.get(players[2]).getHandRank().getRank().getHandRank(), "Expected hand rank is three of a kind");
     }
 
     @Test
@@ -152,19 +161,28 @@ public class PotTest {
         players[4].getHand().addCard(players[2].getHand().getCardAt(1).get());
 
         // Act
-        Map<Player, Long> playerToEarnings = pot.applyWinning(new HashSet<>(Arrays.asList(players)), board);
+        Map<Player, Pot.PlayerWinning> playerToEarnings = pot.applyWinning(new HashSet<>(Arrays.asList(players)), board);
 
         // Assert
         Assertions.assertEquals(3, playerToEarnings.size(), "Two winners are expected");
         Assertions.assertTrue(playerToEarnings.containsKey(players[0]), "First player supposed to be a winner");
         Assertions.assertTrue(playerToEarnings.containsKey(players[2]), "Third player supposed to be a winner");
         Assertions.assertTrue(playerToEarnings.containsKey(players[4]), "Fifth player supposed to be a winner");
-        Assertions.assertEquals(expectedEarning, playerToEarnings.get(players[0]), "The real winner supposed to have this amount");
-        Assertions.assertEquals((sum - expectedEarning) / 2, playerToEarnings.get(players[2]), "Sum supposed to be half of dead money");
-        Assertions.assertEquals((sum - expectedEarning) / 2, playerToEarnings.get(players[4]), "Sum supposed to be half of dead money");
+        Assertions.assertEquals(expectedEarning, playerToEarnings.get(players[0]).getSum(), "The real winner supposed to have this amount");
+        Assertions.assertEquals((sum - expectedEarning) / 2, playerToEarnings.get(players[2]).getSum(), "Sum supposed to be half of dead money");
+        Assertions.assertEquals((sum - expectedEarning) / 2, playerToEarnings.get(players[4]).getSum(), "Sum supposed to be half of dead money");
         Assertions.assertEquals(expectedEarning, players[0].getChips().get(), "First player supposed to have updated amount of chips");
         Assertions.assertEquals((sum - expectedEarning) / 2, players[2].getChips().get(), "Third player supposed to have updated amount of chips");
         Assertions.assertEquals((sum - expectedEarning) / 2, players[4].getChips().get(), "Fifth player supposed to have updated amount of chips");
+        Assertions.assertNotNull(playerToEarnings.get(players[0]).getHandRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertNotNull(playerToEarnings.get(players[0]).getHandRank().getRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertEquals(Hand.HandRank.TRIPS, playerToEarnings.get(players[0]).getHandRank().getRank().getHandRank(), "Expected hand rank is three of a kind");
+        Assertions.assertNotNull(playerToEarnings.get(players[2]).getHandRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertNotNull(playerToEarnings.get(players[2]).getHandRank().getRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertEquals(Hand.HandRank.TRIPS, playerToEarnings.get(players[2]).getHandRank().getRank().getHandRank(), "Expected hand rank is three of a kind");
+        Assertions.assertNotNull(playerToEarnings.get(players[4]).getHandRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertNotNull(playerToEarnings.get(players[4]).getHandRank().getRank(), "Hand rank is expected to be available for winner");
+        Assertions.assertEquals(Hand.HandRank.TRIPS, playerToEarnings.get(players[4]).getHandRank().getRank().getHandRank(), "Expected hand rank is three of a kind");
     }
 }
 

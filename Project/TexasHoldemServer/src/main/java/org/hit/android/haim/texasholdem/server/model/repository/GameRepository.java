@@ -3,9 +3,11 @@ package org.hit.android.haim.texasholdem.server.model.repository;
 import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
 import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A repository holding all active games.<br/>
@@ -16,6 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GameRepository {
     private final Map<Integer, GameEngine> games = new ConcurrentHashMap<>();
+
+    /**
+     * A map between user identifier to a game he created.<br/>
+     * We hold this map to retrieve game hashes by game creator in O(1)
+     */
+    private final Map<String, GameEngine> ownerToGame = new ConcurrentHashMap<>();
 
     private GameRepository() {
 
@@ -32,8 +40,27 @@ public class GameRepository {
      * @return the newly created game
      */
     public GameEngine createNewGame(GameSettings settings, GameEngine.PlayerUpdateListener listener) {
+        if (settings.getSmallBet() <= 0) {
+            settings.setSmallBet(1);
+        }
+
+        if (settings.getBigBet() <= 1) {
+            settings.setBigBet(2);
+        }
+
+        if (settings.getTurnTime() <= TimeUnit.SECONDS.toMillis(3)) {
+            settings.setTurnTime(TimeUnit.MINUTES.toMillis(1));
+        }
+
+        // If there is another game a user created, close it. A user cannot create several games simultaneously.
+        GameEngine existingGame = ownerToGame.get(settings.getCreatorId());
+        if (existingGame != null) {
+            closeGame(existingGame.getId());
+        }
+
         GameEngine game = new GameEngine(settings, listener);
         games.put(game.getId(), game);
+        ownerToGame.put(settings.getCreatorId(), game);
         return game;
     }
 
@@ -51,6 +78,28 @@ public class GameRepository {
     }
 
     /**
+     * Get a game by the identifier of the user created that game
+     * @param creatorId The identifier of a user to get the game he created
+     * @return An optional reference to the game. (Empty when there is no game with the given identifier)
+     */
+    public Optional<GameEngine> findGameByCreator(String creatorId) {
+        if (!ownerToGame.containsKey(creatorId)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(ownerToGame.get(creatorId));
+    }
+
+    /**
+     * @return All game engines
+     */
+    public Iterable<GameEngine> findAll() {
+        // Return a new arraylist to let outside world to iterate over game engines and modify game repository,
+        // without failing on modification exception
+        return new ArrayList<>(games.values());
+    }
+
+    /**
      * End a running game.<br/>
      * After closing a game it is deleted, hence you won't be able to find this game.
      * @param gameId The identifier of a game
@@ -61,6 +110,8 @@ public class GameRepository {
         if (existingGame == null) {
             return Optional.empty();
         }
+
+        ownerToGame.remove(existingGame.getGameSettings().getCreatorId());
 
         existingGame.stop();
         return Optional.of(existingGame);

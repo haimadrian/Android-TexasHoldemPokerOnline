@@ -2,6 +2,7 @@ package org.hit.android.haim.texasholdem.server;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hit.android.haim.texasholdem.server.model.service.GameService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -108,13 +109,17 @@ public class TexasHoldemServerMain {
             popup.add(exit);
 
             InputStream icon = TexasHoldemServerMain.class.getClassLoader().getResourceAsStream("icon.png");
-            trayIcon = new TrayIcon(new ImageIcon(ImageIO.read(icon)).getImage());
-            trayIcon.setImageAutoSize(true);
-            trayIcon.setPopupMenu(popup);
-            SystemTray.getSystemTray().add(trayIcon);
+            if (icon != null) {
+                trayIcon = new TrayIcon(new ImageIcon(ImageIO.read(icon)).getImage());
+                trayIcon.setImageAutoSize(true);
+                trayIcon.setPopupMenu(popup);
+                SystemTray.getSystemTray().add(trayIcon);
 
-            trayIcon.displayMessage("Texas Holdem Server", "Game server is running", TrayIcon.MessageType.INFO);
-            trayIcon.setToolTip("Texas Holdem Server");
+                trayIcon.displayMessage("Texas Holdem Server", "Game server is running", TrayIcon.MessageType.INFO);
+                trayIcon.setToolTip("Texas Holdem Server");
+            } else {
+                log.warn("Icon could not be found. As a result, there will be no tray icon");
+            }
         } catch (Exception e) {
             log.error("Failed to add system tray icon: " + e.getMessage(), e);
         }
@@ -124,6 +129,7 @@ public class TexasHoldemServerMain {
         if (!wasShutDown) {
             wasShutDown = true;
             log.info("Shutting down Texas Holdem Server");
+            try { applicationContext.getBean(GameService.class).shutdown(); } catch (Exception ignore) {}
             SpringApplication.exit(applicationContext, () -> 0);
             SystemTray.getSystemTray().remove(trayIcon);
             LogManager.shutdown();

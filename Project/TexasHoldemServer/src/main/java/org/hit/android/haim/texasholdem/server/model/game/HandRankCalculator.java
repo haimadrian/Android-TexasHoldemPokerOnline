@@ -234,6 +234,12 @@ public class HandRankCalculator {
         public int compareTo(HandRankCalculatorResult another) {
             return rank.compareTo(another.getRank());
         }
+
+        @Override
+        public String toString() {
+            // This is used by PlayerAction's toString implementation, to show a hand rank when player wins.
+            return rank.toString();
+        }
     }
 
     /**
@@ -271,6 +277,11 @@ public class HandRankCalculator {
             }
 
             return handRank.compareTo(another.handRank);
+        }
+
+        @Override
+        public String toString() {
+            return handRank == null ? "null" : handRank.name().replaceAll("_", " ");
         }
     }
 }
