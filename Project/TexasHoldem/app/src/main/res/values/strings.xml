@@ -34,11 +34,6 @@
     <string name="play_against_bots">Play against bots</string>
     <string name="play_on_network">Play on network</string>
 
-    <string name="action_check">Check</string>
-    <string name="action_call">Call</string>
-    <string name="action_raise">Raise</string>
-    <string name="action_fold">Fold</string>
-
     <!-- About fragment. The &#160; is used as space. Otherwise whitespace characters are trimmed -->
     <string name="by_haim_adrian">By Haim Adrian</string>
     <string name="about_content">This application has been developed as a final project of Android1 course.\nTeacher:\u0009\u0009Efi Profus the King\nStudent:\u0009\u0009Haim Adrian the Carpenter\nCollege:\u0009\u0009\u0009Holon Institute of Technology\nVersion:\u0009\u0009\u00091.0.0</string>
@@ -46,15 +41,26 @@
 
     <!-- Play against AI -->
     <string name="amount_of_bots">Amount of bots</string>
-    <string name="amount_of_coins">Amount of coins</string>
+    <string name="amount_of_coins">Amount of chips</string>
     <string name="size_of_small_bet">Small bet</string>
     <string name="size_of_big_bet">Big bet</string>
     <string name="help">Help</string>
     <string name="play">PLAY</string>
     <string name="go">GO</string>
-    <string name="fold">FOLD</string>
-    <string name="check">CHECK</string>
-    <string name="raise">RAISE</string>
+
+    <!-- Play on Network -->
+    <string name="create_new_game">Create New Game</string>
+    <string name="join_game">Join Game</string>
+    <string name="game_hash">Game Identifier (hash)</string>
+    <string name="join">JOIN</string>
+    <string name="create">CREATE</string>
+
+    <!-- Game -->
+    <string name="action_start">START</string>
+    <string name="action_call">CALL</string>
+    <string name="action_check">CHECK</string>
+    <string name="action_fold">FOLD</string>
+    <string name="action_raise">RAISE</string>
     <string name="quit">QUIT</string>
     <string name="chat">CHAT</string>
     <string name="log">LOG</string>

@@ -60,7 +60,7 @@
             android:layout_height="match_parent"
             android:clickable="true"
             android:gravity="center"
-            android:textColor="#1565C0"
+            android:textColor="@color/light_blue_800"
             android:textSize="24sp" />
     </LinearLayout>
 

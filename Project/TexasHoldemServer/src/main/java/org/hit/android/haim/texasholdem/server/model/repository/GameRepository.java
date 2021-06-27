@@ -56,7 +56,7 @@ public class GameRepository {
         // If there is another game a user created, close it. A user cannot create several games simultaneously.
         GameEngine existingGame = ownerToGame.get(settings.getCreatorId());
         if (existingGame != null) {
-            closeGame(existingGame.getId());
+            stopGame(existingGame.getId());
         }
 
         GameEngine game = new ServerGameEngine(settings, listener);
@@ -101,21 +101,27 @@ public class GameRepository {
     }
 
     /**
+     * Start running a game.
+     * @param gameId The identifier of a game
+     */
+    public void startGame(int gameId) {
+        GameEngine existingGame = games.get(gameId);
+        if (existingGame != null) {
+            existingGame.start();
+        }
+    }
+
+    /**
      * End a running game.<br/>
      * After closing a game it is deleted, hence you won't be able to find this game.
      * @param gameId The identifier of a game
-     * @return The game in case it was running
      */
-    public Optional<GameEngine> closeGame(int gameId) {
+    public void stopGame(int gameId) {
         GameEngine existingGame = games.remove(gameId);
-        if (existingGame == null) {
-            return Optional.empty();
+        if (existingGame != null) {
+            ownerToGame.remove(existingGame.getGameSettings().getCreatorId());
+            existingGame.stop();
         }
-
-        ownerToGame.remove(existingGame.getGameSettings().getCreatorId());
-
-        existingGame.stop();
-        return Optional.of(existingGame);
     }
 
     private static class SingletonRef {

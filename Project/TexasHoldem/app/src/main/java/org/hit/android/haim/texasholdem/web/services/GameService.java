@@ -2,13 +2,13 @@ package org.hit.android.haim.texasholdem.web.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import org.hit.android.haim.texasholdem.model.User;
-
-import java.util.List;
+import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
@@ -19,19 +19,31 @@ import retrofit2.http.Path;
  * @see org.hit.android.haim.texasholdem.web.TexasHoldemWebService
  */
 public interface GameService {
-    /** @return User or Error */
-    @PUT("/user/connect")
-    Call<JsonNode> connect(@Body User user);
+    /** @return String (game hash) or Error */
+    @POST("/game/new")
+    Call<JsonNode> createGame(@Body GameSettings gameSettings);
 
-    /** @return String or Error */
-    @PUT("/user/disconnect/{userId}")
-    Call<JsonNode> disconnect(@Path("userId") String userId);
+    /** @return void (200 OK) or Error */
+    @PUT("/game/{gameHash}/start")
+    Call<JsonNode> startGame(@Path("gameHash") String gameHash);
 
-    /** @return User or Error */
-    @GET("/user/info/{userId}")
-    Call<JsonNode> getUserInfo(@Path("userId") String userId);
+    /** @return void (200 OK) or Error */
+    @PUT("/game/{gameHash}/stop")
+    Call<JsonNode> stopGame(@Path("gameHash") String gameHash);
 
-    /** @return {@code List<User>} or Error */
-    @GET("/user/info")
-    Call<JsonNode> getUsersInfo(@Body List<String> usersId);
+    /** @return String (game hash) or Error */
+    @GET("/game/mygame")
+    Call<JsonNode> getMyGameHash();
+
+    /** @return void (200 OK) or Error */
+    @PUT("/game/{gameHash}/join")
+    Call<JsonNode> joinGame(@Path("gameHash") String gameHash, @Body Player player);
+
+    /** @return void (200 OK) or Error */
+    @PUT("/game/{gameHash}/leave")
+    Call<JsonNode> leaveGame(@Path("gameHash") String gameHash);
+
+    /** @return ClientGameEngine or Error */
+    @GET("/game/{gameHash}/info")
+    Call<JsonNode> getGameInfo(@Path("gameHash") String gameHash);
 }

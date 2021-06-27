@@ -55,6 +55,48 @@ public class GameController {
         }
     }
 
+    @PutMapping("/{gameHash}/start")
+    public ResponseEntity<?> startGame(@RequestHeader(AUTHORIZATION_HEADER) String jwtToken, @PathVariable String gameHash) {
+        try {
+            User user = jwtUtils.parseToken(jwtToken);
+            Optional<GameEngine> game = gameService.findByCreatorId(user.getId());
+            if (game.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (!game.get().getGameHash().equals(gameHash)) {
+                return ResponseEntity.badRequest().body("Game " + gameHash + " differs from user's game");
+            }
+
+            // Start the game
+            gameService.startGame(gameHash);
+            return ResponseEntity.ok().build();
+        } catch (Throwable t) {
+            return ControllerErrorHandler.handleServerError(t);
+        }
+    }
+
+    @DeleteMapping("/{gameHash}/stop")
+    public ResponseEntity<?> stopGame(@RequestHeader(AUTHORIZATION_HEADER) String jwtToken, @PathVariable String gameHash) {
+        try {
+            User user = jwtUtils.parseToken(jwtToken);
+            Optional<GameEngine> game = gameService.findByCreatorId(user.getId());
+            if (game.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (!game.get().getGameHash().equals(gameHash)) {
+                return ResponseEntity.badRequest().body("Game " + gameHash + " differs from user's game");
+            }
+
+            // Stop the game
+            gameService.stopGame(gameHash);
+            return ResponseEntity.ok().build();
+        } catch (Throwable t) {
+            return ControllerErrorHandler.handleServerError(t);
+        }
+    }
+
     @PutMapping("/{gameHash}/join")
     public ResponseEntity<?> joinGame(@RequestHeader(AUTHORIZATION_HEADER) String jwtToken, @PathVariable String gameHash, @RequestBody Player player) {
         try {

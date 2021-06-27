@@ -5,7 +5,7 @@
         style="@style/EditTextBlueStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColorHint="@color/edit_text_tint_color"
+        android:textColorHint="@color/edit_text_tint_blue_color"
         android:ems="10" />
 
     <ImageView
@@ -16,6 +16,6 @@
         android:clickable="true"
         android:contentDescription="@string/help"
         android:src="@drawable/ic_twotone_help_24"
-        app:tint="@color/black_overlay" />
+        app:tint="@color/edit_text_tint_blue_color" />
 
 </merge>

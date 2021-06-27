@@ -3,8 +3,7 @@
     <item>
         <shape>
             <corners android:radius="20dp" />
-            <!-- Angle should be 45*n -->
-            <solid android:color="@color/light_blue" />
+            <solid android:color="@color/black_overlay" />
         </shape>
     </item>
 </layer-list>

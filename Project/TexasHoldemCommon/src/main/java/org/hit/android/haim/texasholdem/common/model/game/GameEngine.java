@@ -121,9 +121,11 @@ public class GameEngine {
     /**
      * A listener to get notified upon player updates, so we can persist changes in chips amount.
      */
-    @NonNull
     @JsonIgnore
     private PlayerUpdateListener listener;
+
+    @JsonIgnore
+    private PlayerUpdateNotifier notifier;
 
     /**
      * When a round is over, we keep a reference to each player's earnings so the client can
@@ -159,6 +161,7 @@ public class GameEngine {
     public GameEngine(@NonNull GameSettings gameSettings, @NonNull PlayerUpdateListener listener) {
         this.gameSettings = gameSettings;
         this.listener = listener;
+        notifier = new PlayerUpdateNotifier();
         timeCreated = System.currentTimeMillis();
         id = gameCounter.getAndIncrement();
         initGameHash();
@@ -279,7 +282,7 @@ public class GameEngine {
                 action.setChips(chips);
 
                 // Update listener about update of chips
-                listener.onPlayerChipsUpdated(currPlayer, -1 * chips);
+                notifier.notifyPlayerChipsUpdated(currPlayer, -1 * chips);
                 break;
             }
             case RAISE: {
@@ -287,7 +290,7 @@ public class GameEngine {
                 action.setChips(chips);
 
                 // Update listener about update of chips
-                listener.onPlayerChipsUpdated(currPlayer, -1 * chips);
+                notifier.notifyPlayerChipsUpdated(currPlayer, -1 * chips);
                 break;
             }
             case FOLD: {
@@ -398,18 +401,19 @@ public class GameEngine {
             playerToEarnings = pot.applyWinning(involvedPlayers, board);
             info(getId() + " - The winners: " + playerToEarnings);
 
-            // Log winners
-            //@formatter:off
-            playerToEarnings.forEach((key, value) -> gameLog.logAction(PlayerAction.builder()
-                                                                                   .name(key.getName())
-                                                                                   .chips(new Chips(value.getSum()))
-                                                                                   .handRank(value.getHandRank())
-                                                                                   .build()));
-            //@formatter:on
+            // Log winners and listener about changes in chips due to win
+            playerToEarnings.forEach((player, earning) -> {
+                notifier.notifyPlayerChipsUpdated(player, earning.getSum());
+                gameLog.logAction(PlayerAction.builder()
+                    .name(player.getName())
+                    .chips(new Chips(earning.getSum()))
+                    .handRank(earning.getHandRank())
+                    .build());
+            });
 
             // Wait for 10 seconds in background before starting a new round.
             // We wait so clients can draw winning indications
-            ExecutorService service = Executors.newSingleThreadExecutor(new CustomThreadFactory("RoundLauncher"));
+            ExecutorService service = Executors.newSingleThreadExecutor(new CustomThreadFactory("RoundLauncher-" + getGameHash()));
             service.submit(() -> {
                 try {
                     Thread.sleep(TimeUnit.SECONDS.toMillis(10));
@@ -528,14 +532,12 @@ public class GameEngine {
 
             // In case there are pots, return the chips back to their owners.
             Map<Player, Long> pots = pot.getPots();
-            if (!pots.isEmpty()) {
-                for (Map.Entry<Player, Long> entry : pots.entrySet()) {
-                    entry.getKey().getChips().add(entry.getValue());
+            pots.forEach((player, chips) -> {
+                player.getChips().add(chips);
 
-                    // Update listener about update of chips
-                    listener.onPlayerChipsUpdated(entry.getKey(), entry.getValue());
-                }
-            }
+                // Update listener about update of chips
+                notifier.notifyPlayerChipsUpdated(player, chips);
+            });
             pot.clear();
         }
     }
@@ -546,21 +548,6 @@ public class GameEngine {
      */
     public boolean isActive() {
         return gameState.get() == GameState.STARTED;
-    }
-
-    /**
-     * Use this as a listener to player updates.<br/>
-     * We expose this functionality to let an outside class to save players to disk upon updates,
-     * to implement persistence.
-     */
-    @FunctionalInterface
-    public interface PlayerUpdateListener {
-        /**
-         * This event is raised whenever player's chips are updated during a game
-         * @param player The player with the up to date chips
-         * @param chips The chips value that was modified. Can be negative when player loses chips
-         */
-        void onPlayerChipsUpdated(Player player, long chips);
     }
 
     /**
@@ -592,6 +579,45 @@ public class GameEngine {
          * Game was stopped by calling {@link GameEngine#stop()}
          */
         STOPPED
+    }
+
+    /**
+     * Use this as a listener to player updates.<br/>
+     * We expose this functionality to let an outside class to save players to disk upon updates,
+     * to implement persistence.
+     */
+    @FunctionalInterface
+    public interface PlayerUpdateListener {
+        /**
+         * This event is raised whenever player's chips are updated during a game
+         * @param player The player with the up to date chips
+         * @param chips The chips value that was modified. Can be negative when player loses chips
+         */
+        void onPlayerChipsUpdated(Player player, long chips);
+    }
+
+    /**
+     * A class to notify listener asynchronously, and avoid of blocking game engine.<br/>
+     * The listener might do IO operations that are not necessarily blocking.
+     */
+    private class PlayerUpdateNotifier {
+        private final ExecutorService executor;
+
+        /**
+         * Constructs a new {@link PlayerUpdateNotifier}
+         */
+        public PlayerUpdateNotifier() {
+            executor = Executors.newSingleThreadExecutor(new CustomThreadFactory("PlayerUpdateNotifier-" + getGameHash()));
+        }
+
+        /**
+         * Notify listener, asynchronously.
+         * @param player The player with the up to date chips
+         * @param chips The chips value that was modified. Can be negative when player loses chips
+         */
+        void notifyPlayerChipsUpdated(Player player, long chips) {
+            executor.submit(() -> listener.onPlayerChipsUpdated(player, chips));
+        }
     }
 }
 

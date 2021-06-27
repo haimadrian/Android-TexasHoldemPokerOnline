@@ -1,9 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/network"
+    android:orientation="vertical"
     tools:context=".view.fragment.home.PlayNetworkFragment">
 
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginVertical="60dp"
+        android:gravity="center">
 
-</FrameLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|top"
+            android:layout_marginHorizontal="40dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:shadowColor="@android:color/holo_blue_dark"
+                android:shadowDx="0.0"
+                android:shadowDy="0.0"
+                android:shadowRadius="8.0"
+                android:text="@string/join_game"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/group_box"
+                android:orientation="vertical"
+                android:padding="6dp">
+
+                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                    android:id="@+id/editTextGameHash"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    app:guide="Enter a game identifier of existing game"
+                    app:hint="@string/game_hash"
+                    app:inputType="numberSigned" />
+
+                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                    android:id="@+id/editTextChipsCountJoin"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    app:guide="Enter how many chips you want to play with"
+                    app:hint="@string/amount_of_coins"
+                    app:inputType="numberSigned" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/buttonJoinGame"
+                    style="@style/ButtonBlueNoBorderStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/join" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end|top"
+            android:layout_marginHorizontal="40dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:shadowColor="@android:color/holo_blue_dark"
+                android:shadowDx="0.0"
+                android:shadowDy="0.0"
+                android:shadowRadius="8.0"
+                android:text="@string/create_new_game"
+                android:textColor="@color/white"
+                android:textSize="30sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/group_box"
+                android:orientation="vertical"
+                android:padding="6dp">
+
+                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                    android:id="@+id/editTextSmallBet"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    app:guide="Enter the value that will be used as small bet"
+                    app:hint="@string/size_of_small_bet"
+                    app:inputType="numberSigned" />
+
+                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                    android:id="@+id/editTextBigBet"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    app:guide="Enter the value that will be used as big bet"
+                    app:hint="@string/size_of_big_bet"
+                    app:inputType="numberSigned" />
+
+                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                    android:id="@+id/editTextChipsCountCreate"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    app:guide="Enter how many chips you want to play with"
+                    app:hint="@string/amount_of_coins"
+                    app:inputType="numberSigned" />
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/button_create_game"
+                    style="@style/ButtonBlueNoBorderStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/create" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </FrameLayout>
+</LinearLayout>

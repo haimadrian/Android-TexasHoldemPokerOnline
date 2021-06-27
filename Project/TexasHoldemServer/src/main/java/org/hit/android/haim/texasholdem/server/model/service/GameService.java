@@ -44,7 +44,7 @@ public class GameService {
             // If game was opened more than a hour ago, and there is 1 player at most, close it.
             if (((System.currentTimeMillis() - game.getTimeCreated()) > TimeUnit.HOURS.toMillis(1)) &&
                 (game.getPlayers().size() <= 1)) {
-                gameRepository.closeGame(game.getId());
+                gameRepository.stopGame(game.getId());
             }
         }), 0, 15, TimeUnit.MINUTES);
     }
@@ -115,10 +115,17 @@ public class GameService {
     }
 
     /**
-     * See {@link GameRepository#closeGame(int)}
+     * See {@link GameRepository#startGame(int)}
      */
-    public Optional<GameEngine> endGame(int id) {
-        return gameRepository.closeGame(id);
+    public void startGame(String gameHash) {
+        gameRepository.startGame(gameIdFromGameHash(gameHash));
+    }
+
+    /**
+     * See {@link GameRepository#stopGame(int)}
+     */
+    public void stopGame(String gameHash) {
+        gameRepository.stopGame(gameIdFromGameHash(gameHash));
     }
 
     /**

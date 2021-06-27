@@ -63,15 +63,15 @@
                 app:hint="@string/size_of_big_bet"
                 app:inputType="numberSigned" />
 
-        </LinearLayout>
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_create_game"
+                style="@style/ButtonBlueNoBorderStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/go" />
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/buttonPlayNetwork"
-            style="@style/ButtonBlueNoBorderStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/go" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

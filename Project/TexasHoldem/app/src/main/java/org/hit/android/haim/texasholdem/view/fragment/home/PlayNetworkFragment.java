@@ -26,7 +26,16 @@ public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkB
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        getBinding();
+        getBinding().buttonJoinGame.setOnClickListener(this::onJoinButtonClicked);
+        getBinding().buttonCreateGame.setOnClickListener(this::onCreateButtonClicked);
+    }
+
+    public void onJoinButtonClicked(View button) {
+
+    }
+
+    public void onCreateButtonClicked(View button) {
+
     }
 
 }
