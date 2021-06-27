@@ -13,8 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.common.model.bean.chat.Message;
 import org.hit.android.haim.texasholdem.model.User;
-import org.hit.android.haim.texasholdem.model.chat.Message;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;

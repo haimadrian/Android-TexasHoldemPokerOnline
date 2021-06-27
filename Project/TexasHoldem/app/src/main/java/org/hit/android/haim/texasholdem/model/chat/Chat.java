@@ -7,6 +7,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 
+import org.hit.android.haim.texasholdem.common.model.bean.chat.Channel;
+import org.hit.android.haim.texasholdem.common.model.bean.chat.Message;
+import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,12 +115,7 @@ public class Chat {
     private void scheduleRefresh() {
         stopExecutor();
 
-        executor = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread result = Executors.defaultThreadFactory().newThread(r);
-            result.setName("ChatRefreshThread");
-            return result;
-        });
-
+        executor = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("ChatRefreshThread"));
         executor.scheduleWithFixedDelay(Chat.this::refresh, 1, 1, TimeUnit.SECONDS);
     }
 

@@ -17,7 +17,8 @@ java {
 }
 
 dependencies {
-    implementation (
+    // Use compile and not implementation, otherwise com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer is not accessible...
+    compile (
             [group: "com.fasterxml.jackson.core", name: "jackson-core", version: jacksonVer],
             [group: "com.fasterxml.jackson.core", name: "jackson-annotations", version: jacksonVer],
             [group: "com.fasterxml.jackson.core", name: "jackson-databind", version: jacksonVer],

@@ -1,7 +1,8 @@
 package org.hit.android.haim.texasholdem.server.model.repository;
 
-import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
-import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
+import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
+import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
+import org.hit.android.haim.texasholdem.server.model.game.ServerGameEngine;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -58,7 +59,7 @@ public class GameRepository {
             closeGame(existingGame.getId());
         }
 
-        GameEngine game = new GameEngine(settings, listener);
+        GameEngine game = new ServerGameEngine(settings, listener);
         games.put(game.getId(), game);
         ownerToGame.put(settings.getCreatorId(), game);
         return game;

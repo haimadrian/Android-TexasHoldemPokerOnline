@@ -15,10 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.common.model.bean.chat.Channel;
+import org.hit.android.haim.texasholdem.common.model.bean.chat.Message;
 import org.hit.android.haim.texasholdem.databinding.FragmentChatBinding;
-import org.hit.android.haim.texasholdem.model.chat.Channel;
 import org.hit.android.haim.texasholdem.model.chat.Chat;
-import org.hit.android.haim.texasholdem.model.chat.Message;
 import org.hit.android.haim.texasholdem.model.game.Game;
 import org.hit.android.haim.texasholdem.view.activity.MainActivity;
 import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;

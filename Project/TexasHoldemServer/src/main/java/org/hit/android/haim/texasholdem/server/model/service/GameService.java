@@ -1,12 +1,13 @@
 package org.hit.android.haim.texasholdem.server.model.service;
 
-import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
-import org.hit.android.haim.texasholdem.server.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
+import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
+import org.hit.android.haim.texasholdem.server.controller.common.Base64;
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
-import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.server.model.repository.GameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -38,7 +39,7 @@ public class GameService {
      * Constructs a new {@link GameService}
      */
     public GameService() {
-        cleanupExecutor = Executors.newSingleThreadScheduledExecutor(new CustomizableThreadFactory("GamesCleanupScheduler"));
+        cleanupExecutor = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("GamesCleanupScheduler"));
         cleanupExecutor.scheduleAtFixedRate(() -> gameRepository.findAll().forEach(game -> {
             // If game was opened more than a hour ago, and there is 1 player at most, close it.
             if (((System.currentTimeMillis() - game.getTimeCreated()) > TimeUnit.HOURS.toMillis(1)) &&
@@ -65,7 +66,7 @@ public class GameService {
      * See {@link GameRepository#findGameById(int)}
      */
     public Optional<GameEngine> findById(String gameHash) {
-        int gameId = GameEngine.gameIdFromGameHash(gameHash);
+        int gameId = gameIdFromGameHash(gameHash);
         return gameRepository.findGameById(gameId);
     }
 
@@ -83,7 +84,7 @@ public class GameService {
      * @param player The player that joins a game
      */
     public void joinGame(String gameHash, Player player) {
-        int gameId = GameEngine.gameIdFromGameHash(gameHash);
+        int gameId = gameIdFromGameHash(gameHash);
         Optional<GameEngine> game = gameRepository.findGameById(gameId);
         if (game.isEmpty()) {
             throw new IllegalArgumentException("Game not found: " + gameHash);
@@ -100,7 +101,7 @@ public class GameService {
      * @param userId The user identifier of the players which is leaving
      */
     public void leaveGame(String gameHash, String userId) {
-        int gameId = GameEngine.gameIdFromGameHash(gameHash);
+        int gameId = gameIdFromGameHash(gameHash);
         Optional<GameEngine> game = gameRepository.findGameById(gameId);
         if (game.isEmpty()) {
             throw new IllegalArgumentException("Game not found: " + gameHash);
@@ -125,6 +126,26 @@ public class GameService {
      */
     public void shutdown() {
         cleanupExecutor.shutdownNow();
+    }
+
+    /**
+     * Decode a game hash to game identifier.<br/>
+     * This method created in order to get game identifier when we receive a game hash from clients.
+     * @param gameHash A game hash to decode.
+     * @return Game identifier
+     * @throws IllegalArgumentException In case the specified hash is null or empty, or it does not represent a game identifier (int)
+     */
+    public static int gameIdFromGameHash(String gameHash) throws IllegalArgumentException {
+        if ((gameHash == null) || (gameHash.isBlank())) {
+            throw new IllegalArgumentException("Game hash cannot be null or empty.");
+        }
+
+        int gameId = Base64.decodeToInt(gameHash);
+        if (gameId < 0) {
+            throw new IllegalArgumentException(gameHash + " does not represent a game identifier.");
+        }
+
+        return gameId;
     }
 }
 

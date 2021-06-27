@@ -1,10 +1,10 @@
 package org.hit.android.haim.texasholdem.server.controller;
 
 import com.fasterxml.jackson.databind.node.TextNode;
-import org.hit.android.haim.texasholdem.server.model.bean.game.GameSettings;
-import org.hit.android.haim.texasholdem.server.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
-import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.server.model.service.GameService;
 import org.hit.android.haim.texasholdem.server.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;

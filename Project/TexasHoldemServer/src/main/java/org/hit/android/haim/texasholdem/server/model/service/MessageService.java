@@ -1,9 +1,9 @@
 package org.hit.android.haim.texasholdem.server.model.service;
 
 import org.apache.logging.log4j.util.Strings;
-import org.hit.android.haim.texasholdem.server.model.bean.chat.Message;
-import org.hit.android.haim.texasholdem.server.model.bean.user.User;
-import org.hit.android.haim.texasholdem.server.model.game.GameEngine;
+import org.hit.android.haim.texasholdem.common.model.bean.chat.Message;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +22,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class MessageService {
-    @Autowired
-    private UserService userService;
-
     @Autowired
     private GameService gameService;
 
@@ -94,12 +91,12 @@ public class MessageService {
             throw new IllegalArgumentException("Game not found: " + channelName);
         }
 
-        Optional<? extends User> user = userService.findById(userId);
-        if (user.isEmpty()) {
-            throw new IllegalArgumentException("User not found: " + userId);
+        Player player = game.get().getPlayers().getPlayerById(userId);
+        if (player == null) {
+            throw new IllegalArgumentException("Player not found: " + userId);
         }
 
-        Message message = new Message(messageContent, LocalDateTime.now(), game.get().getChat(), user.get());
+        Message message = new Message(messageContent, LocalDateTime.now(), game.get().getChat(), player);
         game.get().getChat().getMessages().add(message);
         return message;
     }
