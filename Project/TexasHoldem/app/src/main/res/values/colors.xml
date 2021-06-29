@@ -7,6 +7,7 @@
     <color name="light_blue_900">#01579B</color>
     <color name="light_blue_A400">#00B0FF</color>
     <color name="black_overlay">#66000000</color>
+    <color name="black_overlay_thicker">#AA000000</color>
     <color name="gray_400">#BDBDBD</color>
     <color name="gray_600">#757575</color>
     <color name="dark_gray">#CC43454A</color>

@@ -90,6 +90,17 @@ public class GameService {
             throw new IllegalArgumentException("Game not found: " + gameHash);
         }
 
+        // Make sure user exists
+        Optional<? extends User> user = userService.findById(player.getId());
+        if (user.isEmpty()) {
+            throw new IllegalArgumentException("User " + player.getId() + " is not registered");
+        }
+
+        // Make sure user got enough chips to play with
+        if (player.getChips().get() > user.get().getCoins()) {
+            throw new IllegalArgumentException("Not enough chips. Please purchase some more and try again.");
+        }
+
         // addPlayer throws exception in case the game is active
         game.get().addPlayer(player);
     }

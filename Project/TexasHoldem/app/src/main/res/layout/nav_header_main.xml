@@ -53,11 +53,22 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center_vertical"
-            android:layout_weight="0.1"
+            android:layout_weight="0.2"
             android:gravity="center_vertical"
             android:paddingStart="8dp"
             android:textColor="@color/white"
             android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/buyCoins"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:layout_weight="0.9"
+            android:contentDescription="@string/nav_header_desc"
+            android:foregroundGravity="center_vertical"
+            android:gravity="center_vertical"
+            app:srcCompat="@drawable/ic_outline_add_shopping_cart_24" />
     </LinearLayout>
 
 </LinearLayout>

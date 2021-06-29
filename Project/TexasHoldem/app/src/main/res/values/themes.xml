@@ -11,6 +11,7 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorOnPrimary</item>
+        <item name="android:alertDialogTheme">@style/AlertDialogTheme.Light</item>
     </style>
 
     <!-- Play on full screen. No action bar and no title -->
@@ -18,5 +19,12 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- Set custom style to alert dialog. We use it when user clicks the "buyCoins" button at nav_header_main.xml -->
+    <style name="AlertDialogTheme.Light" parent="ThemeOverlay.MaterialComponents.Dialog.Alert" >
+        <item name="buttonBarStyle">@style/Widget.AppCompat.ButtonBar</item>
+        <item name="buttonBarPositiveButtonStyle">@style/ButtonGreenNoBorderStyle</item>
+        <item name="buttonBarNegativeButtonStyle">@style/ButtonRedNoBorderStyle</item>
     </style>
 </resources>

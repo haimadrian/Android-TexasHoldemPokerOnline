@@ -10,14 +10,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Menu;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavBackStackEntry;
 import androidx.navigation.NavController;
@@ -152,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
         userTextView = headerView.findViewById(R.id.userTextView);
         coinsTextView = headerView.findViewById(R.id.coinsTextView);
         userImageView = headerView.findViewById(R.id.userImage);
+        ImageView buyCoinsImageView = headerView.findViewById(R.id.buyCoins);
 
         // When user presses the image view, we let him select an image to be used as profile picture.
         // But first we must have permissions granted in order to do that
@@ -166,7 +169,53 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        buyCoinsImageView.setOnClickListener(this::onBuyCoinsClicked);
+
         refreshUserInfo();
+    }
+
+    /**
+     * This is raised when user presses the but icons button. (shopping cart in the navigation panel)<br/>
+     * Here we let user purchase coins.
+     * @param view Image view
+     */
+    private void onBuyCoinsClicked(View view) {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this, R.style.AlertDialogTheme_Light);
+
+        // Get dialog_purchase.xml view
+        LayoutInflater li = LayoutInflater.from(this);
+        View promptsView = li.inflate(R.layout.dialog_purchase, null);
+        alertDialogBuilder.setView(promptsView);
+
+        EditText userInput = promptsView.findViewById(R.id.editTextDialogUserInput);
+
+        // Define dialog buttons and respond to user clicks over them
+        alertDialogBuilder
+                .setCancelable(true)
+                .setNegativeButton("Cancel", (dialog, id) -> dialog.cancel())
+                .setPositiveButton("Buy", (dialog, id) -> {
+                    long amountOfChips = 0;
+                    String userInputText = userInput.getText().toString().trim();
+
+                    Log.d(LOGGER, "Purchasing " + userInputText + " chips.");
+                    try {
+                        amountOfChips = Long.parseLong(userInputText);
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(MainActivity.this, "Illegal input: " + userInputText, Toast.LENGTH_LONG).show();
+                        dialog.cancel();
+                    }
+
+                    // Update cloud with the new amount
+                    if (amountOfChips > 0) {
+                        User user = getUser().toBuilder().coins(getUser().getCoins() + amountOfChips).build();
+                        TexasHoldemWebService.getInstance().getUserService().updateCoins(getUser().getId(), user).enqueue(new UserInfoCallback(() ->
+                                Toast.makeText(MainActivity.this, "Purchase completed successfully", Toast.LENGTH_LONG).show()));
+                    }
+                });
+
+        // Create and show alert dialog
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.show();
     }
 
     @Override
@@ -178,13 +227,6 @@ public class MainActivity extends AppCompatActivity {
         if ((requestCode == PICK_FROM_GALLERY) && (grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
             openImageChooser();
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
     }
 
     // Currently there is no "up button" (back button) and we hide navigation bar.
@@ -348,6 +390,26 @@ public class MainActivity extends AppCompatActivity {
      * we update its details. For example when we update the image or coins.
      */
     private class UserInfoCallback extends SimpleCallback<JsonNode> {
+        /**
+         * An optional task to run when response is received successfully.
+         */
+        private Runnable runLater;
+
+        /**
+         * Constructs a new {@link UserInfoCallback}
+         */
+        public UserInfoCallback() {
+
+        }
+
+        /**
+         * Constructs a new {@link UserInfoCallback}
+         * @param runLater An optional task to run when response is received successfully.
+         */
+        public UserInfoCallback(Runnable runLater) {
+            this.runLater = runLater;
+        }
+
         @Override
         public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
             if (!response.isSuccessful()) {
@@ -356,6 +418,7 @@ public class MainActivity extends AppCompatActivity {
                 JsonNode body = response.body();
                 try {
                     user = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), User.class);
+                    Log.d(LOGGER, "Received user info: " + user);
 
                     userTextView.setText(String.format(getString(R.string.nav_header_user), user.getName(), user.getId()));
                     coinsTextView.setText(String.valueOf(user.getCoins()));
@@ -365,6 +428,10 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         // Default user image
                         userImageView.setImageResource(R.drawable.user);
+                    }
+
+                    if (runLater != null) {
+                        runLater.run();
                     }
                 } catch (IOException e) {
                     Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);

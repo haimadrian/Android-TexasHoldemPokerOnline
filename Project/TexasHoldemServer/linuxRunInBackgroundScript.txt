@@ -1,0 +1,1 @@
+nohup java -jar /home/ec2-user/TexasHoldem/texas-holdem-server-1.0.jar &

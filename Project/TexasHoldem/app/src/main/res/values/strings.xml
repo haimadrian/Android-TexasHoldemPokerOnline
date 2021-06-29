@@ -29,6 +29,8 @@
     <string name="menu_settings">Preferences</string>
     <string name="menu_about">About</string>
     <string name="menu_sign_out">Sign Out</string>
+    <string name="amount_of_chips">Enter amount of chips to purchase:</string>
+    <string name="amount">Amount</string>
 
     <!-- Home fragment -->
     <string name="play_against_bots">Play against bots</string>

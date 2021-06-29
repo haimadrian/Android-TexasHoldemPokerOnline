@@ -19,7 +19,9 @@
             android:layout_height="wrap_content"
             android:layout_gravity="start|top"
             android:layout_marginHorizontal="40dp"
-            android:orientation="vertical">
+            android:background="@drawable/group_box"
+            android:orientation="vertical"
+            android:padding="6dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -35,50 +37,45 @@
                 android:textColor="@color/white"
                 android:textSize="30sp" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                android:id="@+id/editTextGameHash"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:guide="Enter a game identifier of existing game"
+                app:hint="@string/game_hash"
+                app:inputType="text" />
+
+            <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                android:id="@+id/editTextChipsCountJoin"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:guide="Enter how many chips you want to play with"
+                app:hint="@string/amount_of_coins"
+                app:inputType="numberSigned" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonJoinGame"
+                style="@style/ButtonBlueNoBorderStyle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/group_box"
-                android:orientation="vertical"
-                android:padding="6dp">
+                android:layout_marginTop="4dp"
+                android:text="@string/join" />
 
-                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
-                    android:id="@+id/editTextGameHash"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    app:guide="Enter a game identifier of existing game"
-                    app:hint="@string/game_hash"
-                    app:inputType="numberSigned" />
-
-                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
-                    android:id="@+id/editTextChipsCountJoin"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    app:guide="Enter how many chips you want to play with"
-                    app:hint="@string/amount_of_coins"
-                    app:inputType="numberSigned" />
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/buttonJoinGame"
-                    style="@style/ButtonBlueNoBorderStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/join" />
-
-            </LinearLayout>
         </LinearLayout>
+
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="end|top"
             android:layout_marginHorizontal="40dp"
-            android:orientation="vertical">
+            android:background="@drawable/group_box"
+            android:orientation="vertical"
+            android:padding="6dp">
 
             <TextView
                 android:layout_width="match_parent"
@@ -94,52 +91,44 @@
                 android:textColor="@color/white"
                 android:textSize="30sp" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                android:id="@+id/editTextSmallBet"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:guide="Enter the value that will be used as small bet"
+                app:hint="@string/size_of_small_bet"
+                app:inputType="numberSigned" />
+
+            <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                android:id="@+id/editTextBigBet"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:guide="Enter the value that will be used as big bet"
+                app:hint="@string/size_of_big_bet"
+                app:inputType="numberSigned" />
+
+            <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                android:id="@+id/editTextChipsCountCreate"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:guide="Enter how many chips you want to play with"
+                app:hint="@string/amount_of_coins"
+                app:inputType="numberSigned" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/buttonCreateGame"
+                style="@style/ButtonBlueNoBorderStyle"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/group_box"
-                android:orientation="vertical"
-                android:padding="6dp">
+                android:layout_marginTop="4dp"
+                android:text="@string/create" />
 
-                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
-                    android:id="@+id/editTextSmallBet"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    app:guide="Enter the value that will be used as small bet"
-                    app:hint="@string/size_of_small_bet"
-                    app:inputType="numberSigned" />
-
-                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
-                    android:id="@+id/editTextBigBet"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    app:guide="Enter the value that will be used as big bet"
-                    app:hint="@string/size_of_big_bet"
-                    app:inputType="numberSigned" />
-
-                <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
-                    android:id="@+id/editTextChipsCountCreate"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    app:guide="Enter how many chips you want to play with"
-                    app:hint="@string/amount_of_coins"
-                    app:inputType="numberSigned" />
-
-                <androidx.appcompat.widget.AppCompatButton
-                    android:id="@+id/button_create_game"
-                    style="@style/ButtonBlueNoBorderStyle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/create" />
-
-            </LinearLayout>
         </LinearLayout>
 
     </FrameLayout>

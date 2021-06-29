@@ -52,14 +52,35 @@ public class PlayerView extends LinearLayout {
     @Getter
     private ProgressBar playerProgressBar;
 
+    /**
+     * Constructs a new {@link PlayerView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     */
     public PlayerView(Context context) {
         this(context, null, 0);
     }
 
+    /**
+     * Constructs a new {@link PlayerView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     * @param attrs The attributes of the XML tag that is inflating the view.
+     */
     public PlayerView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
+    /**
+     * Constructs a new {@link PlayerView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     * @param attrs The attributes of the XML tag that is inflating the view.
+     * @param defStyle A resource identifier of a style resource that
+     *        supplies default values for the view, used only if
+     *        defStyleAttr is 0 or can not be found in the theme. Can be 0
+     *        to not look for defaults.
+     */
     public PlayerView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context, attrs, defStyle);
@@ -125,21 +146,21 @@ public class PlayerView extends LinearLayout {
         setPaddingBasedOnLayout(nameAndChipsContainer, orientation, isReversed);
     }
 
+    /**
+     * Set padding to the name and chips container, based on orientation,
+     * so the texts will have some space between them to the image
+     */
     private void setPaddingBasedOnLayout(LinearLayout container, int orientation, boolean isReversed) {
         int paddingValue = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics());
 
         LayoutParams params = new LayoutParams(container.getLayoutParams());
         if (orientation == HORIZONTAL) {
-            int left = isReversed ? 0 : paddingValue;
             int right = isReversed ? paddingValue : 0;
             params.setMargins(paddingValue, 0, right, 0);
-            //container.setPadding(left, 0, right, 0);
-            //playerNameTextView.setPadding(paddingValue, 0, right, 0);
         } else {
             int top = isReversed ? 0 : paddingValue;
             int bottom = isReversed ? paddingValue : 0;
             params.setMargins(0, top, 0, bottom);
-            //container.setPadding(0, top, 0, bottom);
         }
 
         container.setLayoutParams(params);

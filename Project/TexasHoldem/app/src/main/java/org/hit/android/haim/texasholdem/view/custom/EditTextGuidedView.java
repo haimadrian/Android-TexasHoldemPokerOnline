@@ -17,6 +17,9 @@ import androidx.core.content.ContextCompat;
 
 import org.hit.android.haim.texasholdem.R;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * A custom view that contains an edit text and an image next to it.<br/>
  * This custom view represents an edit text with guideline button, to have additional
@@ -30,31 +33,57 @@ public class EditTextGuidedView extends LinearLayout {
     /**
      * The content to be displayed within a popup
      */
+    @Getter
+    @Setter
     private String guide;
 
     /**
      * The edit text this compound component has
      */
+    @Getter
     private EditText edit;
 
     /**
      * The image sitting right to the edit text (Help)
      */
+    @Getter
     private ImageView image;
 
     /**
      * A reference to the popup that we display when user clicks on the image
      */
+    @Getter
     private PopupWindow popUp;
 
+    /**
+     * Constructs a new {@link EditTextGuidedView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     */
     public EditTextGuidedView(Context context) {
         this(context, null, 0);
     }
 
+    /**
+     * Constructs a new {@link EditTextGuidedView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     * @param attrs The attributes of the XML tag that is inflating the view.
+     */
     public EditTextGuidedView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
+    /**
+     * Constructs a new {@link EditTextGuidedView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     * @param attrs The attributes of the XML tag that is inflating the view.
+     * @param defStyle A resource identifier of a style resource that
+     *        supplies default values for the view, used only if
+     *        defStyleAttr is 0 or can not be found in the theme. Can be 0
+     *        to not look for defaults.
+     */
     public EditTextGuidedView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context, attrs, defStyle);
@@ -118,19 +147,36 @@ public class EditTextGuidedView extends LinearLayout {
         popUp.setContentView(popupContentView);
     }
 
-    public EditText getEdit() {
-        return edit;
+    /**
+     * @return The input text from this edit text, as String.
+     */
+    public String getText() {
+        return edit.getText().toString();
     }
 
-    public ImageView getImage() {
-        return image;
+    /**
+     *
+     * @param defaultValue A value to use in case the input is not an integer
+     * @return The input text from this edit text, as int.
+     */
+    public int getInt(int defaultValue) {
+        try {
+            return Integer.parseInt(getText());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
-    public String getGuide() {
-        return guide;
-    }
-
-    public void setGuide(String guide) {
-        this.guide = guide;
+    /**
+     *
+     * @param defaultValue A value to use in case the input is not a long number
+     * @return The input text from this edit text, as long.
+     */
+    public long getLong(long defaultValue) {
+        try {
+            return Long.parseLong(getText());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 }

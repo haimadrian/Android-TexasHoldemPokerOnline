@@ -3,7 +3,7 @@
     <item>
         <shape>
             <corners android:radius="20dp" />
-            <solid android:color="@color/black_overlay" />
+            <solid android:color="@color/black_overlay_thicker" />
         </shape>
     </item>
 </layer-list>

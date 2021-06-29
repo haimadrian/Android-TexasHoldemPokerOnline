@@ -18,6 +18,7 @@ import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;
  * @since 27-Mar-21
  */
 public class GameFragment extends ViewBindedFragment<FragmentGameBinding> {
+    public static final String GAME_HASH_BUNDLE_KEY = GameFragment.class.getName() + ".GAME_HASH";
 
     public GameFragment() {
         super(R.layout.fragment_game, FragmentGameBinding::bind);

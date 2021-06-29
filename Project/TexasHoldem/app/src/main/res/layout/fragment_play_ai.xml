@@ -64,7 +64,7 @@
                 app:inputType="numberSigned" />
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/button_create_game"
+                android:id="@+id/buttonGo"
                 style="@style/ButtonBlueNoBorderStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

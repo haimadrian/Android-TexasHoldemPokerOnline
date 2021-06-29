@@ -38,14 +38,35 @@ public class HandView extends LinearLayout {
     @Getter
     private ImageView dealerImageView;
 
+    /**
+     * Constructs a new {@link HandView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     */
     public HandView(Context context) {
         this(context, null, 0);
     }
 
+    /**
+     * Constructs a new {@link HandView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     * @param attrs The attributes of the XML tag that is inflating the view.
+     */
     public HandView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
+    /**
+     * Constructs a new {@link HandView}
+     * @param context The Context the view is running in, through which it can
+     *        access the current theme, resources, etc.
+     * @param attrs The attributes of the XML tag that is inflating the view.
+     * @param defStyle A resource identifier of a style resource that
+     *        supplies default values for the view, used only if
+     *        defStyleAttr is 0 or can not be found in the theme. Can be 0
+     *        to not look for defaults.
+     */
     public HandView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context, attrs, defStyle);
