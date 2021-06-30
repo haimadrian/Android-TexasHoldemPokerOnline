@@ -7,16 +7,16 @@ ext {
     annotationVer = "1.2.0"
     appCompatVer = "1.3.0"
     circleImageVer = "3.1.0"
+    imageCropperVersion = "2.8.0"
     jacksonVer = "2.12.3"
     lifecycleVer = "2.3.1"
-    lombokVer = '1.18.18'
+    lombokVer = "1.18.18"
+    lottieVersion = "3.4.0"
     materialVer = "1.3.0"
     navigationVer = "2.3.5"
     okHttpVer = "4.9.1"
     recyclerviewAnimatorsVer = "4.0.2"
-    retrofitVer = '2.9.0'
-    lottieVersion = '3.4.0'
-    imageCropperVersion = '2.8.0'
+    retrofitVer = "2.9.0"
 }
 
 android {
@@ -74,12 +74,12 @@ dependencies {
     implementation "com.squareup.retrofit2:converter-jackson:${retrofitVer}"
 
     // Animations
-    implementation "com.airbnb.android:lottie:${lottieVersion}"
+    implementation "com.airbnb.android:lottie:${lottieVersion}" // Play lottie animations
 
     // Image cropping
     api "com.theartofdev.edmodo:android-image-cropper:${imageCropperVersion}"
 
     testImplementation "junit:junit:4.13.2"
-    androidTestImplementation "androidx.test.ext:junit:1.1.2"
-    androidTestImplementation "androidx.test.espresso:espresso-core:3.3.0"
+    androidTestImplementation "androidx.test.ext:junit:1.1.3"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.4.0"
 }

@@ -66,7 +66,7 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
      * @param channelName Game hash is used as channel name
      */
     public ChatFragment(String channelName) {
-        super(R.layout.fragment_game, FragmentChatBinding::bind);
+        super(R.layout.fragment_chat, FragmentChatBinding::bind);
 
         Log.d(LOGGER, this.toString() + ".new");
         this.channelName = channelName;
@@ -88,6 +88,7 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
         }
 
         getBinding().imageViewSend.setOnClickListener(this::onSendButtonClicked);
+        getBinding().imageViewBack.setOnClickListener(v -> ((MainActivity)getActivity()).navigateBack());
         getBinding().messagesRecyclerView.setHasFixedSize(true);
 
         // Set vertical layout and custom animator to the recycler view
@@ -136,10 +137,8 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
     }
 
     @Override
-    public void onError(String errorMessage) {
-        new Handler().post(() -> {
-            Snackbar.make(fragmentView, errorMessage, Snackbar.LENGTH_LONG).show();
-        });
+    public void onChatError(String errorMessage) {
+        new Handler().post(() -> Snackbar.make(fragmentView, errorMessage, Snackbar.LENGTH_LONG).show());
     }
 
     /**

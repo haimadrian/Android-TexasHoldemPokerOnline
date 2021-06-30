@@ -35,7 +35,7 @@ public class GameEngine {
     /**
      * Accept 7 players at most.
      */
-    private static final int MAXIMUM_AMOUNT_OF_PLAYERS = 7;
+    public static final int MAXIMUM_AMOUNT_OF_PLAYERS = 7;
 
     /**
      * A unique identifier of this game

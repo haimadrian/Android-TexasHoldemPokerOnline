@@ -9,18 +9,21 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.model.game.Game;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Play game sound effects in background
  * @author Haim Adrian
  * @since 12-Jun-21
  */
-public class GameService extends Service implements Game.GameStepListener {
-    private static final String LOGGER = GameService.class.getSimpleName();
+public class GameSoundService extends Service implements Game.GameListener {
+    private static final String LOGGER = GameSoundService.class.getSimpleName();
 
     /**
      * Map between {@link org.hit.android.haim.texasholdem.model.game.Game.GameStepType} to its corresponding
@@ -52,7 +55,7 @@ public class GameService extends Service implements Game.GameStepListener {
         mediaPlayers.put(Game.GameStepType.LOSE, MediaPlayer.create(this, R.raw.fail));
 
         // Listen to game steps so we can play sound effects for each step
-        Game.getInstance().addGameStepListener(this);
+        Game.getInstance().addGameListener(this);
 
         // Use sticky so onStartCommand will be called again in case service is killed.
         return Service.START_STICKY;
@@ -62,9 +65,10 @@ public class GameService extends Service implements Game.GameStepListener {
     public void onDestroy() {
         Log.d(LOGGER, "onDestroy");
         Game.getInstance().removeGameStepListener(this);
-        mediaPlayers.values().forEach(GameService::releaseMediaPlayer);
+        mediaPlayers.values().forEach(GameSoundService::releaseMediaPlayer);
         mediaPlayers.clear();
 
+        // Stop game to shutdown background threads
         Game.getInstance().stop();
 
         stopSelf();
@@ -91,5 +95,20 @@ public class GameService extends Service implements Game.GameStepListener {
         if (mediaPlayer != null) {
             restartMediaPlayer(mediaPlayer);
         }
+    }
+
+    @Override
+    public void refresh(GameEngine gameEngine) {
+        // Do nothing
+    }
+
+    @Override
+    public void playersRefresh(Set<Player> players) {
+        // Do nothing
+    }
+
+    @Override
+    public void onGameError(String errorMessage) {
+        // Do nothing
     }
 }

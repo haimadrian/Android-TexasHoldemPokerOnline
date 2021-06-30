@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/background">
 
     <LinearLayout
         android:id="@+id/chatCaptionLayout"
@@ -13,24 +14,43 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:gravity="center_vertical"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:paddingStart="6dp"
         android:paddingEnd="6dp">
 
-        <TextView
-            android:id="@+id/textViewChatName"
+        <ImageView
+            android:id="@+id/imageViewBack"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.4"
-            android:textAppearance="?android:attr/textAppearanceLarge" />
+            android:layout_weight="0.96"
+            android:background="@drawable/ic_outline_arrow_back_24"
+            android:clickable="true"
+            android:layout_marginVertical="4dp"
+            tools:ignore="ContentDescription" />
 
-        <TextView
-            android:id="@+id/textViewChatParticipants"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="0.6"
-            android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:layout_height="wrap_content"
+            android:layout_weight="0.04"
+            android:orientation="vertical">
 
+            <TextView
+                android:id="@+id/textViewChatName"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.4"
+                android:textColor="@color/white"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                tools:ignore="NestedWeights" />
+
+            <TextView
+                android:id="@+id/textViewChatParticipants"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.6"
+                android:textColor="@color/white"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+        </LinearLayout>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -55,7 +75,7 @@
             android:id="@+id/editTextWriteMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0.1"
+            android:layout_weight="0.08"
             android:background="@drawable/textfield_d"
             android:drawableStart="@drawable/ic_twotone_edit_24"
             android:drawablePadding="6dp"
@@ -73,7 +93,7 @@
             android:id="@+id/imageViewSend"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="0.9"
+            android:layout_weight="0.92"
             android:background="@drawable/ic_twotone_send_24"
             android:clickable="true"
             tools:ignore="ContentDescription" />

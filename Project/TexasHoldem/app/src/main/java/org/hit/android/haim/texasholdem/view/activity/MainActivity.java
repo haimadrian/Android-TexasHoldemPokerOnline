@@ -36,6 +36,8 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 import org.hit.android.haim.texasholdem.R;
 import org.hit.android.haim.texasholdem.databinding.ActivityMainBinding;
 import org.hit.android.haim.texasholdem.model.User;
+import org.hit.android.haim.texasholdem.model.game.Game;
+import org.hit.android.haim.texasholdem.view.GameSoundService;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
@@ -293,6 +295,10 @@ public class MainActivity extends AppCompatActivity {
         if ((currentBackStackEntry != null) && (currentBackStackEntry.getDestination().getId() == R.id.nav_home)) {
             // Execute it later, so we will not break the event handling.
             new Handler().post(() -> {
+                Log.d(LOGGER, "Exiting");
+                Game.getInstance().stop();
+                stopService(new Intent(MainActivity.this, GameSoundService.class));
+
                 ExitActivity.exit(MainActivity.this.getApplicationContext());
                 MainActivity.this.finish();
             });
@@ -318,6 +324,16 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         navController.navigate(fragmentActionId, args);
         binding.drawerLayout.closeDrawers();
+    }
+
+    /**
+     * Programmatically go back (demonstrate user press on the back button) to go back in the
+     * navigation controller.<br/>
+     * We use this to go back from chat fragment to game fragment.
+     */
+    public void navigateBack() {
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        navController.popBackStack();
     }
 
     /**

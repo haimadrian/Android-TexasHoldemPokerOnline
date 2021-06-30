@@ -146,7 +146,7 @@ public class Chat {
      */
     private void notifyError(String errorMessage) {
         for (ChatListener listener : listeners) {
-            listener.onError(errorMessage);
+            listener.onChatError(errorMessage);
         }
     }
 
@@ -244,6 +244,6 @@ public class Chat {
          * get new messages from server.
          * @param errorMessage The error message to show to user
          */
-        void onError(String errorMessage);
+        void onChatError(String errorMessage);
     }
 }

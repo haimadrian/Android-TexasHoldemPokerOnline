@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
-    tools:context=".view.fragment.home.GameFragment">
+    android:background="@drawable/background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayoutTable"
@@ -277,7 +276,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="1dp"
                 android:layout_weight="0.8"
-                android:src="@drawable/pack" />
+                android:src="@drawable/pack"
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/card1"
@@ -285,7 +285,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="1dp"
                 android:layout_weight="0.8"
-                android:src="@drawable/pack" />
+                android:src="@drawable/pack"
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/card2"
@@ -293,7 +294,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="1dp"
                 android:layout_weight="0.8"
-                android:src="@drawable/pack" />
+                android:src="@drawable/pack"
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/card3"
@@ -301,7 +303,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="1dp"
                 android:layout_weight="0.8"
-                android:src="@drawable/pack" />
+                android:src="@drawable/pack"
+                tools:ignore="ContentDescription" />
 
             <ImageView
                 android:id="@+id/card4"
@@ -309,7 +312,8 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="1dp"
                 android:layout_weight="0.8"
-                android:src="@drawable/pack" />
+                android:src="@drawable/pack"
+                tools:ignore="ContentDescription" />
 
         </LinearLayout>
 
@@ -336,6 +340,127 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.985" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayoutSeatSelection"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="45dp"
+        android:paddingHorizontal="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/seat0Selection"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.92"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.19999999"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/arrow_slide_down" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/seat1Selection"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.94"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.65999997"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/arrow_slide_down" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/seat2Selection"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.77"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.97"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/arrow_slide_down" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/seat3Selection"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.96"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/arrow_slide_down" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/seat4Selection"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.22"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.95"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/arrow_slide_down" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/seat5Selection"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.04"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.65999997"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/arrow_slide_down" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/seat6Selection"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:clickable="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.08"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.19"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/arrow_slide_down" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonRaise"
@@ -407,9 +532,9 @@
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/buttonQuit"
-        android:background="@android:color/transparent"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:background="@android:color/transparent"
         android:drawableStart="@drawable/ic_twotone_close_32"
         android:drawablePadding="10dp"
         android:padding="4dp"

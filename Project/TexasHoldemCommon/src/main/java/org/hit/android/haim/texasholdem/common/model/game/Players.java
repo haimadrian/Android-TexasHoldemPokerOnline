@@ -2,6 +2,7 @@ package org.hit.android.haim.texasholdem.common.model.game;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.hit.android.haim.texasholdem.common.model.bean.game.Board;
 import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
@@ -47,28 +48,52 @@ public class Players {
     @Getter
     private int currentPlayerIndex;
 
+    @Getter
+    @Setter
+    private int maxAmountOfPlayers;
+
     /**
      * Constructs a new {@link Players}
      */
     public Players() {
+        this(Integer.MAX_VALUE);
+    }
+
+    /**
+     * Constructs a new {@link Players}
+     * @param maxAmountOfPlayers How many players can be added
+     */
+    public Players(int maxAmountOfPlayers) {
+        this.maxAmountOfPlayers = maxAmountOfPlayers;
         players = new HashMap<>();
         playersList = new ArrayList<>();
         playersById = new HashMap<>();
     }
 
     /**
-     * Add a player to this game.
+     * Add a player to this game.<br/>
+     * We use {@link Player#getPosition()} as the player index in the list of players. Unless that seat
+     * is already taken, so in such a case we will find an available seat for this player, and update its
+     * position accordingly.
      * @param player The player to add
      * @throws IllegalArgumentException In case player is already part of the game
      */
     public void addPlayer(Player player) throws IllegalArgumentException {
-        if (!players.containsKey(player)) {
-            // Put the player and map it to its index (position)
-            players.put(player, playersList.size());
-            playersList.add(player);
-            playersById.put(player.getId(), player);
-        } else {
+        if (players.containsKey(player)) {
             throw new IllegalArgumentException("Player " + player + " is already part of the game");
+        } else if (playersList.size() == maxAmountOfPlayers) {
+            throw new IllegalArgumentException("Full. There are already " + maxAmountOfPlayers + " players");
+        } else {
+            int playerIndex = player.getPosition();
+            while (playersList.get(playerIndex) != null) {
+                playerIndex = (playerIndex + 1) % maxAmountOfPlayers;
+            }
+
+            // Put the player and map it to its index (position)
+            player.setPosition(playerIndex);
+            players.put(player, playerIndex);
+            playersList.add(playerIndex, player);
+            playersById.put(player.getId(), player);
         }
     }
 

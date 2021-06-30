@@ -43,6 +43,10 @@ public interface GameService {
     @PUT("/game/{gameHash}/leave")
     Call<JsonNode> leaveGame(@Path("gameHash") String gameHash);
 
+    /** @return {@code Set<Player>} or Error */
+    @GET("/game/{gameHash}/players")
+    Call<JsonNode> getPlayers(@Path("gameHash") String gameHash);
+
     /** @return ClientGameEngine or Error */
     @GET("/game/{gameHash}/info")
     Call<JsonNode> getGameInfo(@Path("gameHash") String gameHash);

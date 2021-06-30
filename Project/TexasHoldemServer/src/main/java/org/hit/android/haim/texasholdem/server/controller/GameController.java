@@ -111,7 +111,7 @@ public class GameController {
 
             // In case the game is active or full, an illegal argument exception will be thrown and return to client as BAD_REQUEST
             gameService.joinGame(gameHash, player);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(player); // Return player with updated position
         } catch (Throwable t) {
             return ControllerErrorHandler.handleServerError(t);
         }
@@ -124,6 +124,24 @@ public class GameController {
             User user = jwtUtils.parseToken(jwtToken);
             gameService.leaveGame(gameHash, user.getId());
             return ResponseEntity.ok().build();
+        } catch (Throwable t) {
+            return ControllerErrorHandler.handleServerError(t);
+        }
+    }
+
+    /**
+     * Get the players of a game, to show them when new players joins and want to select a seat.<br/>
+     * This way the user sees who sits where, and can select an available seat.
+     */
+    @GetMapping("/{gameHash}/players")
+    public ResponseEntity<?> getPlayers(@PathVariable String gameHash) {
+        try {
+            Optional<GameEngine> game = gameService.findById(gameHash);
+            if (game.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(game.get().getPlayers().getPlayers());
         } catch (Throwable t) {
             return ControllerErrorHandler.handleServerError(t);
         }

@@ -39,4 +39,9 @@
         android:id="@+id/nav_game"
         android:name="org.hit.android.haim.texasholdem.view.fragment.home.GameFragment"
         tools:layout="@layout/fragment_game" />
+
+    <fragment
+        android:id="@+id/nav_chat"
+        android:name="org.hit.android.haim.texasholdem.view.fragment.chat.ChatFragment"
+        tools:layout="@layout/fragment_chat" />
 </navigation>

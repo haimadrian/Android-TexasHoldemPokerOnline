@@ -39,7 +39,7 @@
             android:theme="@style/Base.Theme.AppCompat"/>
 
         <service
-            android:name=".view.GameService"
+            android:name=".view.GameSoundService"
             android:enabled="true" />
 
     </application>

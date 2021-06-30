@@ -6,8 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="center"
     android:gravity="center_vertical"
-    android:orientation="vertical"
-    tools:context=".view.fragment.login.AbstractSignInFragment">
+    android:orientation="vertical">
 
     <!-- See SignInFragment and SignUpFragment for more properties (drawable, etc.) -->
     <EditText
