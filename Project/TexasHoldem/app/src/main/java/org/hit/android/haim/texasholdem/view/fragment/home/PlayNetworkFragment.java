@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.view.fragment.home;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -8,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.hit.android.haim.texasholdem.R;
 import org.hit.android.haim.texasholdem.databinding.FragmentPlayNetworkBinding;
@@ -15,8 +17,11 @@ import org.hit.android.haim.texasholdem.model.game.ClientGameSettings;
 import org.hit.android.haim.texasholdem.model.game.Game;
 import org.hit.android.haim.texasholdem.view.activity.MainActivity;
 import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;
+import org.hit.android.haim.texasholdem.web.HttpStatus;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
+
+import java.io.IOException;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -28,7 +33,7 @@ import retrofit2.Response;
  * @since 27-Mar-21
  */
 public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkBinding> {
-    private static final int HTTP_NOT_FOUND = 404;
+    private static final String LOGGER = PlayNetworkFragment.class.getSimpleName();
 
     public PlayNetworkFragment() {
         super(R.layout.fragment_play_network, FragmentPlayNetworkBinding::bind);
@@ -62,11 +67,15 @@ public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkB
             TexasHoldemWebService.getInstance().getGameService().getGameInfo(gameHash).enqueue(new SimpleCallback<JsonNode>() {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
-                    if (response.code() == HTTP_NOT_FOUND) {
+                    if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
                         getBinding().editTextGameHash.getEdit().setError("Not Found");
+                    } else if (response.code() == HttpStatus.BAD_REQUEST.getCode()) {
+                        getBinding().editTextGameHash.getEdit().setError(TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
                     } else {
-                        Game.getInstance().start(ClientGameSettings.builder().gameHash(gameHash).chips(chipsAmount).build(),
-                                                ((MainActivity)getActivity()).getUser());
+                        ClientGameSettings gameSettings = new ClientGameSettings(chipsAmount, 0, gameHash);
+                        gameSettings.setNetwork(true);
+
+                        Game.getInstance().init(gameSettings, ((MainActivity)getActivity()).getUser());
                         ((MainActivity)PlayNetworkFragment.this.getActivity()).navigateToFragment(R.id.nav_game);
                     }
                 }
@@ -79,7 +88,42 @@ public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkB
      * @param button The create button
      */
     public void onCreateButtonClicked(View button) {
+        long chipsAmount = getBinding().editTextChipsCountCreate.getLong(-1);
+        long smallBet = getBinding().editTextSmallBet.getLong(-1);
+        long bigBet = getBinding().editTextBigBet.getLong(-1);
 
+        if (chipsAmount <= 0) {
+            getBinding().editTextChipsCountCreate.getEdit().setError("Must be positive");
+        } else if (chipsAmount > ((MainActivity)getActivity()).getUser().getCoins()) {
+            getBinding().editTextChipsCountCreate.getEdit().setError("Too many chips");
+            Toast.makeText(getContext(), "Insufficient chips. Please purchase.", Toast.LENGTH_LONG).show();
+        } else if (smallBet <= 0) {
+            getBinding().editTextSmallBet.getEdit().setError("Minimum value is 1");
+        } else if (bigBet <= smallBet) {
+            getBinding().editTextBigBet.getEdit().setError("Must be bigger than small bet");
+        } else {
+            // Make sure game exists before navigating to GameFragment
+            ClientGameSettings gameSettings = new ClientGameSettings(chipsAmount, 0, null);
+            gameSettings.setSmallBet(smallBet);
+            gameSettings.setBigBet(bigBet);
+            TexasHoldemWebService.getInstance().getGameService().createGame(gameSettings).enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    JsonNode body = response.body();
+                    try {
+                        String gameHash = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), TextNode.class).asText();
+                        Log.d(LOGGER, "Received game hash: " + gameHash);
+
+                        gameSettings.setGameHash(gameHash);
+                        gameSettings.setNetwork(true);
+                        Game.getInstance().init(gameSettings, ((MainActivity)getActivity()).getUser());
+                        ((MainActivity)PlayNetworkFragment.this.getActivity()).navigateToFragment(R.id.nav_game);
+                    } catch (IOException e) {
+                        Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
+                    }
+                }
+            });
+        }
     }
 
 }

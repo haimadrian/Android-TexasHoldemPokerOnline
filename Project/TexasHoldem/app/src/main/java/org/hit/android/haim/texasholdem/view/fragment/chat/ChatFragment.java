@@ -63,6 +63,17 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
     /**
      * Constructs a new {@link ChatFragment}, using the game hash as channel name, so we can
      * work with backend on the messages in a game's chat.
+     */
+    public ChatFragment() {
+        super(R.layout.fragment_chat, FragmentChatBinding::bind);
+
+        Log.d(LOGGER, this.toString() + ".new");
+        this.channelName = Game.getInstance().getGameHash();
+    }
+
+    /**
+     * Constructs a new {@link ChatFragment}, using the game hash as channel name, so we can
+     * work with backend on the messages in a game's chat.
      * @param channelName Game hash is used as channel name
      */
     public ChatFragment(String channelName) {

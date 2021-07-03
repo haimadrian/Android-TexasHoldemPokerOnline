@@ -119,6 +119,12 @@ public class GameEngine {
     private PlayerActionKind lastActionKind;
 
     /**
+     * Keep a reference to the last (previous) active player, so clients can draw indications
+     * on this player without having to lookup for a previous active player.
+     */
+    private Player lastActivePlayer;
+
+    /**
      * A listener to get notified upon player updates, so we can persist changes in chips amount.
      */
     @JsonIgnore
@@ -521,7 +527,11 @@ public class GameEngine {
             info(getId() + " - Stopping game.");
 
             gameState.set(GameState.STOPPED);
-            playerTurnTimer.stop();
+
+            if (playerTurnTimer != null) {
+                playerTurnTimer.stop();
+            }
+
             gameLog.clear();
             players.clear();
             chat.clear();
@@ -551,6 +561,13 @@ public class GameEngine {
     }
 
     /**
+     * @return Current {@link GameEngine.GameState game state}
+     */
+    public GameState getGameState() {
+        return gameState.get();
+    }
+
+    /**
      * An enum representing current game engine's state:
      * <ul>
      *     <li>{@link #READY}</li>
@@ -559,7 +576,7 @@ public class GameEngine {
      *     <li>{@link #STOPPED}</li>
      * </ul>
      */
-    private enum GameState {
+    public enum GameState {
         /**
          * Game is ready to be started. This state is set when a game engine is created, and before it is started at {@link GameEngine#start()}.
          */

@@ -13,7 +13,6 @@ import lombok.EqualsAndHashCode;
  * @since 12-Jun-21
  */
 @Data
-@Builder
 @EqualsAndHashCode(callSuper = true)
 public class ClientGameSettings extends GameSettings {
     /**

@@ -85,6 +85,13 @@ public class PlayerTurnTimer {
     }
 
     /**
+     * @return The time that player started playing at
+     */
+    public long getTurnStartTime() {
+        return turnStartedAt.get();
+    }
+
+    /**
      * Provides a mechanism to listen to turn timeout events.<br/>
      *
      */

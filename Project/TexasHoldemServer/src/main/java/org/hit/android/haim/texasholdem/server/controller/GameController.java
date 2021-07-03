@@ -3,6 +3,7 @@ package org.hit.android.haim.texasholdem.server.controller;
 import com.fasterxml.jackson.databind.node.TextNode;
 import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
 import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.bean.game.PlayerAction;
 import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
 import org.hit.android.haim.texasholdem.server.model.service.GameService;
@@ -164,6 +165,18 @@ public class GameController {
 
             // Return game engine which contains all of the info, except sensitive data like player/deck cards.
             return ResponseEntity.ok(game.get());
+        } catch (Throwable t) {
+            return ControllerErrorHandler.handleServerError(t);
+        }
+    }
+
+    @PutMapping("/{gameHash}/action")
+    public ResponseEntity<?> executePlayerAction(@RequestHeader(AUTHORIZATION_HEADER) String jwtToken, @PathVariable String gameHash, @RequestBody PlayerAction playerAction) {
+        try {
+            // Make sure user id and name are set, based on the registered user details
+            User user = jwtUtils.parseToken(jwtToken);
+            gameService.executePlayerAction(gameHash, user.getId(), playerAction);
+            return ResponseEntity.ok().build();
         } catch (Throwable t) {
             return ControllerErrorHandler.handleServerError(t);
         }

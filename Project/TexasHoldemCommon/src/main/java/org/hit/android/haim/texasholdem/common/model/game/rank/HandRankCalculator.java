@@ -60,7 +60,7 @@ public class HandRankCalculator {
             }
         }
 
-        return new HandRankCalculatorResult(highestRank, new Card[] { allCards.get(Objects.requireNonNull(bestPermutation)[0]), allCards.get(bestPermutation[1]), allCards.get(bestPermutation[2]), allCards.get(bestPermutation[3]), allCards.get(bestPermutation[4]) });
+        return new HandRankCalculatorResult(highestRank, new Card[] { allCards.get(Objects.requireNonNull(bestPermutation)[0]), allCards.get(bestPermutation[1]), allCards.get(bestPermutation[2]), allCards.get(bestPermutation[3]), allCards.get(bestPermutation[4]) }, hand);
     }
 
     /**

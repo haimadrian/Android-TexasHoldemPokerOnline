@@ -1,10 +1,11 @@
 package org.hit.android.haim.texasholdem.common.model.bean.game;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.*;
-
-import org.hit.android.haim.texasholdem.common.model.bean.game.Hand;
 import org.hit.android.haim.texasholdem.common.model.game.Chips;
+import org.hit.android.haim.texasholdem.common.util.ThreadContextMap;
 
 /**
  * A lightweight version of a user.<br/>
@@ -56,5 +57,21 @@ public class Player {
      * We sort players by position, so the player iterator will be able to traverse players by their sitting order
      */
     private int position;
+
+    @JsonGetter("hand")
+    public Hand getHand() {
+        // Return Hand of current requesting user only, while other players will hide their hand.
+        String playerId = ThreadContextMap.getInstance().getUserId();
+        if ((playerId != null) && (playerId.equals(id))) {
+            return hand;
+        }
+
+        return null;
+    }
+
+    @JsonSetter("hand")
+    public void setHand(Hand hand) {
+        this.hand = hand;
+    }
 }
 

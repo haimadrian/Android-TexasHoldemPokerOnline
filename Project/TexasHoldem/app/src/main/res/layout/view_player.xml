@@ -21,8 +21,8 @@
             android:layout_height="62dp"
             android:background="@drawable/circle_shape"
             android:indeterminate="false"
-            android:max="100"
-            android:progress="65"
+            android:max="60"
+            android:progress="60"
             android:progressDrawable="@drawable/circular_progress_bar" />
     </FrameLayout>
 

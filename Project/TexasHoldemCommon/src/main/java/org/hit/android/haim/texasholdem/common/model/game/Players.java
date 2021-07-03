@@ -32,7 +32,7 @@ public class Players {
      * List of players, so we can iterate on, one by another, in the order they were added,
      * thus saving the same order as players are sitting around a table.
      */
-    private final List<Player> playersList;
+    private final Player[] playersArray;
 
     /**
      * Keep a map of the identifiers of all players in a game.<br/>
@@ -43,10 +43,17 @@ public class Players {
 
     /**
      * Index of the player we are waiting for, to finish its turn. (Current player)<br/>
-     * This index helps us to know who is the next player, at {@link #playersList}.
+     * This index helps us to know who is the next player, at {@link #playersArray}.
      */
     @Getter
     private int currentPlayerIndex;
+
+    /**
+     * Index of the player that played the previous turn.<br/>
+     * This index helps us to know on which player we should draw indications once he has made his move.
+     */
+    @Getter
+    private int prevPlayerIndex;
 
     @Getter
     @Setter
@@ -66,7 +73,7 @@ public class Players {
     public Players(int maxAmountOfPlayers) {
         this.maxAmountOfPlayers = maxAmountOfPlayers;
         players = new HashMap<>();
-        playersList = new ArrayList<>();
+        playersArray = new Player[maxAmountOfPlayers];
         playersById = new HashMap<>();
     }
 
@@ -81,18 +88,18 @@ public class Players {
     public void addPlayer(Player player) throws IllegalArgumentException {
         if (players.containsKey(player)) {
             throw new IllegalArgumentException("Player " + player + " is already part of the game");
-        } else if (playersList.size() == maxAmountOfPlayers) {
+        } else if (players.size() == maxAmountOfPlayers) {
             throw new IllegalArgumentException("Full. There are already " + maxAmountOfPlayers + " players");
         } else {
             int playerIndex = player.getPosition();
-            while (playersList.get(playerIndex) != null) {
+            while (playersArray[playerIndex] != null) {
                 playerIndex = (playerIndex + 1) % maxAmountOfPlayers;
             }
 
             // Put the player and map it to its index (position)
             player.setPosition(playerIndex);
             players.put(player, playerIndex);
-            playersList.add(playerIndex, player);
+            playersArray[playerIndex] = player;
             playersById.put(player.getId(), player);
         }
     }
@@ -104,11 +111,11 @@ public class Players {
      * @throws IndexOutOfBoundsException in case the specified index was out of bounds. [0, size()-1]
      */
     public Player getPlayer(int playerIndex) throws IndexOutOfBoundsException {
-        if ((playerIndex < 0) || (playerIndex >= playersList.size())) {
-            throw new IndexOutOfBoundsException("There is no player at: " + playerIndex + ". Try: [0, " + playersList.size() + ")");
+        if ((playerIndex < 0) || (playerIndex >= maxAmountOfPlayers)) {
+            throw new IndexOutOfBoundsException("There is no player at: " + playerIndex + ". Try: [0, " + players.size() + ")");
         }
 
-        return playersList.get(playerIndex);
+        return playersArray[playerIndex];
     }
 
     /**
@@ -117,8 +124,8 @@ public class Players {
      */
     public void removePlayer(Player player) {
         if (players.containsKey(player)) {
-            players.remove(player);
-            playersList.remove(player);
+            int index = players.remove(player);
+            playersArray[index] = null;
             playersById.remove(player.getId());
         }
     }
@@ -145,7 +152,12 @@ public class Players {
      * @param playerIndex The index to set as current player
      */
     public void setCurrentPlayerIndex(int playerIndex) {
-        this.currentPlayerIndex = playerIndex % playersList.size();
+        prevPlayerIndex = currentPlayerIndex;
+
+        do {
+            currentPlayerIndex = playerIndex % maxAmountOfPlayers;
+            playerIndex++;
+        } while ((playersArray[currentPlayerIndex] == null) && (currentPlayerIndex != prevPlayerIndex));
     }
 
     /**
@@ -158,10 +170,19 @@ public class Players {
     }
 
     /**
+     * Use this method to get a reference to the last playing player.<br/>
+     * We depend on {@link #getPrevPlayerIndex()} to know which player it is.
+     * @return A reference to the previous player.
+     */
+    public Player getPreviousPlayer() {
+        return getPlayer(getPrevPlayerIndex());
+    }
+
+    /**
      * @return How many players there are
      */
     public int size() {
-        return playersList.size();
+        return players.size();
     }
 
     /**
@@ -176,8 +197,8 @@ public class Players {
      */
     public void clear() {
         players.clear();
-        playersList.clear();
         playersById.clear();
+        Arrays.fill(playersArray, null);
     }
 
     /**
@@ -186,16 +207,16 @@ public class Players {
      * @return The new player
      */
     public Player nextPlayer() {
-        int lastPlayer = currentPlayerIndex;
+        prevPlayerIndex = currentPlayerIndex;
 
         // Continue looking for next available player, and protect the loop such that we avoid of
         // going in circle. In case we have reached the player we started from, we break.
         // Note that a player might be playing but he went all-int, so we skip such player.
         Player player;
         do {
-            currentPlayerIndex = ((currentPlayerIndex + 1) % playersList.size());
-            player = playersList.get(currentPlayerIndex);
-        } while ((!player.isPlaying() || player.getChips().get() == 0) && (currentPlayerIndex != lastPlayer));
+            currentPlayerIndex = ((currentPlayerIndex + 1) % maxAmountOfPlayers);
+            player = playersArray[currentPlayerIndex];
+        } while (((player == null) || !player.isPlaying() || (player.getChips().get() == 0)) && (currentPlayerIndex != prevPlayerIndex));
 
         return player;
     }
@@ -205,7 +226,7 @@ public class Players {
      * @return A set of involved players, to send to {@link Pot#applyWinning(Set, Board)}
      */
     public Set<Player> getInvolvedPlayers() {
-        return playersList.stream().filter(Player::isPlaying).collect(Collectors.toSet());
+        return players.keySet().stream().filter(Player::isPlaying).collect(Collectors.toSet());
     }
 
     /**
@@ -213,7 +234,7 @@ public class Players {
      * Use this method whenever a round is started, to mark all of the players as currently playing.
      */
     public void markAllPlayersAsPlaying() {
-        playersList.forEach(player -> player.setPlaying(true));
+        players.keySet().forEach(player -> player.setPlaying(true));
     }
 }
 

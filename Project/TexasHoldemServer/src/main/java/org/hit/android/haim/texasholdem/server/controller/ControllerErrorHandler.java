@@ -21,12 +21,12 @@ public class ControllerErrorHandler {
      * @return A response entity with the exception message as body. (JsonNode, and not simple string)
      */
     public static ResponseEntity<?> handleServerError(Throwable t) {
-        log.error("Unexpected error has occurred.", t);
-
         if (t instanceof IllegalArgumentException) {
+            log.error("Bad Request: " + t.getMessage());
             return ResponseEntity.badRequest().body(new TextNode(t.getMessage()));
         }
 
+        log.error("Unexpected error has occurred.", t);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new TextNode("Unexpected error has occurred. Reason: " + t.getMessage()));
     }
 }

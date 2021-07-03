@@ -72,4 +72,5 @@
     <!-- Chat -->
     <string name="write_something">Write something…</string>
     <string name="participants">Participants: %d</string>
+    <string name="raise_with">Raise with:</string>
 </resources>

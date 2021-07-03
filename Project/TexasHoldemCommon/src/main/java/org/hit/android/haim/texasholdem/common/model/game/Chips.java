@@ -1,5 +1,7 @@
 package org.hit.android.haim.texasholdem.common.model.game;
 
+import java.text.DecimalFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -18,6 +20,11 @@ public class Chips {
     private static final double THOUSAND = 1e3;
     private static final double MILLION = 1e6;
     private static final double BILLION = 1e9;
+
+    /**
+     * Formatter to format amount of chips with commas
+     */
+    private static final DecimalFormat formatter = new DecimalFormat("#,###");
 
     /**
      * Amount of chips.
@@ -46,6 +53,13 @@ public class Chips {
      */
     public long get() {
         return chips;
+    }
+
+    /**
+     * @return String representation of the chips, with commas to separate thousands
+     */
+    public String getFormatted() {
+        return formatter.format(chips);
     }
 
     /**

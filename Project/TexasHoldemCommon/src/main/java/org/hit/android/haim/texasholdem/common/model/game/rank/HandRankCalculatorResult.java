@@ -20,6 +20,7 @@ import org.hit.android.haim.texasholdem.common.model.bean.game.Hand;
 public class HandRankCalculatorResult implements Comparable<HandRankCalculatorResult> {
     private HandNumericRank rank;
     private Card[] selectedCards;
+    private Hand hand;
 
     @Override
     public int compareTo(HandRankCalculatorResult another) {

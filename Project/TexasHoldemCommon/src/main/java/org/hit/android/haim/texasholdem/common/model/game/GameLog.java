@@ -43,5 +43,33 @@ public class GameLog {
 
         playerActions.clear();
     }
+
+    /**
+     * @return The most recent player action
+     */
+    public PlayerAction getLastPlayerAction() {
+        if (playerActions.isEmpty()) {
+            return null;
+        }
+
+        return playerActions.get(playerActions.size() - 1);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        for (PlayerAction action : lastRoundPlayerActions) {
+            sb.append(action.toString()).append(System.lineSeparator());
+        }
+
+        sb.append(System.lineSeparator()).append("-------------------").append(System.lineSeparator());
+
+        for (PlayerAction action : playerActions) {
+            sb.append(System.lineSeparator()).append(action.toString());
+        }
+
+        return sb.toString();
+    }
 }
 

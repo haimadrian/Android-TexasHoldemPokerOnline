@@ -2,15 +2,27 @@ package org.hit.android.haim.texasholdem.view.fragment.home;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.view.ContextThemeWrapper;
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,8 +33,15 @@ import com.google.android.material.snackbar.Snackbar;
 
 import org.hit.android.haim.texasholdem.R;
 import org.hit.android.haim.texasholdem.common.model.bean.chat.Message;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Board;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Card;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Hand;
 import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.bean.game.PlayerAction;
+import org.hit.android.haim.texasholdem.common.model.bean.game.PlayerActionKind;
+import org.hit.android.haim.texasholdem.common.model.game.Chips;
 import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
+import org.hit.android.haim.texasholdem.common.model.game.Pot;
 import org.hit.android.haim.texasholdem.databinding.FragmentGameBinding;
 import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.model.chat.Chat;
@@ -36,11 +55,14 @@ import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -58,10 +80,20 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     private static final Set<Integer> SEATS = new HashSet<>(Arrays.asList(0, 1, 2, 3, 4, 5, 6));
 
     /**
+     * A reference to the {@link Game} class, to ease access and avoid of "game." syntax.
+     */
+    private final Game game;
+
+    /**
      * Reference all players around the table, mapped to their position (index)
      * for convenient access
      */
     private Map<Integer, PlayerViewAccessor> players;
+
+    /**
+     * See {@link Cards}
+     */
+    private Cards cardsResource;
 
     /**
      * Use badge drawable to show amount of new incoming messages over chat button
@@ -76,16 +108,30 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     private boolean isSeatSelected = false;
 
     /**
+     * In case our player is the creator of a game, we show a start button on the board, to let
+     * the creator to start a game after waiting for players to join.
+     */
+    private AppCompatButton startGameButton;
+
+    /**
+     * Hold a reference to the active player, so once its turn ended, we will hide his progressbar.
+     */
+    private Player lastActivePlayer;
+
+    /**
      * Constructs a new {@link GameFragment}
      */
     public GameFragment() {
         super(R.layout.fragment_game, FragmentGameBinding::bind);
+        game = Game.getInstance();
     }
 
     @SuppressLint("UnsafeExperimentalUsageError")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        cardsResource = new Cards();
 
         int i = 0;
         players = new HashMap<>(MAX_AMOUNT_OF_PLAYERS);
@@ -100,30 +146,26 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         // Hide all players. We will display those that joined a game.
         players.forEach((pos, player) -> {
             player.hide();
-            player.seatSelection.setOnClickListener(v -> {
-                isSeatSelected = true;
-                players.values().forEach(playerView -> playerView.seatSelection.setVisibility(View.GONE));
-                Game.getInstance().getThisPlayer().setPosition(pos);
-                Game.getInstance().joinGame(p -> Toast.makeText(GameFragment.this.getContext(), "Selected seat is: " + p.getPosition(), Toast.LENGTH_LONG).show());
-            });
+
+            if (game.isActive()) {
+                player.seatSelection.setVisibility(View.GONE);
+            } else {
+                player.seatSelection.setVisibility(View.VISIBLE);
+                player.seatSelection.setOnClickListener(v -> {
+                    isSeatSelected = true;
+                    players.values().forEach(playerView -> playerView.seatSelection.setVisibility(View.GONE));
+                    game.getThisPlayer().setPosition(pos);
+                    game.joinGame(p -> Toast.makeText(GameFragment.this.getContext(), "Selected seat is: " + p.getPosition(), Toast.LENGTH_LONG).show());
+                });
+            }
         });
-
-        // Listen to game and chat updates
-        Game.getInstance().addGameListener(this);
-
-        if (Game.getInstance().getGameHash() != null) {
-            Game.getInstance().getChat().addChatListener(this);
-            getBinding().buttonChat.setVisibility(View.VISIBLE);
-            getBinding().buttonChat.setOnClickListener(this::onChatClicked);
-        } else {
-            getBinding().buttonChat.setVisibility(View.GONE);
-        }
 
         // Register event listeners
         getBinding().buttonCheck.setOnClickListener(this::onCheckClicked);
         getBinding().buttonRaise.setOnClickListener(this::onRaiseClicked);
         getBinding().buttonFold.setOnClickListener(this::onFoldClicked);
         getBinding().buttonLog.setOnClickListener(this::onGameLogClicked);
+        getBinding().buttonQuit.setOnClickListener(this::onQuitButtonClicked);
 
         // Use badge drawable to show amount of new incoming messages over chat button
         chatButtonBadge = BadgeDrawable.create(getContext());
@@ -134,56 +176,299 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         // Run Game service in background, to play sound effects based on game steps
         getActivity().startService(new Intent(getActivity(), GameSoundService.class));
 
+        // Listen to game and chat updates, now that we have all data members set
+        game.addGameListener(this);
+        if (game.getGameHash() != null) {
+            game.getChat().addChatListener(this);
+            getBinding().buttonChat.setVisibility(View.VISIBLE);
+            getBinding().buttonChat.setOnClickListener(this::onChatClicked);
+        } else {
+            getBinding().buttonChat.setVisibility(View.GONE);
+        }
+
         // Refresh the view based on current game engine.
         // In case there is no game engine yet, it means we have just entered. Then select a seat
-        GameEngine gameEngine = Game.getInstance().getGameEngine();
+        GameEngine gameEngine = game.getGameEngine();
         if (gameEngine != null) {
+            // In case fragment was recreated during a game, mark seat selection as done.
+            isSeatSelected = true;
+
             refresh(gameEngine);
         } else {
             playersRefresh(new HashSet<>());
         }
+
+        // Show START button in case current player is the organizer, or show board in case
+        // fragment was recreated.
+        updateBoardVisibility();
     }
 
     @Override
     public void onDestroyView() {
-        Game.getInstance().removeGameStepListener(this);
-        Game.getInstance().getChat().removeChatListener(this);
+        game.removeGameStepListener(this);
+        game.getChat().removeChatListener(this);
+
+        chatButtonBadge = null;
 
         super.onDestroyView();
     }
 
     @Override
-    public void onStep(Game.GameStepType step) {
+    public void onStep(GameEngine gameEngine, Game.GameStepType step) {
         Log.d(LOGGER, "Game Step: " + step);
 
+        try {
+            switch (step) {
+                case CALL:
+                case RAISE:
+                case ALL_IN:
+                    PlayerAction lastPlayerAction = gameEngine.getGameLog().getLastPlayerAction();
+                    PlayerViewAccessor playerViewAccessor = players.get(gameEngine.getPlayers().getPreviousPlayer().getPosition());
+                    playerViewAccessor.addBet(lastPlayerAction.getChips().get());
+
+                    getBinding().buttonCheck.setText(R.string.action_call);
+                    break;
+                case WIN:
+                    getBinding().winAnimation.setVisibility(View.VISIBLE);
+                default:
+                    getBinding().buttonCheck.setText(R.string.action_check);
+            }
+        } catch (Throwable t) {
+            Log.e(LOGGER, "Error during onStep", t);
+        }
     }
 
+    // Here we draw the game based on game info.
     @Override
     public void refresh(GameEngine gameEngine) {
         new Handler().post(() -> {
+            try {
+                updateBoardVisibility();
+                updateHandsAndDealer(gameEngine);
+                updateProgressBar(gameEngine);
 
+                // Update our hand. (this player is the signed in user on this device)
+                Player thisPlayer = gameEngine.getPlayers().getPlayerById(game.getThisPlayer().getId());
+                PlayerViewAccessor thisPlayerView = players.get(thisPlayer.getPosition());
+                Hand myHand = thisPlayer.getHand();
+                revealHand(thisPlayerView.handView, myHand);
+
+                // Update action buttons
+                boolean isActionButtonEnabled = thisPlayer.equals(gameEngine.getPlayers().getCurrentPlayer());
+                getBinding().buttonRaise.setEnabled(isActionButtonEnabled);
+                getBinding().buttonCheck.setEnabled(isActionButtonEnabled);
+                getBinding().buttonFold.setEnabled(isActionButtonEnabled);
+
+                // Draw winners indication if necessary
+                highlightWinnersIfNecessary(gameEngine);
+            } catch (Throwable t) {
+                Log.e(LOGGER, "Error during refresh", t);
+            }
         });
+    }
+
+    /**
+     * Helper method to show/hide hands based on involved players in a game.<br/>
+     * In addition, show the dealer.
+     * @param gameEngine Game engine to get details from
+     */
+    private void updateHandsAndDealer(GameEngine gameEngine) {
+        Set<Player> involvedPlayers = gameEngine.getPlayers().getInvolvedPlayers();
+        Player dealer = gameEngine.getDealer();
+        for (Map.Entry<Integer, PlayerViewAccessor> currPlayer : players.entrySet()) {
+            // Show or hide player's and, based on player activity in the game
+            if ((currPlayer.getValue().player == null) || !involvedPlayers.contains(currPlayer.getValue().player)) {
+                currPlayer.getValue().handView.setVisibility(View.INVISIBLE);
+            } else {
+                currPlayer.getValue().handView.setVisibility(View.VISIBLE);
+            }
+
+            // Update dealer image
+            boolean isDealer = dealer.equals(currPlayer.getValue().player);
+            currPlayer.getValue().handView.getDealerImageView().setVisibility(isDealer ? View.VISIBLE : View.INVISIBLE);
+
+            // Update amount of chips
+            currPlayer.getValue().playerView.getPlayerChipsTextView().setText(gameEngine.getPlayers().getPlayer(currPlayer.getKey()).getChips().getFormatted());
+        }
+    }
+
+    /**
+     * Helper method to hide last player's progress bar and show the progress of current player, based on how
+     * much time passed since his turn started.
+     * @param gameEngine Game engine to get details from
+     */
+    private void updateProgressBar(GameEngine gameEngine) {
+        Player currentPlayer = gameEngine.getPlayers().getCurrentPlayer();
+        PlayerViewAccessor playerViewAccessor = players.get(currentPlayer.getPosition());
+
+        // Hide last progress bar and reset it back to 60, when we detect a player switch.
+        if (lastActivePlayer != null) {
+            if (!currentPlayer.getId().equals(lastActivePlayer.getId())) {
+                ProgressBar playerProgressBar = players.get(lastActivePlayer.getPosition()).playerView.getPlayerProgressBar();
+                playerProgressBar.setVisibility(View.INVISIBLE);
+                playerProgressBar.setProgress(60);
+            }
+        }
+
+        lastActivePlayer = currentPlayer;
+
+        long timePassed = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - gameEngine.getPlayerTurnTimer().getTurnStartTime());
+        ProgressBar playerProgressBar = playerViewAccessor.playerView.getPlayerProgressBar();
+        playerProgressBar.setVisibility(View.VISIBLE);
+        playerProgressBar.setProgress((int) Math.abs(60 - timePassed), true);
+    }
+
+    /**
+     * Helper method to highlight winners hand, such that it will be clear who won and with what hand
+     * @param gameEngine Game engine to get details from
+     */
+    private void highlightWinnersIfNecessary(GameEngine gameEngine) {
+        // Remove any highlighting
+        setImageHighlight(getBinding().card0, false);
+        setImageHighlight(getBinding().card1, false);
+        setImageHighlight(getBinding().card2, false);
+        setImageHighlight(getBinding().card3, false);
+        setImageHighlight(getBinding().card4, false);
+        for (PlayerViewAccessor currPlayerView : players.values()) {
+            if ((currPlayerView.playerView.getVisibility() == View.VISIBLE) &&
+                (currPlayerView.handView.getFirstCardImageView().getVisibility() == View.VISIBLE)) {
+                    setImageHighlight(currPlayerView.handView.getFirstCardImageView(), false);
+                    setImageHighlight(currPlayerView.handView.getSecondCardImageView(), false);
+            }
+        }
+
+        Map<Player, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
+        if (playerToEarnings != null) {
+            // Map cards to their corresponding view, so we can highlight the selected cards of a winner
+            Map<Card, ImageView> cardsToTheirView = new HashMap<>();
+            Board board = game.getGameEngine().getBoard();
+            board.getFlop1().ifPresent(card -> cardsToTheirView.put(card, getBinding().card0));
+            board.getFlop2().ifPresent(card -> cardsToTheirView.put(card, getBinding().card1));
+            board.getFlop3().ifPresent(card -> cardsToTheirView.put(card, getBinding().card2));
+            board.getTurn().ifPresent(card -> cardsToTheirView.put(card, getBinding().card3));
+            board.getRiver().ifPresent(card -> cardsToTheirView.put(card, getBinding().card4));
+
+            // Reveal winners hand and highlight it
+            for (Map.Entry<Player, Pot.PlayerWinning> currPlayer : playerToEarnings.entrySet()) {
+                PlayerViewAccessor currPlayerView = players.get(currPlayer.getKey().getPosition());
+                setImageHighlight(currPlayerView.playerView.getPlayerImageView(), true);
+
+                // Reveal winner's hand
+                Hand currPlayerHand = currPlayer.getValue().getHandRank().getHand();
+                revealHand(currPlayerView.handView, currPlayerHand);
+                cardsToTheirView.put(currPlayerHand.getCardAt(0).get(), currPlayerView.handView.getFirstCardImageView());
+                cardsToTheirView.put(currPlayerHand.getCardAt(1).get(), currPlayerView.handView.getSecondCardImageView());
+
+                for (Card selectedCard : currPlayer.getValue().getHandRank().getSelectedCards()) {
+                    setImageHighlight(cardsToTheirView.get(selectedCard), true);
+                }
+            }
+        }
+    }
+
+    /**
+     * Highlight or remove highlight of an image view.<br/>
+     * We highlight winners and their hand
+     * @param image The image to highlight
+     * @param isHighlight Whether to highlight the image or remove its highlight
+     */
+    private static void setImageHighlight(ImageView image, boolean isHighlight) {
+        if (isHighlight) {
+            image.getDrawable().setColorFilter(0x77000000, PorterDuff.Mode.SRC_ATOP);
+        } else {
+            image.getDrawable().clearColorFilter();
+        }
+
+        image.invalidate();
+    }
+
+    /**
+     * Show the hand of a player. Set the image resource of cards from hand, into the image views of a hand view.
+     * @param handView Hand view to set images to
+     * @param hand Hand to know what cards to set
+     */
+    private void revealHand(HandView handView, Hand hand) {
+        hand.getCardAt(0).ifPresent(card -> handView.getFirstCardImageView().setImageResource(cardsResource.cardToResource.get(card)));
+        hand.getCardAt(1).ifPresent(card -> handView.getSecondCardImageView().setImageResource(cardsResource.cardToResource.get(card)));
     }
 
     @Override
     public void playersRefresh(Set<Player> players) {
         new Handler().post(() -> {
-            // Keep available seats
-            Set<Integer> availableSeats = new HashSet<>(SEATS);
-            players.forEach(p -> {
-                availableSeats.remove(p.getPosition());
-                PlayerViewAccessor playerViewAccessor = this.players.get(p.getPosition());
-                refreshPlayerViewFromPlayer(playerViewAccessor, p);
-            });
-
-            // Make sure animations are visible
-            if (!isSeatSelected) {
-                availableSeats.forEach(seat -> {
-                    PlayerViewAccessor playerViewAccessor = this.players.get(seat);
-                    playerViewAccessor.seatSelection.setVisibility(View.VISIBLE);
+            try {
+                // Keep available seats
+                Set<Integer> availableSeats = new HashSet<>(SEATS);
+                players.forEach(p -> {
+                    availableSeats.remove(p.getPosition());
+                    PlayerViewAccessor playerViewAccessor = this.players.get(p.getPosition());
+                    refreshPlayerViewFromPlayer(playerViewAccessor, p);
                 });
+
+                getBinding().winAnimation.setVisibility(View.GONE);
+
+                // Make sure animations are visible
+                if (!isSeatSelected) {
+                    availableSeats.forEach(seat -> {
+                        PlayerViewAccessor playerViewAccessor = this.players.get(seat);
+                        playerViewAccessor.seatSelection.setVisibility(View.VISIBLE);
+                    });
+                }
+            } catch (Throwable t) {
+                Log.e(LOGGER, "Error while refreshing players", t);
             }
         });
+    }
+
+    /**
+     * Hide the cards from board, and show a START button in case current player is the organizer.
+     */
+    private void updateBoardVisibility() {
+        if (!game.isActive()) {
+            getBinding().card0.setVisibility(View.INVISIBLE);
+            getBinding().card1.setVisibility(View.INVISIBLE);
+            getBinding().card2.setVisibility(View.INVISIBLE);
+            getBinding().card3.setVisibility(View.INVISIBLE);
+            getBinding().card4.setVisibility(View.INVISIBLE);
+
+            if (startGameButton == null) {
+                game.ifCurrentPlayerIsTheOwner(() -> {
+                    if (startGameButton == null) {
+                        startGameButton = new AppCompatButton(new ContextThemeWrapper(getContext(), R.style.ButtonGreenStyle));
+                        startGameButton.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                        startGameButton.setText(R.string.action_start);
+                        startGameButton.setGravity(Gravity.CENTER);
+                        startGameButton.setOnClickListener(v -> {
+                            game.start();
+                            startGameButton.setVisibility(View.GONE);
+                            getBinding().cardsContainer.removeView(startGameButton);
+                        });
+                        getBinding().cardsContainer.addView(startGameButton);
+                    }
+                });
+            }
+        } else {
+            Board board = game.getGameEngine().getBoard();
+            updateCard(getBinding().card0, board.getFlop1().orElse(null));
+            updateCard(getBinding().card1, board.getFlop2().orElse(null));
+            updateCard(getBinding().card2, board.getFlop3().orElse(null));
+            updateCard(getBinding().card3, board.getTurn().orElse(null));
+            updateCard(getBinding().card4, board.getRiver().orElse(null));
+        }
+    }
+
+    /**
+     * Updates a single card view. Sets it as visible, ad assign the resource identifier of the
+     * cards image representing the specified card
+     * @param cardView Card view to update
+     * @param card The card to show
+     */
+    private void updateCard(ImageView cardView, Card card) {
+        if (card == null) {
+            cardView.setVisibility(View.INVISIBLE);
+        } else {
+            cardView.setVisibility(View.VISIBLE);
+            cardView.setImageResource(cardsResource.cardToResource.getOrDefault(card, R.drawable.pack));
+        }
     }
 
     /**
@@ -195,12 +480,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         playerView.player = player;
         playerView.setVisible(true);
         playerView.seatSelection.setVisibility(View.GONE);
+        playerView.handView.getDealerImageView().setVisibility(View.INVISIBLE);
         playerView.handView.setVisibility(View.INVISIBLE);
-        playerView.playerBet.setVisibility(View.INVISIBLE);
         playerView.playerView.getPlayerProgressBar().setVisibility(View.INVISIBLE);
+        playerView.resetBet();
 
         String playerLocalName = playerView.playerView.getPlayerNameTextView().getText().toString();
-        playerView.playerView.getPlayerChipsTextView().setText(player.getChips().toShorthand());
+        playerView.playerView.getPlayerChipsTextView().setText(player.getChips().getFormatted());
         playerView.playerView.getPlayerNameTextView().setText(player.getName());
 
         // Now, before messing with image, make sure local data is different to save time.
@@ -219,15 +505,21 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     public void onMessageArrived(Message message) {
         Log.d(LOGGER, "Message arrived: " + message);
 
-        new Handler().post(() -> {
-            int currNewMessagesCount = chatButtonBadge.getNumber();
+        // Do nothing in case view was destroyed
+        if (chatButtonBadge != null) {
+            new Handler().post(() -> {
+                // Check again cause it runs after our previous check, not immediately.
+                if (chatButtonBadge != null) {
+                    int currNewMessagesCount = chatButtonBadge.getNumber();
 
-            if (currNewMessagesCount == 0) {
-                chatButtonBadge.setVisible(true);
-            }
+                    if (currNewMessagesCount == 0) {
+                        chatButtonBadge.setVisible(true);
+                    }
 
-            chatButtonBadge.setNumber(currNewMessagesCount + 1);
-        });
+                    chatButtonBadge.setNumber(currNewMessagesCount + 1);
+                }
+            });
+        }
     }
 
     @Override
@@ -239,43 +531,171 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * Occurs when user presses the CHECK button, to apply check action if possible
      * @param checkButton The CHECK button
      */
-    void onCheckClicked(View checkButton) {
-
+    void onCheckClicked(@SuppressWarnings("unused") View checkButton) {
+        try {
+            Log.d(LOGGER, "Check/Call");
+            PlayerActionKind actionKind = getBinding().buttonCheck.getText().toString().equalsIgnoreCase("check") ? PlayerActionKind.CHECK : PlayerActionKind.CALL;
+            game.executePlayerAction(PlayerAction.builder().actionKind(actionKind).build());
+        } catch (Throwable t) {
+            Log.e(LOGGER, "Unexpected error", t);
+        }
     }
 
     /**
      * Occurs when user presses the RAISE button, to raise if possible
      * @param raiseButton The RAISE button
      */
-    void onRaiseClicked(View raiseButton) {
+    void onRaiseClicked(@SuppressWarnings("unused") View raiseButton) {
+        try {
+            Log.d(LOGGER, "Raise");
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this.getContext(), R.style.AlertDialogTheme_Light);
 
+            // Get dialog_purchase.xml view
+            LayoutInflater li = LayoutInflater.from(this.getContext());
+            View promptsView = li.inflate(R.layout.dialog_purchase, null);
+            alertDialogBuilder.setView(promptsView);
+
+            ((TextView)promptsView.findViewById(R.id.textViewDialog)).setText(R.string.raise_with);
+            EditText userInput = promptsView.findViewById(R.id.editTextDialogUserInput);
+
+            // Define dialog buttons and respond to user clicks over them
+            alertDialogBuilder
+                    .setCancelable(true)
+                    .setNegativeButton("Cancel", (dialog, id) -> dialog.cancel())
+                    .setPositiveButton("Raise", (dialog, id) -> {
+                        long amountOfChips = 0;
+                        String userInputText = userInput.getText().toString().trim();
+
+                        Log.d(LOGGER, "Raising with " + userInputText + " chips.");
+                        try {
+                            amountOfChips = Long.parseLong(userInputText);
+                        } catch (NumberFormatException e) {
+                            Toast.makeText(GameFragment.this.getContext(), "Illegal input: " + userInputText, Toast.LENGTH_LONG).show();
+                            dialog.cancel();
+                        }
+
+                        // Execute the action
+                        if (amountOfChips > 0) {
+                            game.executePlayerAction(PlayerAction.builder().actionKind(PlayerActionKind.RAISE).build());
+                        }
+                    });
+
+            // Create and show alert dialog
+            AlertDialog alertDialog = alertDialogBuilder.create();
+            alertDialog.show();
+        } catch (Throwable t) {
+            Log.e(LOGGER, "Unexpected error", t);
+        }
     }
 
     /**
      * Occurs when user presses the FOLD button, to fold if possible
      * @param foldButton The FOLD button
      */
-    void onFoldClicked(View foldButton) {
+    void onFoldClicked(@SuppressWarnings("unused") View foldButton) {
+        try {
+            Log.d(LOGGER, "Fold");
+            game.executePlayerAction(PlayerAction.builder().actionKind(PlayerActionKind.FOLD).build());
+        } catch (Throwable t) {
+            Log.e(LOGGER, "Unexpected error", t);
+        }
+    }
 
+    private void onQuitButtonClicked(View quitButton) {
+        try {
+            GameEngine gameEngine = Game.getInstance().getGameEngine();
+            if (gameEngine != null) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this.getContext(), R.style.AlertDialogTheme_Light);
+
+                // Get dialog_purchase.xml view
+                LayoutInflater li = LayoutInflater.from(this.getContext());
+                View promptsView = li.inflate(R.layout.dialog_game_log, null);
+                alertDialogBuilder.setView(promptsView);
+
+                ListView listView = promptsView.findViewById(R.id.listViewPlayerActions);
+
+                // Get string representation of all player actions
+                List<String> message = new ArrayList<>(1);
+                message.add("Are you sure you want to leave?");
+                listView.setAdapter(new ArrayAdapter<>(this.getContext(), R.layout.card_view_log, message));
+
+                // Define dialog buttons and respond to user clicks over them
+                alertDialogBuilder
+                        .setCancelable(true)
+                        .setNegativeButton("No", (dialog, id) -> dialog.cancel())
+                        .setPositiveButton("Yes", (dialog, id) -> {
+                            game.stop();
+                            ((MainActivity)getActivity()).navigateToFragment(R.id.nav_home);
+                        });
+
+                // Create and show alert dialog
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            } else {
+                game.stop();
+                ((MainActivity)getActivity()).navigateToFragment(R.id.nav_home);
+            }
+        } catch (Throwable t) {
+            Log.e(LOGGER, "Unexpected error", t);
+        }
     }
 
     /**
      * Occurs when user presses the CHAT button, to open chat fragment
      * @param chatButton The CHAT button
      */
-    void onChatClicked(View chatButton) {
-        chatButtonBadge.setNumber(0);
-        chatButtonBadge.setVisible(false);
+    void onChatClicked(@SuppressWarnings("unused") View chatButton) {
+        try {
+            chatButtonBadge.setNumber(0);
+            chatButtonBadge.setVisible(false);
 
-        ((MainActivity)getActivity()).navigateToFragment(R.id.nav_chat);
+            ((MainActivity)getActivity()).navigateToFragment(R.id.nav_chat);
+        } catch (Throwable t) {
+            Log.e(LOGGER, "Unexpected error", t);
+        }
     }
 
     /**
      * Occurs when user presses the LOG button, to open game log dialog
      * @param gameLogButton The LOG button
      */
-    void onGameLogClicked(View gameLogButton) {
+    void onGameLogClicked(@SuppressWarnings("unused") View gameLogButton) {
+        try {
+            GameEngine gameEngine = Game.getInstance().getGameEngine();
+            if (gameEngine != null) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this.getContext(), R.style.AlertDialogTheme_Light);
 
+                // Get dialog_purchase.xml view
+                LayoutInflater li = LayoutInflater.from(this.getContext());
+                View promptsView = li.inflate(R.layout.dialog_game_log, null);
+                alertDialogBuilder.setView(promptsView);
+
+                ListView listView = promptsView.findViewById(R.id.listViewPlayerActions);
+
+                // Get string representation of all player actions
+                List<String> playerActions = new ArrayList<>(gameEngine.getGameLog().getLastRoundPlayerActions().size() +
+                        gameEngine.getGameLog().getPlayerActions().size() + 1);
+                gameEngine.getGameLog().getLastRoundPlayerActions().stream().map(PlayerAction::toString).forEach(playerActions::add);
+                playerActions.add("------------------------------------"); // Line separator.
+                gameEngine.getGameLog().getPlayerActions().stream().map(PlayerAction::toString).forEach(playerActions::add);
+
+                listView.setAdapter(new ArrayAdapter<>(this.getContext(), R.layout.card_view_log, playerActions));
+
+                // Scroll to last row
+                listView.setSelection(playerActions.size() - 1);
+
+                // Define dialog buttons and respond to user clicks over them
+                alertDialogBuilder
+                        .setCancelable(true)
+                        .setPositiveButton("CLOSE", (dialog, id) -> dialog.cancel());
+
+                // Create and show alert dialog
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            }
+        } catch (Throwable t) {
+            Log.e(LOGGER, "Unexpected error", t);
+        }
     }
 
     /**
@@ -308,6 +728,11 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
          */
         @NonNull
         TextView playerBet;
+
+        /**
+         * Keep the real value of a bet, so we can add more bets to this value.
+         */
+        long bet;
 
         /**
          * Before game starts, players select where to sit. This is an animation view we show over seats
@@ -352,6 +777,25 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             handView.setVisibility(visibility);
             playerBet.setVisibility(visibility);
         }
+
+        /**
+         * Adds a bet to existing bet
+         * @param bet The amount of chips to add
+         */
+        void addBet(long bet) {
+            this.bet += bet;
+            refreshBet();
+        }
+
+        void refreshBet() {
+            playerBet.setText(new Chips(this.bet).toShorthand());
+            playerBet.setVisibility(View.VISIBLE);
+        }
+
+        void resetBet() {
+            this.bet = 0;
+            playerBet.setVisibility(View.INVISIBLE);
+        }
     }
 
     /**
@@ -359,7 +803,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * The server returns the user model when we ask for user info by identifier, so we can display
      * player images.
      */
-    private class UserInfoCallback extends SimpleCallback<JsonNode> {
+    private static class UserInfoCallback extends SimpleCallback<JsonNode> {
         /**
          * The player view to update with user info
          */
@@ -393,6 +837,45 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                 } catch (IOException e) {
                     Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                 }
+            }
+        }
+    }
+
+    /**
+     * Helper class to get card resource identifier by {@link Card} model.<br/>
+     * Useful for drawing cards based on player hands or board.
+     */
+    private class Cards {
+        /**
+         * A static map containing the resource identifier of all cards in the game.<br/>
+         * This helps us get a card resource identifier by {@link Card} model in O(1), dynamically.
+         */
+        final Map<Card, Integer> cardToResource = new HashMap<>();
+
+        Cards() {
+            try {
+                for (Card.CardSuit currCardSuit : Card.CardSuit.values()) {
+                    for (Card.CardRank currCardRank : Card.CardRank.values()) {
+                        int currCardRes;
+                        String drawableToFind = currCardSuit.name().toLowerCase();
+
+                        // Ace's ordinal value is the highest. So use 1 instead.
+                        if (currCardRank == Card.CardRank.ACE) {
+                            drawableToFind += "1";
+                        } else {
+                            // 2's ordinal value = 1, 3's ordinal is 2. Hence the plus one.
+                            drawableToFind += currCardRank.ordinal() + 1;
+                        }
+
+                        // Now get the static value. e.g. R.drawable.club1
+                        //currCardRes = getContext().getResources().getIdentifier(drawableToFind, "drawable", getContext().getPackageName());
+                        currCardRes = R.drawable.class.getDeclaredField(drawableToFind).getInt(null);
+
+                        cardToResource.put(new Card(currCardRank, currCardSuit), currCardRes);
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(LOGGER, "Unable to find card's resource identifier.", e);
             }
         }
     }

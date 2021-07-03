@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
 import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.bean.game.PlayerAction;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -50,4 +51,8 @@ public interface GameService {
     /** @return ClientGameEngine or Error */
     @GET("/game/{gameHash}/info")
     Call<JsonNode> getGameInfo(@Path("gameHash") String gameHash);
+
+    /** @return void (200 OK) or Error */
+    @PUT("/game/{gameHash}/action")
+    Call<JsonNode> executePlayerAction(@Path("gameHash") String gameHash, @Body PlayerAction playerAction);
 }

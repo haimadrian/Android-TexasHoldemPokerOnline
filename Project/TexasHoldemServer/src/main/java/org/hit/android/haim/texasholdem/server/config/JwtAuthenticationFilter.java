@@ -1,5 +1,6 @@
 package org.hit.android.haim.texasholdem.server.config;
 
+import org.hit.android.haim.texasholdem.common.util.ThreadContextMap;
 import org.hit.android.haim.texasholdem.server.model.bean.user.User;
 import org.hit.android.haim.texasholdem.server.model.service.UserService;
 import org.hit.android.haim.texasholdem.server.security.JwtUtils;
@@ -52,11 +53,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String requestTokenHeader = request.getHeader(AUTHORIZATION_HEADER);
 
             User user = null;
-            String jwtToken = null;
 
             // JWT Token is in the form "Bearer token". Remove Bearer word and get only the Token
             if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-                jwtToken = requestTokenHeader.substring(7);
+                String jwtToken = requestTokenHeader.substring(7);
 
                 try {
                     user = jwtUtils.parseToken(jwtToken);
@@ -68,16 +68,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // Once we get the token validate it.
-            if (user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userService.loadUserByUsername(user.getId());
+            if (user != null) {
+                // Keep userId to current thread
+                ThreadContextMap.getInstance().setUserId(user.getId());
 
-                UsernamePasswordAuthenticationToken userPassAuth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                userPassAuth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userService.loadUserByUsername(user.getId());
 
-                // After setting the Authentication in the context, we specify
-                // that the current user is authenticated. So it passes the
-                // Spring Security Configurations successfully.
-                SecurityContextHolder.getContext().setAuthentication(userPassAuth);
+                    UsernamePasswordAuthenticationToken userPassAuth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    userPassAuth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // After setting the Authentication in the context, we specify
+                    // that the current user is authenticated. So it passes the
+                    // Spring Security Configurations successfully.
+                    SecurityContextHolder.getContext().setAuthentication(userPassAuth);
+                }
             }
         }
 

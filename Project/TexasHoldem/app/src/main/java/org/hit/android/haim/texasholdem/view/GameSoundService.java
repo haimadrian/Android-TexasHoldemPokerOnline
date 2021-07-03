@@ -90,7 +90,7 @@ public class GameSoundService extends Service implements Game.GameListener {
     }
 
     @Override
-    public void onStep(Game.GameStepType step) {
+    public void onStep(GameEngine gameEngine, Game.GameStepType step) {
         MediaPlayer mediaPlayer = mediaPlayers.get(step);
         if (mediaPlayer != null) {
             restartMediaPlayer(mediaPlayer);

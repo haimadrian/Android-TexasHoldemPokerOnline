@@ -6,14 +6,17 @@ import androidx.annotation.NonNull;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
+import org.hit.android.haim.texasholdem.common.model.bean.game.PlayerAction;
 import org.hit.android.haim.texasholdem.common.model.game.Chips;
 import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
 import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.model.chat.Chat;
 import org.hit.android.haim.texasholdem.view.GameSoundService;
+import org.hit.android.haim.texasholdem.web.HttpStatus;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
@@ -41,10 +44,17 @@ public class Game {
     private static final String LOGGER = Game.class.getSimpleName();
 
     /**
-     * Single thread pool for refreshing seats availability while user selects a seat, or game engine
-     * during a running game.
+     * Single thread pool for refreshing seats availability while user selects a seat. Once
+     * a game is started, this thread is stopped cause user cannot select another seat while
+     * game is running.
      */
-    private ScheduledExecutorService refreshThread;
+    private ScheduledExecutorService seatsAvailabilityRefreshThread;
+
+    /**
+     * Single thread pool for refreshing game engine during a running game.<br/>
+     * We ask the cloud about game engine info to know when a game is started, and what steps were taken.
+     */
+    private ScheduledExecutorService gameRefreshThread;
 
     /**
      * An executor that runs listener updates asynchronously, to avoid of blocking Game.
@@ -104,7 +114,7 @@ public class Game {
     }
 
     /**
-     * Start a new game.<br/>
+     * Initialize a new game.<br/>
      * This method is called from {@link org.hit.android.haim.texasholdem.view.fragment.home.PlayNetworkFragment}
      * when user joins a game, or when user creates a new network game.<br/>
      * or from {@link org.hit.android.haim.texasholdem.view.fragment.home.PlayAiFragment}
@@ -112,7 +122,7 @@ public class Game {
      * @param gameSettings User defined settings of that game
      * @param user The user starting a game
      */
-    public void start(ClientGameSettings gameSettings, User user) {
+    public void init(ClientGameSettings gameSettings, User user) {
         Log.i(LOGGER, "Starting game with settings: " + gameSettings);
         this.gameHash = gameSettings.getGameHash();
 
@@ -123,12 +133,37 @@ public class Game {
 
         if (gameSettings.isNetwork()) {
             notifierThread = Executors.newFixedThreadPool(2, new CustomThreadFactory("GameNotifier"));
-            refreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("SeatsAvailabilityRefreshThread"));
-            refreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 500, TimeUnit.MILLISECONDS);
+
+            // Refresh seats availability every 500 milliseconds, to get "realtime" updates.
+            seatsAvailabilityRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("SeatsAvailabilityRefreshThread"));
+            seatsAvailabilityRefreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 500, TimeUnit.MILLISECONDS);
+
+            // Refresh game state once a second, this isn't a realtime update, but good enough without
+            // flooding the server with requests.
+            gameRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("GameRefreshThread"));
+            gameRefreshThread.scheduleAtFixedRate(this::refreshGame, 1, 1, TimeUnit.SECONDS);
 
             // Start the chat so we will get messages from server
             chat = new Chat(gameHash);
             chat.start();
+        }
+    }
+
+    /**
+     * Start the game.<br/>
+     * This will change the game state to active. Use this method when all players are ready, to
+     * start the game and get notified upon game steps / refreshes.
+     */
+    public void start() {
+        if (gameHash != null) {
+            TexasHoldemWebService.getInstance().getGameService().startGame(gameHash).enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    if (!response.isSuccessful()) {
+                        notifyGameError(TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
+                    }
+                }
+            });
         }
     }
 
@@ -141,9 +176,23 @@ public class Game {
             chat.stop();
         }
 
-        if (refreshThread != null) {
-            refreshThread.shutdownNow();
-            refreshThread = null;
+        if (gameEngine != null) {
+            TexasHoldemWebService.getInstance().getGameService().leaveGame(gameHash).enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    Log.d(LOGGER, "Left game.");
+                }
+            });
+        }
+
+        if (seatsAvailabilityRefreshThread != null) {
+            seatsAvailabilityRefreshThread.shutdownNow();
+            seatsAvailabilityRefreshThread = null;
+        }
+
+        if (gameRefreshThread != null) {
+            gameRefreshThread.shutdownNow();
+            gameRefreshThread = null;
         }
 
         if (notifierThread != null) {
@@ -158,58 +207,185 @@ public class Game {
      * @param onResponse Once we receive a response from server, we will pass it to this consumer.
      */
     public void joinGame(Consumer<Player> onResponse) {
-        TexasHoldemWebService.getInstance().getGameService().joinGame(gameHash, thisPlayer).enqueue(new SimpleCallback<JsonNode>() {
-            @Override
-            public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
-                if (!response.isSuccessful()) {
-                    String errorMessage = TexasHoldemWebService.getInstance().readHttpErrorResponse(response);
-                    Log.e(LOGGER, "Failed to join game: " + errorMessage);
-                    notifyGameError(errorMessage);
-                } else {
-                    JsonNode body = response.body();
-                    try {
-                        Player player = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), Player.class);
-                        Log.d(LOGGER, "Received player: " + player);
+        // For network game
+        if (gameHash != null) {
+            TexasHoldemWebService.getInstance().getGameService().joinGame(gameHash, thisPlayer).enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    if (!response.isSuccessful()) {
+                        String errorMessage = TexasHoldemWebService.getInstance().readHttpErrorResponse(response);
+                        Log.e(LOGGER, "Failed to join game: " + errorMessage);
+                        notifyGameError(errorMessage);
+                    } else {
+                        JsonNode body = response.body();
+                        try {
+                            Player player = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), Player.class);
+                            Log.d(LOGGER, "Received player: " + player);
 
-                        // Update position based on server
-                        Game.this.thisPlayer.setPosition(player.getPosition());
-                        onResponse.accept(player);
+                            // Update position based on server
+                            Game.this.thisPlayer.setPosition(player.getPosition());
+                            onResponse.accept(player);
 
-                        // Send last players update to listener
-                        refreshPlayers();
-                    } catch (IOException e) {
-                        Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
-                        notifyGameError("Something went wrong. Try again.");
+                            // Send last players update to listener
+                            refreshPlayers();
+                        } catch (IOException e) {
+                            Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
+                            notifyGameError("Something went wrong. Try again.");
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
+    }
+
+    /**
+     * Check if this game is currently active or not.<br/>
+     * We need to act different when a game is active and the GameFragment is re-created. In
+     * this case, we would not want to display seat selection animations, but the game state.
+     * @return Whether this game is active or not
+     */
+    public boolean isActive() {
+        return gameEngine != null;
+    }
+
+    /**
+     * Execute a task in case current player is the creator of this game.<br/>
+     * When current player is the creator of a game, he has a START button to start a network
+     * game after all players joined. So in order to display that button, we need to know if
+     * current player is the creator. For this, you can use this method to execute some code
+     * in case current player is the creator.
+     * @param run A task to run
+     */
+    public void ifCurrentPlayerIsTheOwner(Runnable run) {
+        // For network game
+        if (gameHash != null) {
+            TexasHoldemWebService.getInstance().getGameService().getMyGameHash().enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    if (!response.isSuccessful()) {
+                        // Print it in DEBUG. We get NOT FOUND for players that are not the creator.
+                        Log.d(LOGGER, "Failed to get my game hash while trying to check if current player is the creator: " + TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
+                    } else {
+                        JsonNode body = response.body();
+                        try {
+                            String gameHash = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), TextNode.class).asText();
+                            Log.d(LOGGER, "Received game hash: " + gameHash);
+                            run.run();
+                        } catch (IOException e) {
+                            Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
+                        }
+                    }
+                }
+            });
+        } else {
+            // For local game we get here for our player only, so run the action.
+            run.run();
+        }
     }
 
     /**
      * Get list of players that are connected to our game, from cloud, and notify listener when it is updated.
      */
     private void refreshPlayers() {
-        TexasHoldemWebService.getInstance().getGameService().getPlayers(gameHash).enqueue(new SimpleCallback<JsonNode>() {
+        if (gameHash != null) {
+            TexasHoldemWebService.getInstance().getGameService().getPlayers(gameHash).enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    if (!response.isSuccessful()) {
+                        Log.e(LOGGER, "Failed to get players");
+                    } else {
+                        JsonNode body = response.body();
+                        try {
+                            Set<Player> players = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), new TypeReference<Set<Player>>() {
+                            });
+                            Log.d(LOGGER, "Received players: " + players);
+
+                            if ((Game.this.playersInGame == null) || (!Game.this.playersInGame.equals(players))) {
+                                notifyPlayersRefresh(players);
+                            }
+
+                            // Keep it for next timer tick
+                            Game.this.playersInGame = players;
+                        } catch (IOException e) {
+                            Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Ask the cloud for game engine info.<br/>
+     * Once the game is started, we stop the seats availability thread, and let the listener get
+     * the updates about the game.
+     */
+    private void refreshGame() {
+        if (gameHash != null) {
+            TexasHoldemWebService.getInstance().getGameService().getGameInfo(gameHash).enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    if (!response.isSuccessful()) {
+                        // Before user joins a game, we get bad request cause use that not part of
+                        // a game cannot receive game updates. Just ignore those failures.
+                        if ((response.code() != HttpStatus.BAD_REQUEST.getCode()) && (response.code() != HttpStatus.NOT_FOUND.getCode())) {
+                            Log.e(LOGGER, "Failed to get game update");
+                            notifyGameError("Game is Out of Sync");
+                        }
+                    } else {
+                        JsonNode body = response.body();
+                        try {
+                            GameEngine gameEngine = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), GameEngine.class);
+                            Log.d(LOGGER, "Received game: " + gameEngine);
+
+                            if (gameEngine != null) {
+                                // Before game is started, it is in READY state, which means we are
+                                // waiting for the creator to start it. Meanwhile we refresh seats.
+                                if (gameEngine.getGameState() != GameEngine.GameState.READY) {
+                                    Game.this.gameEngine = gameEngine;
+
+                                    // In case seats availability thread is still running, stop it.
+                                    // We get here one time only, when a game is started, so we stop
+                                    // the seats availability thread.
+                                    if (seatsAvailabilityRefreshThread != null) {
+                                        seatsAvailabilityRefreshThread.shutdownNow();
+                                        seatsAvailabilityRefreshThread = null;
+                                    }
+
+                                    notifyGameRefresh(gameEngine);
+                                    detectAndNotifyAboutGameStep();
+                                }
+                            }
+                        } catch (IOException e) {
+                            Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Analyze {@link #gameEngine} to find out the last step and notify about it, this way we can
+     * play sound effects / animations.
+     */
+    private void detectAndNotifyAboutGameStep() {
+        if (gameEngine != null) {
+
+        }
+    }
+
+    /**
+     * Execute a {@link PlayerAction}.<br/>
+     * Listener will be notified in case there was an error
+     * @param playerAction The action to execute
+     */
+    public void executePlayerAction(PlayerAction playerAction) {
+        TexasHoldemWebService.getInstance().getGameService().executePlayerAction(gameHash, playerAction).enqueue(new SimpleCallback<JsonNode>() {
             @Override
             public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
                 if (!response.isSuccessful()) {
-                    Log.e(LOGGER, "Failed to get players");
-                } else {
-                    JsonNode body = response.body();
-                    try {
-                        Set<Player> players = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), new TypeReference<Set<Player>>() {});
-                        Log.d(LOGGER, "Received players: " + players);
-
-                        if ((Game.this.playersInGame == null) || (!Game.this.playersInGame.equals(players))) {
-                            notifyPlayersRefresh(players);
-                        }
-
-                        // Keep it for next timer tick
-                        Game.this.playersInGame = players;
-                    } catch (IOException e) {
-                        Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
-                    }
+                    notifyGameError(TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
                 }
             }
         });
@@ -235,9 +411,9 @@ public class Game {
      * Go over all listeners and notify them about a game step
      * @param step The step to notify about
      */
-    private void notifyGameStep(GameStepType step) {
+    private void notifyGameStep(GameEngine gameEngine, GameStepType step) {
         for (GameListener listener : gameListeners) {
-            notifierThread.submit(() -> listener.onStep(step));
+            notifierThread.submit(() -> listener.onStep(gameEngine, step));
         }
     }
 
@@ -286,7 +462,7 @@ public class Game {
          * For UI refresh, use {@link #refresh(GameEngine)}
          * @param step The new step
          */
-        void onStep(GameStepType step);
+        void onStep(GameEngine gameEngine, GameStepType step);
 
         /**
          * Occurs every 1 second to refresh the UI
