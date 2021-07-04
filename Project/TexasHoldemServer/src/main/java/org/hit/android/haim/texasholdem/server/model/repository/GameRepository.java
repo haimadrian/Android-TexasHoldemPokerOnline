@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.server.model.repository;
 
 import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
 import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.server.model.game.ServerGameEngine;
 
@@ -25,6 +26,12 @@ public class GameRepository {
      * We hold this map to retrieve game hashes by game creator in O(1)
      */
     private final Map<String, GameEngine> ownerToGame = new ConcurrentHashMap<>();
+
+    /**
+     * A map between user identifier to a game he is part of.<br/>
+     * We hold this map to retrieve games by players in O(1)
+     */
+    private final Map<String, GameEngine> playerToGame = new ConcurrentHashMap<>();
 
     private GameRepository() {
 
@@ -92,6 +99,19 @@ public class GameRepository {
     }
 
     /**
+     * Get the game of a player, if there is such
+     * @param playerId The identifier of a user to get the game he is part of
+     * @return An optional reference to the game. (Empty when there is no game with the given identifier)
+     */
+    public Optional<GameEngine> findGameByPlayer(String playerId) {
+        if (!playerToGame.containsKey(playerId)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(playerToGame.get(playerId));
+    }
+
+    /**
      * @return All game engines
      */
     public Iterable<GameEngine> findAll() {
@@ -121,6 +141,40 @@ public class GameRepository {
         if (existingGame != null) {
             ownerToGame.remove(existingGame.getGameSettings().getCreatorId());
             existingGame.stop();
+        }
+    }
+
+    /**
+     * Add player to a game
+     * @param gameId The identifier of a game
+     * @param player The player that joins
+     */
+    public void joinGame(int gameId, Player player) {
+        GameEngine existingGame = games.get(gameId);
+        if (existingGame != null) {
+            // Check if user joins another game while he is part of a game already
+            GameEngine gameEngine = playerToGame.get(player.getId());
+            if ((gameEngine != null) && (gameId != gameEngine.getId())) {
+                leaveGame(gameEngine.getId(), player);
+            }
+
+            existingGame.addPlayer(player);
+            playerToGame.put(player.getId(), existingGame);
+        }
+    }
+
+    /**
+     * Remove player from a game
+     * @param gameId The identifier of a game
+     * @param player The player that leaves
+     */
+    public void leaveGame(int gameId, Player player) {
+        GameEngine existingGame = games.get(gameId);
+        if (existingGame != null) {
+            if (existingGame.getPlayers().getPlayerById(player.getId()) != null) {
+                playerToGame.remove(player.getId());
+                existingGame.removePlayer(player);
+            }
         }
     }
 

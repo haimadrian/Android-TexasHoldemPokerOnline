@@ -15,8 +15,6 @@ import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 import org.hit.android.haim.texasholdem.web.services.UserService;
 
-import java.io.IOException;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -89,7 +87,7 @@ public class SignInViewModel extends AbstractSignInViewModel {
                             Log.e(LOGGER, "Server has not responded with a valid JWT token");
                             loginResult = LoginResult.builder().errorMessage("Server returned invalid token").build();
                         }
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                         loginResult = LoginResult.builder().errorMessage(e.getMessage()).build();
                     }

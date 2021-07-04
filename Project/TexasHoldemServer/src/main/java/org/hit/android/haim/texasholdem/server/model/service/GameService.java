@@ -81,6 +81,13 @@ public class GameService {
     }
 
     /**
+     * See {@link GameRepository#findGameByPlayer(String)}
+     */
+    public Optional<GameEngine> findByPlayerId(String playerId) {
+        return gameRepository.findGameByPlayer(playerId);
+    }
+
+    /**
      * Add a player to a game.<br/>
      * If there is no game with the specified game hash, or game is full, or game is currently active, an exception will be thrown.
      * @param gameHash Hash of the game to join to
@@ -105,7 +112,7 @@ public class GameService {
         }
 
         // addPlayer throws exception in case the game is active
-        game.get().addPlayer(player);
+        gameRepository.joinGame(game.get().getId(), player);
     }
 
     /**
@@ -124,7 +131,7 @@ public class GameService {
         // Find a player by its identifier, and remove him from game, in case he is part of the specified game.
         Player player = game.get().getPlayers().getPlayerById(userId);
         if (player != null) {
-            game.get().removePlayer(player);
+            gameRepository.leaveGame(game.get().getId(), player);
         }
     }
 

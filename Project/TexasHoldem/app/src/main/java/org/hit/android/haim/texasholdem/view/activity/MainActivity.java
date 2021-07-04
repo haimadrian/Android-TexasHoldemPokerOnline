@@ -42,7 +42,6 @@ import org.hit.android.haim.texasholdem.view.GameSoundService;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import lombok.Getter;
@@ -115,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        NavigationView navigationView = binding.navView;
 
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -161,6 +160,9 @@ public class MainActivity extends AppCompatActivity {
 
         binding.buttonOpenDrawer.setClickable(true);
         binding.buttonOpenDrawer.setOnClickListener(v -> binding.drawerLayout.open());
+
+        // Hide game menu. We show it when player joins a game only.
+        binding.navView.getMenu().findItem(R.id.nav_game).setVisible(false);
     }
 
     @Override
@@ -189,6 +191,14 @@ public class MainActivity extends AppCompatActivity {
         buyCoinsImageView.setOnClickListener(this::onBuyCoinsClicked);
 
         refreshUserInfo();
+    }
+
+    /**
+     * Call this method when user joins / leaves a game, so we will show or hide the game menu accordingly.
+     */
+    public void refreshGameMenuVisibility() {
+        // In case view was re-created, check if user already part of game, to show game menu.
+        Game.getInstance().ifPlayerPartOfGame(user.getId(), gameEngine -> binding.navView.getMenu().findItem(R.id.nav_game).setVisible(gameEngine != null));
     }
 
     @Override
@@ -318,13 +328,16 @@ public class MainActivity extends AppCompatActivity {
             if (handler != null) {
                 handler.post(() -> {
                     Log.d(LOGGER, "Exiting");
-                    Game.getInstance().stop();
+                    Game.getInstance().stop(null);
                     stopService(new Intent(MainActivity.this, GameSoundService.class));
 
                     ExitActivity.exit(MainActivity.this.getApplicationContext());
                     MainActivity.this.finish();
                 });
             }
+        } else if ((currentBackStackEntry != null) && (currentBackStackEntry.getDestination().getId() == R.id.nav_game)) {
+            // Back press is ignored when we are at the game fragment. For this there is a "quit" button.
+            Log.d(LOGGER, "Disabled back press because we are at the game fragment.");
         } else {
             super.onBackPressed();
         }
@@ -485,7 +498,9 @@ public class MainActivity extends AppCompatActivity {
                     if (runLater != null) {
                         runLater.run();
                     }
-                } catch (IOException e) {
+
+                    refreshGameMenuVisibility();
+                } catch (Exception e) {
                     Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                     showSnack("User info is unavailable. Reason: " + e.getMessage());
                 }

@@ -47,8 +47,25 @@ public class HandRankCalculator {
         allCards.addAll(board.copyCards());
         allCards.addAll(hand.copyCards());
 
+        // In case no rank could be found, it means there are less than 5 cards,
+        // as we could not use any permutation. So just use all cards.
+        if (allCards.size() < 5) {
+            Card[] selectedCards = allCards.toArray(new Card[0]);
+            Arrays.sort(selectedCards);
+            highestRank = calculate(selectedCards);
+            return new HandRankCalculatorResult(highestRank, selectedCards, hand);
+        }
+
         // Find the best rank out of all possible permutations
         for (int[] currPermutation : allCardPermutations) {
+            if ((currPermutation[0] >= allCards.size()) ||
+                (currPermutation[1] >= allCards.size()) ||
+                (currPermutation[2] >= allCards.size()) ||
+                (currPermutation[3] >= allCards.size()) ||
+                (currPermutation[4] >= allCards.size())) {
+                continue; // Skip this one
+            }
+
             Card[] currSelectedCards = new Card[] { allCards.get(currPermutation[0]), allCards.get(currPermutation[1]), allCards.get(currPermutation[2]), allCards.get(currPermutation[3]), allCards.get(currPermutation[4]) };
             Arrays.sort(currSelectedCards);
             HandNumericRank currRank = calculate(currSelectedCards);
@@ -79,7 +96,7 @@ public class HandRankCalculator {
 
         // Group cards by their suit, so we can check for flush. If there is a single suit only, it means all 5 cards are of same suit.
         Map<Card.CardSuit, List<Card>> cardSuitToCards = Arrays.stream(cards).collect(Collectors.groupingBy(Card::getCardSuit));
-        boolean isFlush = cardSuitToCards.size() == 1;
+        boolean isFlush = (cardSuitToCards.size() == 1) && (cards.length == 5);
 
         if (isFlush) {
             if (rank.getHandRank() == HandRank.STRAIGHT) {

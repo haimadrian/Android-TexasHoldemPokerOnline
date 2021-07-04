@@ -33,8 +33,12 @@ public interface GameService {
     Call<JsonNode> stopGame(@Path("gameHash") String gameHash);
 
     /** @return String (game hash) or Error */
-    @GET("/game/mygame")
+    @GET("/game/leader/hash")
     Call<JsonNode> getMyGameHash();
+
+    /** @return GameEngine or Error */
+    @GET("/game/mygame")
+    Call<JsonNode> getMyGame();
 
     /** @return void (200 OK) or Error */
     @PUT("/game/{gameHash}/join")

@@ -104,29 +104,6 @@ public class GameEngineTest {
     }
 
     @Test
-    public void testGameEngineToJson_checkPlayerActions_makeSureJacksonDoesNotFail() {
-        Throwable t = null;
-        GameEngine gameEngine1 = null;
-        try {
-            ThreadContextMap.getInstance().setUserId("id");
-            gameEngine.getGameLog().getPlayerActions().add(PlayerAction.builder().name("name").actionKind(PlayerActionKind.FOLD).build());
-            String json = JsonUtils.writeValueAsString(gameEngine);
-            System.out.println(json);
-
-            gameEngine1 = JsonUtils.readValueFromString(json, GameEngine.class);
-            System.out.println(gameEngine1);
-        } catch (Exception e) {
-            t = e;
-            e.printStackTrace();
-        }
-
-        Assertions.assertNull(t, "No exception supposed to occur");
-        Assertions.assertNotNull(gameEngine1, "Json supposed to be deserialized");
-        //Assertions.assertEquals(1, gameEngine1.getPlayerToHisLastAction().size(), "We have executed an action");
-        Assertions.assertEquals(1, gameEngine1.getGameLog().getPlayerActions().size(), "We have executed an action");
-    }
-
-    @Test
     public void testGameEngineToJson_addHandAndBoard_makeSureJacksonDoesNotFailAndHandIsHidden() {
         Throwable t = null;
         GameEngine gameEngine1 = null;
@@ -196,7 +173,7 @@ public class GameEngineTest {
     public void simulateFullGameFlowUntilLastRound_lastPlayerFolds_prevPlayerWins() {
         GameEngine gameEngine = null;
         try {
-            gameEngine = simulateFullGameFlowUntilLastRound();
+            gameEngine = simulateFullGameFlowUntilLastRoundInclusive();
 
             // Fold (small blind player)
             Player prevPlayer = gameEngine.getPlayers().getPreviousPlayer();
@@ -244,7 +221,7 @@ public class GameEngineTest {
     public void simulateFullGameFlowUntilLastRound_lastPlayerCalls_someoneWins() {
         GameEngine gameEngine = null;
         try {
-            gameEngine = simulateFullGameFlowUntilLastRound();
+            gameEngine = simulateFullGameFlowUntilLastRoundInclusive();
 
             // Call (small blind player)
             Player currPlayer = gameEngine.getPlayers().getCurrentPlayer();
@@ -267,7 +244,73 @@ public class GameEngineTest {
         }
     }
 
-    private GameEngine simulateFullGameFlowUntilLastRound() {
+    @Test
+    public void simulateFullGameFlowUntilTurnRound_lastPlayerFolds_prevPlayerWins() {
+        GameEngine gameEngine = null;
+        try {
+            gameEngine = simulateFullGameFlowUntilTurnRound();
+
+            // Fold (small blind player)
+            Player currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+            long chipsBeforeCall = currPlayer.getChips().get();
+            gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.FOLD).build());
+            Assertions.assertFalse(gameEngine.getBoard().hasTurn(), "Turn was not supposed to be displayed");
+            Assertions.assertFalse(gameEngine.getBoard().hasRiver(), "River was not supposed to be displayed");
+            Assertions.assertEquals(chipsBeforeCall, currPlayer.getChips().get(), "No chips should be removed when FOLD.");
+            Assertions.assertEquals(currPlayer.getName() + " folded.", gameEngine.getGameLog().getLastPlayerAction().toString());
+
+            // Raise (big blind raise)
+            currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+            chipsBeforeCall = currPlayer.getChips().get();
+            gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.RAISE).chips(new Chips(20)).build());
+            Assertions.assertFalse(gameEngine.getBoard().hasTurn(), "Turn was not supposed to be displayed yet");
+            Assertions.assertEquals(chipsBeforeCall - 20, currPlayer.getChips().get(), "Player raised 20 chips");
+            Assertions.assertEquals(currPlayer.getName() + " raised by 20.", gameEngine.getGameLog().getLastPlayerAction().toString());
+
+            // Dealer folds
+            Player prevPlayer = gameEngine.getPlayers().getPreviousPlayer();
+            currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+            chipsBeforeCall = currPlayer.getChips().get();
+            gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.FOLD).build());
+            Assertions.assertFalse(gameEngine.getBoard().hasTurn(), "Turn was not supposed to be displayed yet");
+            Assertions.assertFalse(gameEngine.getBoard().hasRiver(), "River was not supposed to be displayed");
+            Assertions.assertEquals(chipsBeforeCall, currPlayer.getChips().get(), "No chips should be removed when FOLD.");
+
+            Map<String, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
+            Assertions.assertEquals(GameEngine.GameState.RESTART, gameEngine.getGameState(), "Game supposed to be in RESTART state");
+            Assertions.assertNotNull(playerToEarnings, "Game supposed to end");
+            Assertions.assertFalse(playerToEarnings.isEmpty(), "There should be a winner");
+            Assertions.assertTrue(playerToEarnings.containsKey(prevPlayer.getId()), prevPlayer.getName() + " supposed to win");
+            Assertions.assertTrue(gameEngine.getGameLog().getLastPlayerAction().toString().contains(prevPlayer.getName() + " won"));
+            Assertions.assertNotEquals(500, player1.getChips().get(), "Chips must be modified");
+            Assertions.assertNotEquals(300, player2.getChips().get(), "Chips must be modified");
+            Assertions.assertNotEquals(1000, player3.getChips().get(), "Chips must be modified");
+
+            long actualEarning;
+            if (prevPlayer.equals(player1)) {
+                actualEarning = 300 - player2.getChips().get() + 1000 - player3.getChips().get();
+                Assertions.assertEquals(actualEarning, player1.getChips().get() - 500, "Not expected earning");
+                Assertions.assertNotNull(playerToEarnings.get(player1.getId()).getHandRank().getHand(), "Hand supposed to be available");
+                Assertions.assertTrue(playerToEarnings.get(player1.getId()).getSum() > actualEarning, "Sum supposed to contain earning and own bet");
+            } else if (prevPlayer.equals(player2)) {
+                actualEarning = 500 - player1.getChips().get() + 1000 - player3.getChips().get();
+                Assertions.assertEquals(actualEarning, player2.getChips().get() - 300, "Not expected earning");
+                Assertions.assertNotNull(playerToEarnings.get(player2.getId()).getHandRank().getHand(), "Hand supposed to be available");
+                Assertions.assertTrue(playerToEarnings.get(player2.getId()).getSum() > actualEarning, "Sum supposed to contain earning and own bet");
+            } else {
+                actualEarning = 300 - player2.getChips().get() + 500 - player1.getChips().get();
+                Assertions.assertEquals(actualEarning, player3.getChips().get() - 1000, "Not expected earning");
+                Assertions.assertNotNull(playerToEarnings.get(player3.getId()).getHandRank().getHand(), "Hand supposed to be available");
+                Assertions.assertTrue(playerToEarnings.get(player3.getId()).getSum() > actualEarning, "Sum supposed to contain earning and own bet");
+            }
+        } finally {
+            if (gameEngine != null) {
+                gameEngine.stop();
+            }
+        }
+    }
+
+    private GameEngine simulateFullGameFlowUntilTurnRound() {
         // Arrange
         Map<Player, Long> playerChipsUpdates = new HashMap<>();
         GameEngine gameEngine = new GameEngine(new GameSettings(1, 2, 60000, "id", true), (player, chips) -> playerChipsUpdates.compute(player, (existingPlayer, existingChips) -> existingChips == null ? chips : existingChips + chips));
@@ -313,9 +356,15 @@ public class GameEngineTest {
         Assertions.assertEquals(chipsBeforeCall, currPlayer.getChips().get(), "Player checked, hence no change in chips");
         Assertions.assertEquals(currPlayer.getName() + " checked.", gameEngine.getGameLog().getLastPlayerAction().toString());
 
+        return gameEngine;
+    }
+
+    private GameEngine simulateFullGameFlowUntilRiverRound() {
+        GameEngine gameEngine = simulateFullGameFlowUntilTurnRound();
+
         // Small blind bet
-        currPlayer = gameEngine.getPlayers().getCurrentPlayer();
-        chipsBeforeCall = currPlayer.getChips().get();
+        Player currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+        long chipsBeforeCall = currPlayer.getChips().get();
         Assertions.assertEquals(gameEngine.getSmallBlindPlayer(), currPlayer, "Current player supposed to be small blind");
         gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.RAISE).chips(new Chips(10)).build());
         Assertions.assertFalse(gameEngine.getBoard().hasTurn(), "Turn was not supposed to be displayed yet");
@@ -350,13 +399,19 @@ public class GameEngineTest {
         currPlayer = gameEngine.getPlayers().getCurrentPlayer();
         chipsBeforeCall = currPlayer.getChips().get();
         gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.CALL).build());
-        Assertions.assertTrue(gameEngine.getBoard().hasTurn(), "Turn was supposed to be displayed");
+        Assertions.assertTrue(gameEngine.getBoard().hasTurn(), "Turn supposed to be displayed");
         Assertions.assertEquals(chipsBeforeCall - 10, currPlayer.getChips().get(), "Player called 10 chips in addition to previous 10.");
         Assertions.assertEquals(currPlayer.getName() + " called 10.", gameEngine.getGameLog().getLastPlayerAction().toString());
 
+        return gameEngine;
+    }
+
+    private GameEngine simulateFullGameFlowUntilLastRoundExclusive() {
+        GameEngine gameEngine = simulateFullGameFlowUntilRiverRound();
+
         // Check (small blind player)
-        currPlayer = gameEngine.getPlayers().getCurrentPlayer();
-        chipsBeforeCall = currPlayer.getChips().get();
+        Player currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+        long chipsBeforeCall = currPlayer.getChips().get();
         gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.CHECK).build());
         Assertions.assertFalse(gameEngine.getBoard().hasRiver(), "River was not supposed to be displayed yet");
         Assertions.assertEquals(chipsBeforeCall, currPlayer.getChips().get(), "No chips should be removed when CHECK.");
@@ -378,9 +433,15 @@ public class GameEngineTest {
         Assertions.assertEquals(chipsBeforeCall, currPlayer.getChips().get(), "No chips should be removed when CHECK.");
         Assertions.assertEquals(currPlayer.getName() + " checked.", gameEngine.getGameLog().getLastPlayerAction().toString());
 
+        return gameEngine;
+    }
+
+    private GameEngine simulateFullGameFlowUntilLastRoundInclusive() {
+        GameEngine gameEngine = simulateFullGameFlowUntilLastRoundExclusive();
+
         // Check (small blind player)
-        currPlayer = gameEngine.getPlayers().getCurrentPlayer();
-        chipsBeforeCall = currPlayer.getChips().get();
+        Player currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+        long chipsBeforeCall = currPlayer.getChips().get();
         gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.CHECK).build());
         Assertions.assertTrue(gameEngine.getBoard().hasRiver(), "River supposed to be displayed");
         Assertions.assertEquals(chipsBeforeCall, currPlayer.getChips().get(), "No chips should be removed when CHECK.");

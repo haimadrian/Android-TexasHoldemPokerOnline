@@ -2,7 +2,7 @@ package org.hit.android.haim.texasholdem.common.model.bean.game;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,17 +26,20 @@ public class PlayerAction {
     /**
      * What move a player took
      */
+    @JsonProperty
     private PlayerActionKind actionKind;
 
     /**
      * In case of call/raise, this holds the amount of chips involved.
      */
     @Builder.Default
+    @JsonProperty
     private Chips chips = new Chips();
 
     /**
      * Name of the player making a move
      */
+    @JsonProperty
     private String name;
 
     /**
@@ -44,6 +47,7 @@ public class PlayerAction {
      * During a game this value refers to {@code null}, so we will not have breaches. We assign this value when
      * a round is over only.
      */
+    @JsonProperty
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private HandRankCalculatorResult handRank;
 

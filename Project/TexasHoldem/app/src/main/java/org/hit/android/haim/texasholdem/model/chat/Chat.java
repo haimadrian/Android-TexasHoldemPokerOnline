@@ -167,11 +167,17 @@ public class Chat {
             } else {
                 response = TexasHoldemWebService.getInstance().getChatService().getAllMessagesInChannel(chatId).execute();
             }
+        } catch (InterruptedIOException ignore) {
+            // Don't care
         } catch (Exception e) {
             Log.e(LOGGER, "Error has occurred while trying to read messages", e);
         }
 
         if ((response == null) || !response.isSuccessful()) {
+            if (response != null) {
+                Log.e(LOGGER, TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
+            }
+
             notifyError("Failed getting messages");
         } else {
             try {
@@ -187,7 +193,7 @@ public class Chat {
         try {
             Response<JsonNode> channelInfoResponse = TexasHoldemWebService.getInstance().getChatService().getChannel(chatId).execute();
             if (!channelInfoResponse.isSuccessful()) {
-                Log.e(LOGGER, "Error has occurred while trying to read channel info.");
+                Log.e(LOGGER, "Error has occurred while trying to read channel info: " + TexasHoldemWebService.getInstance().readHttpErrorResponse(channelInfoResponse));
             } else {
                 try {
                     channelInfo.set(TexasHoldemWebService.getInstance().getObjectMapper().readValue(channelInfoResponse.body().toString(), Channel.class));
@@ -221,6 +227,7 @@ public class Chat {
             public void onResponse(@NotNull Call<JsonNode> call, @NotNull Response<JsonNode> response) {
                 if (!response.isSuccessful()) {
                     errorConsumer.accept("Failed to send message. Try again");
+                    Log.e(LOGGER, "Failed to send message. Reason: " + TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
                 }
             }
 

@@ -399,5 +399,29 @@ public class HandRankCalculatorTest {
         Assertions.assertEquals(expectedSelection, new HashSet<>(Arrays.asList(calculate.getSelectedCards())), "Wrong winning hand selection");
         Assertions.assertTrue(calculate.compareTo(calculate2) > 0, "First hand (full house) supposed to win");
     }
+
+    @Test
+    public void testPairWithPartialBoard_pairOfTwoWithHandOnly_success() {
+        // Arrange
+        Hand hand = new Hand();
+        hand.addCard(Card.valueOf(TWO_DIAMOND));
+        hand.addCard(Card.valueOf(TWO_CLUB));
+
+        Set<Card> expectedSelection = newCardsSet(TWO_CLUB, TWO_DIAMOND, KING_CLUB, JACK_SPADE, TEN_DIAMOND);
+
+        Board board = new Board();
+        board.addCard(Card.valueOf(JACK_SPADE));
+        board.addCard(Card.valueOf(KING_CLUB));
+        board.addCard(Card.valueOf(TEN_DIAMOND));
+
+        // Act
+        HandRankCalculatorResult calculate = HandRankCalculator.calculate(board, hand);
+
+        // Assert
+        Assertions.assertNotNull(calculate, "Calculation result was null");
+        Assertions.assertEquals(HandRank.PAIR, calculate.getRank().getHandRank(), "Hand rank supposed to be pair");
+        Assertions.assertEquals(HandRankCalculator.sumCardsRank(expectedSelection.toArray(new Card[] { })), calculate.getRank().getScore(), "Wrong hand rank");
+        Assertions.assertEquals(expectedSelection, new HashSet<>(Arrays.asList(calculate.getSelectedCards())), "Wrong winning hand selection");
+    }
 }
 

@@ -45,6 +45,7 @@ public class Chips {
      * Set a new amount of chips
      * @return The old value
      */
+    @JsonIgnore
     public long set(long newValue) {
         long oldValue = chips;
         chips = newValue;
@@ -54,6 +55,7 @@ public class Chips {
     /**
      * @return The amount of chips
      */
+    @JsonIgnore
     public long get() {
         return chips;
     }

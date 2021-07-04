@@ -21,6 +21,15 @@
             android:title="@string/menu_about" />
     </group>
     <group
+        android:id="@+id/gameGroup"
+        android:checkableBehavior="single"
+        android:menuCategory="container">
+        <item
+            android:id="@+id/nav_game"
+            android:icon="@drawable/ic_outline_videogame_asset_24"
+            android:title="@string/menu_game" />
+    </group>
+    <group
         android:id="@+id/systemGroup"
         android:checkableBehavior="single"
         android:menuCategory="system">

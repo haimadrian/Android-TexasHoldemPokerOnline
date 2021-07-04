@@ -41,8 +41,8 @@ public class GameController {
         }
     }
 
-    @GetMapping("/mygame")
-    public ResponseEntity<?> getMyGame(@RequestHeader(AUTHORIZATION_HEADER) String jwtToken) {
+    @GetMapping("/leader/hash")
+    public ResponseEntity<?> getMyGameHash(@RequestHeader(AUTHORIZATION_HEADER) String jwtToken) {
         try {
             User user = jwtUtils.parseToken(jwtToken);
             Optional<GameEngine> game = gameService.findByCreatorId(user.getId());
@@ -51,6 +51,21 @@ public class GameController {
             }
 
             return ResponseEntity.ok(new TextNode(game.get().getGameHash()));
+        } catch (Throwable t) {
+            return ControllerErrorHandler.handleServerError(t);
+        }
+    }
+
+    @GetMapping("/mygame")
+    public ResponseEntity<?> getMyGame(@RequestHeader(AUTHORIZATION_HEADER) String jwtToken) {
+        try {
+            User user = jwtUtils.parseToken(jwtToken);
+            Optional<GameEngine> game = gameService.findByPlayerId(user.getId());
+            if (game.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(game.get());
         } catch (Throwable t) {
             return ControllerErrorHandler.handleServerError(t);
         }

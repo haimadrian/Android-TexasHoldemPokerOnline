@@ -56,7 +56,6 @@ import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -164,7 +163,10 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                     isSeatSelected = true;
                     players.values().forEach(playerView -> playerView.seatSelection.setVisibility(View.GONE));
                     game.getThisPlayer().setPosition(pos);
-                    game.joinGame(p -> Toast.makeText(GameFragment.this.getContext(), "Selected seat is: " + (p.getPosition() + 1), Toast.LENGTH_LONG).show());
+                    game.joinGame(p -> {
+                        Toast.makeText(GameFragment.this.getContext(), "Selected seat is: " + (p.getPosition() + 1), Toast.LENGTH_LONG).show();
+                        ((MainActivity)getActivity()).refreshGameMenuVisibility(); // Should be visible now
+                    });
                 });
             }
         });
@@ -217,9 +219,24 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             // In case fragment was recreated during a game, mark seat selection as done.
             isSeatSelected = true;
 
+            ((MainActivity)getActivity()).refreshGameMenuVisibility(); // Should be visible now
             refresh(gameEngine);
-        } else {
+        } else if (game.isJoinedGame()) {
+            isSeatSelected = true;
+            ((MainActivity)getActivity()).refreshGameMenuVisibility(); // Should be visible now
             playersRefresh(game.getPlayers());
+        } else {
+            // It might be that player quited the app without logout of game.
+            // Try to detect such a case now, and just skip seat selection if needed
+            game.ifPlayerPartOfGame(((MainActivity)getActivity()).getUser().getId(), gameEngineInner -> {
+                if (gameEngineInner != null) {
+                    isSeatSelected = true;
+                    ((MainActivity)getActivity()).refreshGameMenuVisibility(); // Should be visible now
+                    playersRefresh(gameEngineInner.getPlayers().getPlayers());
+                } else {
+                    playersRefresh(game.getPlayers());
+                }
+            });
         }
 
         // Show START button in case current player is the organizer, or show board in case
@@ -248,10 +265,6 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                 case CALL:
                 case RAISE:
                 case ALL_IN:
-                    PlayerAction lastPlayerAction = gameEngine.getGameLog().getLastPlayerAction();
-                    PlayerViewAccessor playerViewAccessor = players.get(gameEngine.getPlayers().getPreviousPlayer().getPosition());
-                    playerViewAccessor.addBet(lastPlayerAction.getChips().get());
-
                     getBinding().buttonCheck.setText(R.string.action_call);
                     break;
                 case WIN:
@@ -326,9 +339,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
                 // Update player's bet
                 long playerPot = gameEngine.getPot().getPotOfPlayer(player);
-                if (playerPot > 0) {
-                    currPlayer.getValue().setBet(playerPot);
-                }
+                currPlayer.getValue().setBet(playerPot);
             }
         }
     }
@@ -345,6 +356,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         // Hide last progress bar and reset it back to 60, when we detect a player switch.
         if (lastActivePlayer != null) {
             if (!currentPlayer.getId().equals(lastActivePlayer.getId())) {
+                Log.d(LOGGER, "Turn moved to another player. Was: " + lastActivePlayer.getName() + ", and now: " + currentPlayer.getName());
                 ProgressBar playerProgressBar = players.get(lastActivePlayer.getPosition()).playerView.getPlayerProgressBar();
                 playerProgressBar.setVisibility(View.INVISIBLE);
                 playerProgressBar.setProgress(60);
@@ -453,7 +465,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                         // Make sure animations are visible
                         if (!isSeatSelected) {
                             availableSeats.forEach(seat -> {
-                                PlayerViewAccessor playerViewAccessor = this.players.get(seat);
+                                PlayerViewAccessor playerViewAccessor = GameFragment.this.players.get(seat);
                                 playerViewAccessor.seatSelection.setVisibility(View.VISIBLE);
                             });
                         }
@@ -479,7 +491,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             getBinding().potAmount.setVisibility(View.INVISIBLE);
 
             if (startGameButton == null) {
-                game.ifCurrentPlayerIsTheOwner(() -> {
+                game.ifThisPlayerIsTheOwner(() -> {
                     if (startGameButton == null) {
                         startGameButton = new AppCompatButton(new ContextThemeWrapper(getContext(), R.style.ButtonGreenStyle), null, 0);
                         startGameButton.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -531,8 +543,15 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         if (card == null) {
             cardView.setVisibility(View.INVISIBLE);
         } else {
-            cardView.setVisibility(View.VISIBLE);
-            cardView.setImageResource(cardsResource.cardToResource.getOrDefault(card, R.drawable.pack));
+            // If card was invisible, and now visible, we want to play flip sound effect
+            if (cardView.getVisibility() == View.INVISIBLE) {
+                game.notifyGameStep(game.getGameEngine(), Game.GameStepType.FLIP_CARD, this);
+            }
+
+            handler.postDelayed(() -> {
+                cardView.setVisibility(View.VISIBLE);
+                cardView.setImageResource(cardsResource.cardToResource.getOrDefault(card, R.drawable.pack));
+            }, 150);
         }
     }
 
@@ -712,7 +731,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
     private void doQuitGame() {
         isSeatSelected = false;
-        game.stop();
+        game.stop(() -> ((MainActivity)getActivity()).refreshGameMenuVisibility());
         ((MainActivity)getActivity()).navigateToFragment(R.id.nav_home);
     }
 
@@ -919,7 +938,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                         // Default user image
                         playerViewAccessor.playerView.getPlayerImageView().setImageResource(R.drawable.user);
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                 }
             }

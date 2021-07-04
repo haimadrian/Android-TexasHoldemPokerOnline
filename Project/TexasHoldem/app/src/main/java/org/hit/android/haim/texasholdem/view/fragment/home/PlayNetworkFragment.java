@@ -21,7 +21,6 @@ import org.hit.android.haim.texasholdem.web.HttpStatus;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
@@ -131,7 +130,7 @@ public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkB
                         gameSettings.setNetwork(true);
                         Game.getInstance().init(gameSettings, ((MainActivity)getActivity()).getUser());
                         ((MainActivity)PlayNetworkFragment.this.getActivity()).navigateToFragment(R.id.nav_game);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                     }
                 }

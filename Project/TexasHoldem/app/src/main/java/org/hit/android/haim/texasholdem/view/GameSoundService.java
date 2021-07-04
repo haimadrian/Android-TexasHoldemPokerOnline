@@ -67,7 +67,7 @@ public class GameSoundService extends Service implements Game.GameListener {
         Game.getInstance().removeGameStepListener(this);
 
         // Stop game to shutdown background threads
-        try { Game.getInstance().stop(); } catch (Exception ignore) { }
+        try { Game.getInstance().stop(null); } catch (Exception ignore) { }
 
         if (mediaPlayers != null) {
             mediaPlayers.values().forEach(GameSoundService::releaseMediaPlayer);

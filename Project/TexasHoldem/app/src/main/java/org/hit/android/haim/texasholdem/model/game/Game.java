@@ -12,6 +12,7 @@ import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
 import org.hit.android.haim.texasholdem.common.model.bean.game.PlayerAction;
 import org.hit.android.haim.texasholdem.common.model.game.Chips;
 import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
+import org.hit.android.haim.texasholdem.common.model.game.Pot;
 import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
 import org.hit.android.haim.texasholdem.model.User;
 import org.hit.android.haim.texasholdem.model.chat.Chat;
@@ -20,8 +21,8 @@ import org.hit.android.haim.texasholdem.web.HttpStatus;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
-import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,7 +30,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -102,10 +105,19 @@ public class Game {
     private Set<Player> playersInGame;
 
     /**
-     * When we join a game, we will leave it at {@link #stop()}.<br/>
+     * When we join a game, we will leave it at {@link #stop(Runnable)}.<br/>
      * If we have not joined a game, then there is nothing to leave.
      */
+    @Getter
+    @Setter
     private boolean isJoinedGame = false;
+
+    /**
+     * Keep a reference to the last notification we performed, so we can make the notifications unique
+     * and notify about new game steps only.
+     * @see GameStepNotificationInfo
+     */
+    private GameStepNotificationInfo lastNotification = null;
 
     // Hide ctor - Singleton
     private Game() {
@@ -138,21 +150,32 @@ public class Game {
                 .build();
 
         if (gameSettings.isNetwork()) {
-            notifierThread = Executors.newFixedThreadPool(2, new CustomThreadFactory("GameNotifier"));
-
-            // Refresh seats availability every 500 milliseconds, to get "realtime" updates.
-            seatsAvailabilityRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("SeatsAvailabilityRefreshThread"));
-            seatsAvailabilityRefreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 1, TimeUnit.SECONDS);
-
-            // Refresh game state once a second, this isn't a realtime update, but good enough without
-            // flooding the server with requests.
-            gameRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("GameRefreshThread"));
-            gameRefreshThread.scheduleAtFixedRate(this::refreshGame, 1, 1, TimeUnit.SECONDS);
-
-            // Start the chat so we will get messages from server
-            chat = new Chat(gameHash);
-            chat.start();
+            initNetworkGame();
         }
+    }
+
+    /**
+     * Initializes network components. Those are game notifier, chat, and game refresh.
+     */
+    private void initNetworkGame() {
+        if (notifierThread != null) {
+            stop(null);
+        }
+
+        notifierThread = Executors.newFixedThreadPool(2, new CustomThreadFactory("GameNotifier"));
+
+        // Refresh seats availability every 500 milliseconds, to get "realtime" updates.
+        seatsAvailabilityRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("SeatsAvailabilityRefreshThread"));
+        seatsAvailabilityRefreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 1, TimeUnit.SECONDS);
+
+        // Refresh game state once a second, this isn't a realtime update, but good enough without
+        // flooding the server with requests.
+        gameRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("GameRefreshThread"));
+        gameRefreshThread.scheduleAtFixedRate(this::refreshGame, 1, 1, TimeUnit.SECONDS);
+
+        // Start the chat so we will get messages from server
+        chat = new Chat(gameHash);
+        chat.start();
     }
 
     /**
@@ -184,18 +207,24 @@ public class Game {
 
     /**
      * Stop the game. Disconnects in case of network game
+     * @param runLater A task to run after leaving a game
      */
-    public void stop() {
+    public void stop(Runnable runLater) {
         Log.i(LOGGER, "Stopping game");
+        boolean isRunLaterExecuted = false;
         if (chat != null) {
             chat.stop();
         }
 
         if (isJoinedGame) {
+            isRunLaterExecuted = true;
             TexasHoldemWebService.getInstance().getGameService().leaveGame(gameHash).enqueue(new SimpleCallback<JsonNode>() {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
                     Log.d(LOGGER, "Left game.");
+                    if (runLater != null) {
+                        runLater.run();
+                    }
                 }
             });
         }
@@ -213,6 +242,10 @@ public class Game {
         if (notifierThread != null) {
             notifierThread.shutdownNow();
             notifierThread = null;
+        }
+
+        if (!isRunLaterExecuted && (runLater != null)) {
+            runLater.run();
         }
     }
 
@@ -244,7 +277,7 @@ public class Game {
 
                             // Send last players update to listener
                             refreshPlayers();
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                             notifyGameError("Something went wrong. Try again.");
                         }
@@ -272,7 +305,7 @@ public class Game {
      * in case current player is the creator.
      * @param run A task to run
      */
-    public void ifCurrentPlayerIsTheOwner(Runnable run) {
+    public void ifThisPlayerIsTheOwner(Runnable run) {
         // For network game
         if (gameHash != null) {
             TexasHoldemWebService.getInstance().getGameService().getMyGameHash().enqueue(new SimpleCallback<JsonNode>() {
@@ -287,7 +320,7 @@ public class Game {
                             String gameHash = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), TextNode.class).asText();
                             Log.d(LOGGER, "Received game hash: " + gameHash);
                             run.run();
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                         }
                     }
@@ -296,6 +329,57 @@ public class Game {
         } else {
             // For local game we get here for our player only, so run the action.
             run.run();
+        }
+    }
+
+    /**
+     * Do something in case a specified player is part of a game.<br/>
+     * In case of an active game, the {@code runLater} will be executed immediately. Otherwise,
+     * we query the cloud to find the game. If there is no such game, runLater will be supplied with null.
+     * @param playerId Identifier of this player. (our player)
+     * @param runLater A task to run when we have game engine available.
+     */
+    public void ifPlayerPartOfGame(String playerId, Consumer<GameEngine> runLater) {
+        if (gameEngine != null) {
+            runLater.accept(gameEngine);
+        } else {
+            TexasHoldemWebService.getInstance().getGameService().getMyGame().enqueue(new SimpleCallback<JsonNode>() {
+                @Override
+                public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    if (!response.isSuccessful()) {
+                        runLater.accept(null);
+                    } else {
+                        JsonNode body = response.body();
+                        try {
+                            GameEngine gameEngine = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), GameEngine.class);
+                            if (gameEngine != null) {
+                                gameHash = gameEngine.getGameHash();
+                                isJoinedGame = true;
+                                Player player = gameEngine.getPlayers().getPlayerById(playerId);
+
+                                if (thisPlayer == null) {
+                                    thisPlayer = Player.builder().id(player.getId())
+                                            .name(player.getName())
+                                            .chips(new Chips(player.getChips().get()))
+                                            .build();
+                                }
+
+                                thisPlayer.setPosition(player.getPosition());
+
+                                // If Game.init was not called, call it now
+                                if (notifierThread == null) {
+                                    initNetworkGame();
+                                }
+                            }
+
+                            runLater.accept(gameEngine);
+                        } catch (Exception e) {
+                            Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
+                            runLater.accept(null);
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -322,7 +406,7 @@ public class Game {
 
                             // Keep it for next timer tick
                             Game.this.playersInGame = players;
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                         }
                     }
@@ -372,7 +456,7 @@ public class Game {
                                     detectAndNotifyAboutGameStep();
                                 }
                             }
-                        } catch (IOException e) {
+                        } catch (Exception e) {
                             Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                         }
                     }
@@ -387,7 +471,60 @@ public class Game {
      */
     private void detectAndNotifyAboutGameStep() {
         if (gameEngine != null) {
+            GameStepType gameStep = null;
+            Player player = gameEngine.getPlayers().getPreviousPlayer();
 
+            if (gameEngine.getLastActionKind() != null) {
+                switch (gameEngine.getLastActionKind()) {
+                    case FOLD:
+                        gameStep = GameStepType.FOLD;
+                        break;
+                    case CHECK:
+                        gameStep = GameStepType.CHECK;
+                        break;
+                    case CALL:
+                        if ((player != null) && (player.getChips().get() == 0)) {
+                            gameStep = GameStepType.ALL_IN;
+                        } else {
+                            gameStep = GameStepType.CALL;
+                        }
+                        break;
+                    case RAISE:
+                        if ((player != null) && (player.getChips().get() == 0)) {
+                            gameStep = GameStepType.ALL_IN;
+                        } else {
+                            gameStep = GameStepType.RAISE;
+                        }
+                        break;
+                }
+            }
+
+            // Check if need to play timer sound.
+            // Don't play timer if there is less than 11 seconds. Anyway we want it to be heard once.
+            long timePassed = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - gameEngine.getPlayerTurnTimer().getTurnStartTime());
+            long timeLeft = gameEngine.getGameSettings().getTurnTime() - timePassed;
+            if ((timeLeft >= 11) && (timeLeft <= 13)) {
+                // A player action (CHECK, CALL, RAISE, FOLD) has higher priority than timer.
+                // So check here to make sure TIMER does not override player action.
+                if ((lastNotification == null) || (lastNotification.gameStepType != GameStepType.TIMER)) {
+                    gameStep = GameStepType.TIMER;
+                }
+            }
+
+            // Check for win or lose, in case it is relevant
+            Map<String, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
+            if (playerToEarnings != null) {
+                gameStep = playerToEarnings.containsKey(thisPlayer.getId()) ? GameStepType.WIN : GameStepType.LOSE;
+            }
+
+            GameStepNotificationInfo newNotification = new GameStepNotificationInfo();
+            newNotification.player = player;
+            newNotification.gameStepType = gameStep;
+
+            if (!newNotification.equals(lastNotification)) {
+                lastNotification = newNotification;
+                notifyGameStep(gameEngine, newNotification.gameStepType);
+            }
         }
     }
 
@@ -429,6 +566,19 @@ public class Game {
      */
     public void removeGameStepListener(GameListener listener) {
         gameListeners.remove(listener);
+    }
+
+    /**
+     * Go over all listeners except the specified listener, and notify them about a game step.<br/>
+     * This is exposed so game fragment can notify when a card is flipped, and sync with flip sound effect
+     * @param step The step to notify about
+     */
+    public void notifyGameStep(GameEngine gameEngine, GameStepType step, GameListener ignore) {
+        for (GameListener listener : gameListeners) {
+            if (!listener.equals(ignore)) {
+                notifierThread.submit(() -> listener.onStep(gameEngine, step));
+            }
+        }
     }
 
     /**
@@ -509,10 +659,20 @@ public class Game {
     }
 
     public enum GameStepType {
-        SHUFFLE, DEAL_CARD, FLIP_CARD, CHECK, CALL, RAISE, ALL_IN, WIN, LOSE,
+        SHUFFLE, DEAL_CARD, FLIP_CARD, CHECK, CALL, RAISE, ALL_IN, FOLD, WIN, LOSE,
         /**
          * When it takes too much time for player to play, we use timer sound effect.
          */
         TIMER
+    }
+
+    /**
+     * We need to keep reference to the last game step notification, so we will not notify
+     * about the same step every second. We need to notify about a step once only.
+     */
+    @Data
+    private static class GameStepNotificationInfo {
+        private Player player;
+        private GameStepType gameStepType;
     }
 }
