@@ -1,9 +1,9 @@
 package org.hit.android.haim.texasholdem.common.model.bean.game;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
-import lombok.ToString;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,18 +16,22 @@ import java.util.stream.Collectors;
  */
 @Data
 @ToString(exclude = {"backedBy"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public abstract class CardsHolder {
     /**
      * The cards this cards holder have. We access cards by index.<br/>
      * Any card in this list is unique. We protect it using the {@link #backedBy} variable.
      */
     @Getter(AccessLevel.PROTECTED)
+    @JsonProperty
     private final List<Card> cards;
 
     /**
      * A copy of cards, to be able to make sure we do not have duplicities in O(1).
      */
     @Getter(AccessLevel.PROTECTED)
+    @JsonIgnore
+    @EqualsAndHashCode.Include
     private final Set<Card> backedBy;
 
     /**
@@ -36,6 +40,14 @@ public abstract class CardsHolder {
     public CardsHolder() {
         cards = new ArrayList<>(getAmountOfCards());
         backedBy = new HashSet<>(getAmountOfCards());
+    }
+
+    // Define it explicitly so we will be able to construct the backedBy set according to the
+    // values in cards.
+    @JsonCreator
+    public CardsHolder(@JsonProperty("cards") List<Card> cards) {
+        this.cards = cards;
+        backedBy = new HashSet<>(cards);
     }
 
     /**
@@ -85,7 +97,7 @@ public abstract class CardsHolder {
      */
     public Optional<Card> getCardAt(int index) {
         if ((index >= 0) && (cards.size() > index)) {
-            return Optional.of(cards.get(index));
+            return Optional.ofNullable(cards.get(index));
         }
 
         return Optional.empty();
@@ -99,7 +111,7 @@ public abstract class CardsHolder {
      */
     protected Optional<Card> removeCardAt(int index) {
         if ((index >= 0) && (cards.size() > index)) {
-            return Optional.of(cards.remove(index));
+            return Optional.ofNullable(cards.remove(index));
         }
 
         return Optional.empty();

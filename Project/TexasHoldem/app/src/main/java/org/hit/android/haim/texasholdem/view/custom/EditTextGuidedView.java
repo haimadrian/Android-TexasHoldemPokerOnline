@@ -175,7 +175,7 @@ public class EditTextGuidedView extends LinearLayout {
     public long getLong(long defaultValue) {
         try {
             return Long.parseLong(getText());
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
             return defaultValue;
         }
     }

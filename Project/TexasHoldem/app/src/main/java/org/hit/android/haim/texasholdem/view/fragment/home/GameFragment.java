@@ -5,11 +5,13 @@ import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -105,7 +107,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * We need this flag to know if there is a need to display seat selection animations or not.
      * After user selects a seat, we hide the seats selection animations.
      */
-    private boolean isSeatSelected = false;
+    private static boolean isSeatSelected = false;
 
     /**
      * In case our player is the creator of a game, we show a start button on the board, to let
@@ -117,6 +119,12 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * Hold a reference to the active player, so once its turn ended, we will hide his progressbar.
      */
     private Player lastActivePlayer;
+
+    /**
+     * Hold a handler as a data member, cause it might be garbage collected before executing tasks that we submit.<br/>
+     * When handler refers to null, it means the view is destroyed, and a post action should be discarded.
+     */
+    private Handler handler;
 
     /**
      * Constructs a new {@link GameFragment}
@@ -131,6 +139,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        handler = new Handler(Looper.myLooper());
         cardsResource = new Cards();
 
         int i = 0;
@@ -147,7 +156,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         players.forEach((pos, player) -> {
             player.hide();
 
-            if (game.isActive()) {
+            if (game.isActive() || isSeatSelected) {
                 player.seatSelection.setVisibility(View.GONE);
             } else {
                 player.seatSelection.setVisibility(View.VISIBLE);
@@ -155,7 +164,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                     isSeatSelected = true;
                     players.values().forEach(playerView -> playerView.seatSelection.setVisibility(View.GONE));
                     game.getThisPlayer().setPosition(pos);
-                    game.joinGame(p -> Toast.makeText(GameFragment.this.getContext(), "Selected seat is: " + p.getPosition(), Toast.LENGTH_LONG).show());
+                    game.joinGame(p -> Toast.makeText(GameFragment.this.getContext(), "Selected seat is: " + (p.getPosition() + 1), Toast.LENGTH_LONG).show());
                 });
             }
         });
@@ -165,13 +174,25 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         getBinding().buttonRaise.setOnClickListener(this::onRaiseClicked);
         getBinding().buttonFold.setOnClickListener(this::onFoldClicked);
         getBinding().buttonLog.setOnClickListener(this::onGameLogClicked);
+        getBinding().buttonQuit.setClickable(true);
         getBinding().buttonQuit.setOnClickListener(this::onQuitButtonClicked);
 
         // Use badge drawable to show amount of new incoming messages over chat button
-        chatButtonBadge = BadgeDrawable.create(getContext());
-        chatButtonBadge.setVisible(true);
-        chatButtonBadge.setNumber(0);
-        BadgeUtils.attachBadgeDrawable(chatButtonBadge, getBinding().buttonChat);
+        getBinding().buttonChat.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                chatButtonBadge = BadgeDrawable.create(GameFragment.this.getContext());
+                chatButtonBadge.setNumber(0);
+                chatButtonBadge.setBackgroundColor(getContext().getColor(R.color.red_button_start_color));
+                chatButtonBadge.setBadgeTextColor(getContext().getColor(R.color.white));
+                chatButtonBadge.setVerticalOffset(20);
+                chatButtonBadge.setHorizontalOffset(15);
+
+                BadgeUtils.attachBadgeDrawable(chatButtonBadge, getBinding().buttonChat, getBinding().buttonChatLayout);
+                chatButtonBadge.setVisible(false);
+                getBinding().buttonChat.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+            }
+        });
 
         // Run Game service in background, to play sound effects based on game steps
         getActivity().startService(new Intent(getActivity(), GameSoundService.class));
@@ -186,6 +207,9 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             getBinding().buttonChat.setVisibility(View.GONE);
         }
 
+        // Display the game hash so players can communicate with their friends
+        getBinding().gameHash.setText(String.format(getString(R.string.game_id), game.getGameHash()));
+
         // Refresh the view based on current game engine.
         // In case there is no game engine yet, it means we have just entered. Then select a seat
         GameEngine gameEngine = game.getGameEngine();
@@ -195,7 +219,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
             refresh(gameEngine);
         } else {
-            playersRefresh(new HashSet<>());
+            playersRefresh(game.getPlayers());
         }
 
         // Show START button in case current player is the organizer, or show board in case
@@ -209,6 +233,8 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         game.getChat().removeChatListener(this);
 
         chatButtonBadge = null;
+        handler = null;
+        startGameButton = null;
 
         super.onDestroyView();
     }
@@ -241,30 +267,34 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     // Here we draw the game based on game info.
     @Override
     public void refresh(GameEngine gameEngine) {
-        new Handler().post(() -> {
-            try {
-                updateBoardVisibility();
-                updateHandsAndDealer(gameEngine);
-                updateProgressBar(gameEngine);
+        if (handler != null) {
+            handler.post(() -> {
+                if (handler != null) {
+                    try {
+                        updateBoardVisibility();
+                        updateHandsAndDealer(gameEngine);
+                        updateProgressBar(gameEngine);
 
-                // Update our hand. (this player is the signed in user on this device)
-                Player thisPlayer = gameEngine.getPlayers().getPlayerById(game.getThisPlayer().getId());
-                PlayerViewAccessor thisPlayerView = players.get(thisPlayer.getPosition());
-                Hand myHand = thisPlayer.getHand();
-                revealHand(thisPlayerView.handView, myHand);
+                        // Update our hand. (this player is the signed in user on this device)
+                        Player thisPlayer = gameEngine.getPlayers().getPlayerById(game.getThisPlayer().getId());
+                        PlayerViewAccessor thisPlayerView = players.get(thisPlayer.getPosition());
+                        Hand myHand = thisPlayer.getHand();
+                        revealHand(thisPlayerView.handView, myHand);
 
-                // Update action buttons
-                boolean isActionButtonEnabled = thisPlayer.equals(gameEngine.getPlayers().getCurrentPlayer());
-                getBinding().buttonRaise.setEnabled(isActionButtonEnabled);
-                getBinding().buttonCheck.setEnabled(isActionButtonEnabled);
-                getBinding().buttonFold.setEnabled(isActionButtonEnabled);
+                        // Update action buttons
+                        boolean isActionButtonEnabled = thisPlayer.equals(gameEngine.getPlayers().getCurrentPlayer());
+                        getBinding().buttonRaise.setEnabled(isActionButtonEnabled);
+                        getBinding().buttonCheck.setEnabled(isActionButtonEnabled);
+                        getBinding().buttonFold.setEnabled(isActionButtonEnabled);
 
-                // Draw winners indication if necessary
-                highlightWinnersIfNecessary(gameEngine);
-            } catch (Throwable t) {
-                Log.e(LOGGER, "Error during refresh", t);
-            }
-        });
+                        // Draw winners indication if necessary
+                        highlightWinnersIfNecessary(gameEngine);
+                    } catch (Throwable t) {
+                        Log.e(LOGGER, "Error during refresh", t);
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -284,11 +314,22 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             }
 
             // Update dealer image
-            boolean isDealer = dealer.equals(currPlayer.getValue().player);
-            currPlayer.getValue().handView.getDealerImageView().setVisibility(isDealer ? View.VISIBLE : View.INVISIBLE);
+            if (dealer != null) {
+                boolean isDealer = dealer.equals(currPlayer.getValue().player);
+                currPlayer.getValue().handView.getDealerImageView().setVisibility(isDealer ? View.VISIBLE : View.INVISIBLE);
+            }
 
             // Update amount of chips
-            currPlayer.getValue().playerView.getPlayerChipsTextView().setText(gameEngine.getPlayers().getPlayer(currPlayer.getKey()).getChips().getFormatted());
+            Player player = gameEngine.getPlayers().getPlayer(currPlayer.getKey());
+            if (player != null) {
+                currPlayer.getValue().playerView.getPlayerChipsTextView().setText(player.getChips().getFormatted());
+
+                // Update player's bet
+                long playerPot = gameEngine.getPot().getPotOfPlayer(player);
+                if (playerPot > 0) {
+                    currPlayer.getValue().setBet(playerPot);
+                }
+            }
         }
     }
 
@@ -337,7 +378,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             }
         }
 
-        Map<Player, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
+        Map<String, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
         if (playerToEarnings != null) {
             // Map cards to their corresponding view, so we can highlight the selected cards of a winner
             Map<Card, ImageView> cardsToTheirView = new HashMap<>();
@@ -349,8 +390,8 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             board.getRiver().ifPresent(card -> cardsToTheirView.put(card, getBinding().card4));
 
             // Reveal winners hand and highlight it
-            for (Map.Entry<Player, Pot.PlayerWinning> currPlayer : playerToEarnings.entrySet()) {
-                PlayerViewAccessor currPlayerView = players.get(currPlayer.getKey().getPosition());
+            for (Map.Entry<String, Pot.PlayerWinning> currPlayer : playerToEarnings.entrySet()) {
+                PlayerViewAccessor currPlayerView = players.get(gameEngine.getPlayers().getPlayerById(currPlayer.getKey()).getPosition());
                 setImageHighlight(currPlayerView.playerView.getPlayerImageView(), true);
 
                 // Reveal winner's hand
@@ -394,29 +435,34 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
     @Override
     public void playersRefresh(Set<Player> players) {
-        new Handler().post(() -> {
-            try {
-                // Keep available seats
-                Set<Integer> availableSeats = new HashSet<>(SEATS);
-                players.forEach(p -> {
-                    availableSeats.remove(p.getPosition());
-                    PlayerViewAccessor playerViewAccessor = this.players.get(p.getPosition());
-                    refreshPlayerViewFromPlayer(playerViewAccessor, p);
-                });
+        if (handler != null) {
+            Set<Player> playersToWorkWith = players == null ? new HashSet<>() : players;
+            handler.post(() -> {
+                if (handler != null) {
+                    try {
+                        // Keep available seats
+                        Set<Integer> availableSeats = new HashSet<>(SEATS);
+                        playersToWorkWith.forEach(p -> {
+                            availableSeats.remove(p.getPosition());
+                            PlayerViewAccessor playerViewAccessor = this.players.get(p.getPosition());
+                            refreshPlayerViewFromPlayer(playerViewAccessor, p);
+                        });
 
-                getBinding().winAnimation.setVisibility(View.GONE);
+                        getBinding().winAnimation.setVisibility(View.GONE);
 
-                // Make sure animations are visible
-                if (!isSeatSelected) {
-                    availableSeats.forEach(seat -> {
-                        PlayerViewAccessor playerViewAccessor = this.players.get(seat);
-                        playerViewAccessor.seatSelection.setVisibility(View.VISIBLE);
-                    });
+                        // Make sure animations are visible
+                        if (!isSeatSelected) {
+                            availableSeats.forEach(seat -> {
+                                PlayerViewAccessor playerViewAccessor = this.players.get(seat);
+                                playerViewAccessor.seatSelection.setVisibility(View.VISIBLE);
+                            });
+                        }
+                    } catch (Throwable t) {
+                        Log.e(LOGGER, "Error while refreshing players", t);
+                    }
                 }
-            } catch (Throwable t) {
-                Log.e(LOGGER, "Error while refreshing players", t);
-            }
-        });
+            });
+        }
     }
 
     /**
@@ -429,30 +475,49 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             getBinding().card2.setVisibility(View.INVISIBLE);
             getBinding().card3.setVisibility(View.INVISIBLE);
             getBinding().card4.setVisibility(View.INVISIBLE);
+            getBinding().potAmount.setText(R.string.zero);
+            getBinding().potAmount.setVisibility(View.INVISIBLE);
 
             if (startGameButton == null) {
                 game.ifCurrentPlayerIsTheOwner(() -> {
                     if (startGameButton == null) {
-                        startGameButton = new AppCompatButton(new ContextThemeWrapper(getContext(), R.style.ButtonGreenStyle));
+                        startGameButton = new AppCompatButton(new ContextThemeWrapper(getContext(), R.style.ButtonGreenStyle), null, 0);
                         startGameButton.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                         startGameButton.setText(R.string.action_start);
                         startGameButton.setGravity(Gravity.CENTER);
                         startGameButton.setOnClickListener(v -> {
-                            game.start();
-                            startGameButton.setVisibility(View.GONE);
-                            getBinding().cardsContainer.removeView(startGameButton);
+                            game.start(errorMessage -> {
+                                if (errorMessage.isEmpty()) {
+                                    startGameButton.setVisibility(View.GONE);
+                                    getBinding().cardsContainer.removeView(startGameButton);
+                                } else {
+                                    Snackbar.make(GameFragment.this.getView(), errorMessage, Snackbar.LENGTH_LONG).show();
+                                }
+                            });
                         });
                         getBinding().cardsContainer.addView(startGameButton);
                     }
                 });
             }
         } else {
+            // Update board
             Board board = game.getGameEngine().getBoard();
             updateCard(getBinding().card0, board.getFlop1().orElse(null));
             updateCard(getBinding().card1, board.getFlop2().orElse(null));
             updateCard(getBinding().card2, board.getFlop3().orElse(null));
             updateCard(getBinding().card3, board.getTurn().orElse(null));
             updateCard(getBinding().card4, board.getRiver().orElse(null));
+
+            // Update pot
+            getBinding().potAmount.setText(new Chips(game.getGameEngine().getPot().sum()).toShorthand());
+
+            // Switch button text based on last action
+            PlayerActionKind lastActionKind = game.getGameEngine().getLastActionKind();
+            if ((lastActionKind == PlayerActionKind.CALL) || (lastActionKind == PlayerActionKind.RAISE)) {
+                getBinding().buttonCheck.setText(R.string.action_call);
+            } else {
+                getBinding().buttonCheck.setText(R.string.action_check);
+            }
         }
     }
 
@@ -478,11 +543,14 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      */
     private void refreshPlayerViewFromPlayer(PlayerViewAccessor playerView, Player player) {
         playerView.player = player;
-        playerView.setVisible(true);
+        playerView.show();
         playerView.seatSelection.setVisibility(View.GONE);
         playerView.handView.getDealerImageView().setVisibility(View.INVISIBLE);
         playerView.handView.setVisibility(View.INVISIBLE);
         playerView.playerView.getPlayerProgressBar().setVisibility(View.INVISIBLE);
+        playerView.playerView.getPlayerImageView().setVisibility(View.VISIBLE);
+        playerView.playerView.getPlayerNameTextView().setVisibility(View.VISIBLE);
+        playerView.playerView.getPlayerChipsTextView().setVisibility(View.VISIBLE);
         playerView.resetBet();
 
         String playerLocalName = playerView.playerView.getPlayerNameTextView().getText().toString();
@@ -498,7 +566,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     @Override
     public void onGameError(String errorMessage) {
         Log.e(LOGGER, "Game Error: " + errorMessage);
-        new Handler().post(() -> Snackbar.make(getView(), errorMessage, BaseTransientBottomBar.LENGTH_LONG).show());
+        if (handler != null) {
+            handler.post(() -> {
+                if (handler != null) {
+                    Snackbar.make(getView(), errorMessage, BaseTransientBottomBar.LENGTH_LONG).show();
+                }
+            });
+        }
     }
 
     @Override
@@ -506,13 +580,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         Log.d(LOGGER, "Message arrived: " + message);
 
         // Do nothing in case view was destroyed
-        if (chatButtonBadge != null) {
-            new Handler().post(() -> {
+        if ((chatButtonBadge != null) && (handler != null)) {
+            handler.post(() -> {
                 // Check again cause it runs after our previous check, not immediately.
-                if (chatButtonBadge != null) {
+                if ((chatButtonBadge != null) && (handler != null)) {
                     int currNewMessagesCount = chatButtonBadge.getNumber();
 
-                    if (currNewMessagesCount == 0) {
+                    if (currNewMessagesCount >= 0) {
                         chatButtonBadge.setVisible(true);
                     }
 
@@ -535,7 +609,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         try {
             Log.d(LOGGER, "Check/Call");
             PlayerActionKind actionKind = getBinding().buttonCheck.getText().toString().equalsIgnoreCase("check") ? PlayerActionKind.CHECK : PlayerActionKind.CALL;
-            game.executePlayerAction(PlayerAction.builder().actionKind(actionKind).build());
+            game.executePlayerAction(PlayerAction.builder().name(game.getThisPlayer().getName()).actionKind(actionKind).build());
         } catch (Throwable t) {
             Log.e(LOGGER, "Unexpected error", t);
         }
@@ -576,7 +650,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
                         // Execute the action
                         if (amountOfChips > 0) {
-                            game.executePlayerAction(PlayerAction.builder().actionKind(PlayerActionKind.RAISE).build());
+                            game.executePlayerAction(PlayerAction.builder().name(game.getThisPlayer().getName()).actionKind(PlayerActionKind.RAISE).chips(new Chips(amountOfChips)).build());
                         }
                     });
 
@@ -595,7 +669,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     void onFoldClicked(@SuppressWarnings("unused") View foldButton) {
         try {
             Log.d(LOGGER, "Fold");
-            game.executePlayerAction(PlayerAction.builder().actionKind(PlayerActionKind.FOLD).build());
+            game.executePlayerAction(PlayerAction.builder().name(game.getThisPlayer().getName()).actionKind(PlayerActionKind.FOLD).build());
         } catch (Throwable t) {
             Log.e(LOGGER, "Unexpected error", t);
         }
@@ -623,21 +697,23 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                 alertDialogBuilder
                         .setCancelable(true)
                         .setNegativeButton("No", (dialog, id) -> dialog.cancel())
-                        .setPositiveButton("Yes", (dialog, id) -> {
-                            game.stop();
-                            ((MainActivity)getActivity()).navigateToFragment(R.id.nav_home);
-                        });
+                        .setPositiveButton("Yes", (dialog, id) -> doQuitGame());
 
                 // Create and show alert dialog
                 AlertDialog alertDialog = alertDialogBuilder.create();
                 alertDialog.show();
             } else {
-                game.stop();
-                ((MainActivity)getActivity()).navigateToFragment(R.id.nav_home);
+                doQuitGame();
             }
         } catch (Throwable t) {
             Log.e(LOGGER, "Unexpected error", t);
         }
+    }
+
+    private void doQuitGame() {
+        isSeatSelected = false;
+        game.stop();
+        ((MainActivity)getActivity()).navigateToFragment(R.id.nav_home);
     }
 
     /**
@@ -787,9 +863,18 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             refreshBet();
         }
 
+        /**
+         * Adds a bet to existing bet
+         * @param bet The amount of chips to add
+         */
+        void setBet(long bet) {
+            this.bet = bet;
+            refreshBet();
+        }
+
         void refreshBet() {
             playerBet.setText(new Chips(this.bet).toShorthand());
-            playerBet.setVisibility(View.VISIBLE);
+            playerBet.setVisibility(this.bet > 0 ? View.VISIBLE: View.INVISIBLE);
         }
 
         void resetBet() {

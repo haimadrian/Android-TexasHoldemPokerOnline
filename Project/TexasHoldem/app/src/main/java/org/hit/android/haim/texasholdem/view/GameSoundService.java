@@ -65,20 +65,23 @@ public class GameSoundService extends Service implements Game.GameListener {
     public void onDestroy() {
         Log.d(LOGGER, "onDestroy");
         Game.getInstance().removeGameStepListener(this);
-        mediaPlayers.values().forEach(GameSoundService::releaseMediaPlayer);
-        mediaPlayers.clear();
 
         // Stop game to shutdown background threads
-        Game.getInstance().stop();
+        try { Game.getInstance().stop(); } catch (Exception ignore) { }
+
+        if (mediaPlayers != null) {
+            mediaPlayers.values().forEach(GameSoundService::releaseMediaPlayer);
+            mediaPlayers.clear();
+        }
 
         stopSelf();
         super.onDestroy();
     }
 
     private static void releaseMediaPlayer(MediaPlayer mediaPlayer) {
-        mediaPlayer.stop();
-        mediaPlayer.reset(); // Reset media player before releasing it so we will not get "mediaplayer went away with unhandled events" warning
-        mediaPlayer.release();
+        try { mediaPlayer.stop(); } catch (Exception ignore) {}
+        try { mediaPlayer.reset(); } catch (Exception ignore) {} // Reset media player before releasing it so we will not get "mediaplayer went away with unhandled events" warning
+        try { mediaPlayer.release(); } catch (Exception ignore) {}
     }
 
     private static void restartMediaPlayer(MediaPlayer mediaPlayer) {

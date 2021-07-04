@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -96,10 +97,17 @@ public class MainActivity extends AppCompatActivity {
     @Getter
     private User user;
 
+    /**
+     * Hold a handler as a data member, cause it might be garbage collected before executing tasks that we submit.<br/>
+     * When handler refers to null, it means the view is destroyed, and a post action should be discarded.
+     */
+    private Handler handler;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        handler = new Handler(Looper.myLooper());
 
         // Play in landscape orientation only.
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
@@ -125,18 +133,22 @@ public class MainActivity extends AppCompatActivity {
             // First check if user clicked one of the buttons
             if (itemId == R.id.nav_sign_out) {
                 // Execute it later, so we will not break the event handling.
-                new Handler().post(() -> {
-                    LoginActivity.doSignOut(MainActivity.this);
+                if (handler != null) {
+                    handler.post(() -> {
+                        LoginActivity.doSignOut(MainActivity.this);
 
-                    // Finish this activity as we went to login activity
-                    MainActivity.this.finish();
-                });
+                        // Finish this activity as we went to login activity
+                        MainActivity.this.finish();
+                    });
+                }
             } else if (itemId == R.id.nav_exit) {
                 // Execute it later, so we will not break the event handling.
-                new Handler().post(() -> {
-                    ExitActivity.exit(MainActivity.this.getApplicationContext());
-                    MainActivity.this.finish();
-                });
+                if (handler != null) {
+                    handler.post(() -> {
+                        ExitActivity.exit(MainActivity.this.getApplicationContext());
+                        MainActivity.this.finish();
+                    });
+                }
             }
             // If it is not one of the buttons, then it is a navigation item. Navigate to its identifier
             else {
@@ -146,6 +158,9 @@ public class MainActivity extends AppCompatActivity {
 
             return false; // No need to draw selection for buttons
         });
+
+        binding.buttonOpenDrawer.setClickable(true);
+        binding.buttonOpenDrawer.setOnClickListener(v -> binding.drawerLayout.open());
     }
 
     @Override
@@ -174,6 +189,12 @@ public class MainActivity extends AppCompatActivity {
         buyCoinsImageView.setOnClickListener(this::onBuyCoinsClicked);
 
         refreshUserInfo();
+    }
+
+    @Override
+    protected void onDestroy() {
+        handler = null;
+        super.onDestroy();
     }
 
     /**
@@ -294,14 +315,16 @@ public class MainActivity extends AppCompatActivity {
         NavBackStackEntry currentBackStackEntry = navController.getCurrentBackStackEntry();
         if ((currentBackStackEntry != null) && (currentBackStackEntry.getDestination().getId() == R.id.nav_home)) {
             // Execute it later, so we will not break the event handling.
-            new Handler().post(() -> {
-                Log.d(LOGGER, "Exiting");
-                Game.getInstance().stop();
-                stopService(new Intent(MainActivity.this, GameSoundService.class));
+            if (handler != null) {
+                handler.post(() -> {
+                    Log.d(LOGGER, "Exiting");
+                    Game.getInstance().stop();
+                    stopService(new Intent(MainActivity.this, GameSoundService.class));
 
-                ExitActivity.exit(MainActivity.this.getApplicationContext());
-                MainActivity.this.finish();
-            });
+                    ExitActivity.exit(MainActivity.this.getApplicationContext());
+                    MainActivity.this.finish();
+                });
+            }
         } else {
             super.onBackPressed();
         }
@@ -321,6 +344,9 @@ public class MainActivity extends AppCompatActivity {
      * @param args Optional arguments for the new fragment
      */
     public void navigateToFragment(int fragmentActionId, @Nullable Bundle args) {
+        // Hide burger when on chat fragment
+        binding.buttonOpenDrawer.setVisibility(fragmentActionId == R.id.nav_chat ? View.INVISIBLE : View.VISIBLE);
+
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         navController.navigate(fragmentActionId, args);
         binding.drawerLayout.closeDrawers();
@@ -334,6 +360,14 @@ public class MainActivity extends AppCompatActivity {
     public void navigateBack() {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         navController.popBackStack();
+
+        // Hide burger when on chat fragment
+        NavBackStackEntry currentBackStackEntry = navController.getCurrentBackStackEntry();
+        if (currentBackStackEntry != null) {
+            binding.buttonOpenDrawer.setVisibility(currentBackStackEntry.getDestination().getId() == R.id.nav_chat ? View.INVISIBLE : View.VISIBLE);
+        } else {
+            binding.buttonOpenDrawer.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -376,16 +410,18 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Unauthorized. Please sign in", Toast.LENGTH_LONG).show();
 
             // Execute it later, so we will not break the event handling.
-            new Handler().post(() -> {
-                TexasHoldemWebService.getInstance().setLoggedInUserId(null);
-                TexasHoldemWebService.getInstance().setJwtToken(null);
+            if (handler != null) {
+                handler.post(() -> {
+                    TexasHoldemWebService.getInstance().setLoggedInUserId(null);
+                    TexasHoldemWebService.getInstance().setJwtToken(null);
 
-                Intent i = new Intent(this, LoginActivity.class);
-                this.startActivity(i);
+                    Intent i = new Intent(this, LoginActivity.class);
+                    this.startActivity(i);
 
-                // Finish this activity as we went to login activity
-                this.finish();
-            });
+                    // Finish this activity as we went to login activity
+                    this.finish();
+                });
+            }
         } else {
             String errorMessage = message + ": " + TexasHoldemWebService.getInstance().readHttpErrorResponse(response);
             showSnack(errorMessage);

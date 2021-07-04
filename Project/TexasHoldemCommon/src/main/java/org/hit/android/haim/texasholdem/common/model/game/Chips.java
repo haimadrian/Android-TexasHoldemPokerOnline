@@ -1,10 +1,12 @@
 package org.hit.android.haim.texasholdem.common.model.game;
 
-import java.text.DecimalFormat;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.text.DecimalFormat;
 
 /**
  * A class holding amount of chips, and has special string representation of them.<br/>
@@ -29,6 +31,7 @@ public class Chips {
     /**
      * Amount of chips.
      */
+    @JsonProperty
     private long chips;
 
     /**
@@ -58,6 +61,7 @@ public class Chips {
     /**
      * @return String representation of the chips, with commas to separate thousands
      */
+    @JsonIgnore
     public String getFormatted() {
         return formatter.format(chips);
     }

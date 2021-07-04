@@ -22,6 +22,7 @@ import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import retrofit2.Call;
 import retrofit2.Response;
@@ -45,6 +46,8 @@ public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkB
 
         getBinding().buttonJoinGame.setOnClickListener(this::onJoinButtonClicked);
         getBinding().buttonCreateGame.setOnClickListener(this::onCreateButtonClicked);
+
+        getBinding().editTextTurnTimeout.getEdit().setText(R.string.default_timeout);
     }
 
     /**
@@ -69,15 +72,23 @@ public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkB
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
                     if (response.code() == HttpStatus.NOT_FOUND.getCode()) {
                         getBinding().editTextGameHash.getEdit().setError("Not Found");
+                        return;
                     } else if (response.code() == HttpStatus.BAD_REQUEST.getCode()) {
-                        getBinding().editTextGameHash.getEdit().setError(TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
-                    } else {
-                        ClientGameSettings gameSettings = new ClientGameSettings(chipsAmount, 0, gameHash);
-                        gameSettings.setNetwork(true);
+                        String error = TexasHoldemWebService.getInstance().readHttpErrorResponse(response);
 
-                        Game.getInstance().init(gameSettings, ((MainActivity)getActivity()).getUser());
-                        ((MainActivity)PlayNetworkFragment.this.getActivity()).navigateToFragment(R.id.nav_game);
+                        // Of course the user is not part of the game. We want to join this game..
+                        // Hence if this is the error, just continue. (Game exists)
+                        if (!error.toLowerCase().contains("is not part of this game")) {
+                            getBinding().editTextGameHash.getEdit().setError(error);
+                            return;
+                        }
                     }
+
+                    ClientGameSettings gameSettings = new ClientGameSettings(chipsAmount, 0, gameHash);
+                    gameSettings.setNetwork(true);
+
+                    Game.getInstance().init(gameSettings, ((MainActivity)getActivity()).getUser());
+                    ((MainActivity)PlayNetworkFragment.this.getActivity()).navigateToFragment(R.id.nav_game);
                 }
             });
         }
@@ -103,9 +114,11 @@ public class PlayNetworkFragment extends ViewBindedFragment<FragmentPlayNetworkB
             getBinding().editTextBigBet.getEdit().setError("Must be bigger than small bet");
         } else {
             // Make sure game exists before navigating to GameFragment
+            long turnTimeout = getBinding().editTextTurnTimeout.getLong(60);
             ClientGameSettings gameSettings = new ClientGameSettings(chipsAmount, 0, null);
             gameSettings.setSmallBet(smallBet);
             gameSettings.setBigBet(bigBet);
+            gameSettings.setTurnTime(TimeUnit.SECONDS.toMillis(turnTimeout));
             TexasHoldemWebService.getInstance().getGameService().createGame(gameSettings).enqueue(new SimpleCallback<JsonNode>() {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {

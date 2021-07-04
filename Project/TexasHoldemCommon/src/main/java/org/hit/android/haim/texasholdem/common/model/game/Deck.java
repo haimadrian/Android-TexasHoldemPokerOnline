@@ -18,7 +18,7 @@ public class Deck extends CardsHolder {
      * Constructs a new {@link Deck}
      */
     public Deck() {
-        addCards(AllCardsRef.ALL_CARDS);
+        super.addCards(AllCardsRef.ALL_CARDS);
     }
 
     /**

@@ -30,7 +30,7 @@ public class GameSettings {
     private long bigBet;
 
     /**
-     * How much time each player has for its turn. Defaults to 1 minute.
+     * How much time each player has for its turn. Defaults to 1 minute. In millis
      */
     @Builder.Default
     private long turnTime = TimeUnit.MINUTES.toMillis(1);

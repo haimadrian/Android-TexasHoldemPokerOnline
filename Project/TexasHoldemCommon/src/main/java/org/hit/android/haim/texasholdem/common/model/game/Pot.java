@@ -1,5 +1,9 @@
 package org.hit.android.haim.texasholdem.common.model.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -28,7 +32,19 @@ public class Pot {
      * Map between pot to a set of contributing players.<br/>
      * This allows us to create side pots when there is a player that went all-int, and other players continue raising.
      */
+    @JsonSerialize(keyUsing = Player.PlayerKeySerializer.class)
+    @JsonDeserialize(keyUsing = Player.PlayerKeyDeserializer.class)
+    @JsonProperty
     private final Map<Player, HandPot> pots = new HashMap<>();
+
+    /**
+     * Keep pots of players for a round of bets, so we can know the total bet of a player per round, and also
+     * get the ability to equal a bet when player that already paid is calling.
+     */
+    @JsonSerialize(keyUsing = Player.PlayerKeySerializer.class)
+    @JsonDeserialize(keyUsing = Player.PlayerKeyDeserializer.class)
+    @JsonProperty
+    private final Map<Player, HandPot> potsForRound = new HashMap<>();
 
     /**
      * A reference to the last bet, to make sure a new bet is legal and not below it.<br/>
@@ -42,7 +58,8 @@ public class Pot {
      * a game and lose chips. When there are pots and a game is stopped, the chips are returned to the players.
      * @return A copy of all player pots
      */
-    public Map<Player, Long> getPots() {
+    @JsonIgnore
+    public Map<Player, Long> getPlayerPots() {
         return pots.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getSum()));
     }
 
@@ -57,7 +74,7 @@ public class Pot {
      */
     public long bet(Player player, long amount) {
         // If amount is bigger than the ALL-IN of the specified player, use the player's ALL-IN.
-        long validatedAmount = Math.min(amount, player.getChips().get());
+        long validatedAmount = Math.min(amount, player.getChips().get()) + getPotOfPlayer(player);
 
         if (lastBet != null) {
             if ((validatedAmount < lastBet) && (player.getChips().get() > validatedAmount)) {
@@ -65,11 +82,27 @@ public class Pot {
             }
         }
 
-        lastBet = amount;
-        player.getChips().remove(validatedAmount);
-        pots.computeIfAbsent(player, p -> new HandPot()).add(validatedAmount);
+        lastBet = amount + getPotOfPlayer(player);
+        long delta = validatedAmount - getPotOfPlayer(player);
+        player.getChips().remove(delta);
 
-        return validatedAmount;
+        pots.computeIfAbsent(player, p -> new HandPot()).add(delta);
+        potsForRound.computeIfAbsent(player, p -> new HandPot()).add(delta);
+
+        return delta;
+    }
+
+    /**
+     * Get existing pot for player, to know how many chips a player have already paid.
+     * @param player The player to get its pot
+     * @return How many chips the specified player put. Can be 0.
+     */
+    public long getPotOfPlayer(Player player) {
+        if (!potsForRound.containsKey(player)) {
+            return 0;
+        }
+
+        return potsForRound.get(player).sum;
     }
 
     /**
@@ -80,10 +113,18 @@ public class Pot {
     }
 
     /**
+     * Call this method when round of bets is over, so we will clear existing players pots.
+     */
+    public void clearPotsOfRound() {
+        potsForRound.clear();
+    }
+
+    /**
      * Clear all saved pots
      */
     public void clear() {
         pots.clear();
+        clearPotsOfRound();
         clearLastBet();
     }
 
@@ -96,7 +137,7 @@ public class Pot {
      * @param board The {@link Board}, to find winning hands.
      * @return A map between a winner and {@link PlayerWinning} reference holding the amount of chips and hand rank.
      */
-    public Map<Player, PlayerWinning> applyWinning(Set<Player> involvedPlayers, Board board) {
+    public Map<String, PlayerWinning> applyWinning(Set<Player> involvedPlayers, Board board) {
         Map<Player, PlayerWinning> result = new HashMap<>();
 
         // Use a tree map so we will sort the map based on keys (ranks)
@@ -137,7 +178,7 @@ public class Pot {
         // Clear the pots for next round
         pots.clear();
 
-        return result;
+        return result.entrySet().stream().collect(Collectors.toMap(ent -> ent.getKey().getId(), Map.Entry::getValue));
     }
 
     /**
@@ -216,6 +257,15 @@ public class Pot {
         long win = allPots / amountOfWinners;
         long remainder = allPots % amountOfWinners;
         return Pair.of(win, remainder);
+    }
+
+    @JsonIgnore
+    public long sum() {
+        if (pots.isEmpty()) {
+            return 0;
+        }
+
+        return pots.values().stream().mapToLong(HandPot::getSum).sum();
     }
 
     /**

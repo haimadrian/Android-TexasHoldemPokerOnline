@@ -1,5 +1,6 @@
 package org.hit.android.haim.texasholdem.server.controller;
 
+import com.fasterxml.jackson.databind.node.TextNode;
 import org.hit.android.haim.texasholdem.server.model.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,9 @@ public class MessageController {
     private MessageService messageService;
 
     @PostMapping("/{channelName}/{userId}")
-    public ResponseEntity<?> sendMessage(@PathVariable("channelName") String channelName, @PathVariable("userId") String userId, @RequestBody String content) {
+    public ResponseEntity<?> sendMessage(@PathVariable("channelName") String channelName, @PathVariable("userId") String userId, @RequestBody TextNode content) {
         try {
-            return ResponseEntity.ok(messageService.sendMessage(channelName, userId, content));
+            return ResponseEntity.ok(messageService.sendMessage(channelName, userId, content.asText()));
         } catch (Throwable t) {
             return ControllerErrorHandler.handleServerError(t);
         }

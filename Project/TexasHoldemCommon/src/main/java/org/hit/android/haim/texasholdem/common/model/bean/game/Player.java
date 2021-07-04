@@ -3,9 +3,17 @@ package org.hit.android.haim.texasholdem.common.model.bean.game;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.KeyDeserializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import lombok.*;
 import org.hit.android.haim.texasholdem.common.model.game.Chips;
+import org.hit.android.haim.texasholdem.common.util.JsonUtils;
 import org.hit.android.haim.texasholdem.common.util.ThreadContextMap;
+
+import java.io.IOException;
 
 /**
  * A lightweight version of a user.<br/>
@@ -59,7 +67,7 @@ public class Player {
     private int position;
 
     @JsonGetter("hand")
-    public Hand getHand() {
+    public Hand getHandForJson() {
         // Return Hand of current requesting user only, while other players will hide their hand.
         String playerId = ThreadContextMap.getInstance().getUserId();
         if ((playerId != null) && (playerId.equals(id))) {
@@ -72,6 +80,20 @@ public class Player {
     @JsonSetter("hand")
     public void setHand(Hand hand) {
         this.hand = hand;
+    }
+
+    public static class PlayerKeySerializer extends JsonSerializer<Player> {
+        @Override
+        public void serialize(Player value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+            gen.writeFieldName(JsonUtils.writeValueAsString(value));
+        }
+    }
+
+    public static class PlayerKeyDeserializer extends KeyDeserializer {
+        @Override
+        public Object deserializeKey(String key, DeserializationContext ctxt) throws IOException {
+            return JsonUtils.readValueFromString(key, Player.class);
+        }
     }
 }
 

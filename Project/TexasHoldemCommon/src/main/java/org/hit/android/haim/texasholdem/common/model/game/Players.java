@@ -1,6 +1,8 @@
 package org.hit.android.haim.texasholdem.common.model.game;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -32,6 +34,7 @@ public class Players {
      * List of players, so we can iterate on, one by another, in the order they were added,
      * thus saving the same order as players are sitting around a table.
      */
+    @JsonProperty
     private final Player[] playersArray;
 
     /**
@@ -46,7 +49,7 @@ public class Players {
      * This index helps us to know who is the next player, at {@link #playersArray}.
      */
     @Getter
-    private int currentPlayerIndex;
+    private int currentPlayerIndex = -1;
 
     /**
      * Index of the player that played the previous turn.<br/>
@@ -63,7 +66,32 @@ public class Players {
      * Constructs a new {@link Players}
      */
     public Players() {
-        this(Integer.MAX_VALUE);
+        this(7);
+    }
+
+    /**
+     * Constructor for Jackson.
+     */
+    // Define it explicitly so we will be able to fill in the maps according to the players in the array.
+    // Otherwise the maps will be empty. (Cause we ignore them in json, to reduce duplicities)
+    @JsonCreator
+    public Players(@JsonProperty("playersArray") Player[] playersArray,
+                   @JsonProperty("currentPlayerIndex") int currentPlayerIndex,
+                   @JsonProperty("prevPlayerIndex") int prevPlayerIndex,
+                   @JsonProperty("maxAmountOfPlayers") int maxAmountOfPlayers) {
+        this.playersArray = playersArray;
+        this.currentPlayerIndex = currentPlayerIndex;
+        this.prevPlayerIndex = prevPlayerIndex;
+        this.maxAmountOfPlayers = maxAmountOfPlayers;
+        players = new HashMap<>();
+        playersById = new HashMap<>();
+
+        for (int i = 0; i < playersArray.length; i++) {
+            if (playersArray[i] != null) {
+                players.put(playersArray[i], i);
+                playersById.put(playersArray[i].getId(), playersArray[i]);
+            }
+        }
     }
 
     /**
@@ -111,11 +139,53 @@ public class Players {
      * @throws IndexOutOfBoundsException in case the specified index was out of bounds. [0, size()-1]
      */
     public Player getPlayer(int playerIndex) throws IndexOutOfBoundsException {
-        if ((playerIndex < 0) || (playerIndex >= maxAmountOfPlayers)) {
+        if (playerIndex < 0) {
             throw new IndexOutOfBoundsException("There is no player at: " + playerIndex + ". Try: [0, " + players.size() + ")");
         }
 
-        return playersArray[playerIndex];
+        return playersArray[playerIndex % playersArray.length];
+    }
+
+    /**
+     * Get a player by its index. Index must be at [0, size()-1]<br/>
+     * This method, unlike {@link #getPlayer(int)}, makes sure that the player at the specified index differs from null.
+     * In case it refers to null, we will go around the table until finding a player.
+     * @param playerIndex The index of the player to get
+     * @return The player at the specified index
+     * @throws IndexOutOfBoundsException in case the specified index was out of bounds. [0, size()-1]
+     */
+    public Player getAvailablePlayer(int playerIndex) throws IndexOutOfBoundsException {
+        if (playerIndex < 0) {
+            throw new IndexOutOfBoundsException("There is no player at: " + playerIndex + ". Try: [0, " + players.size() + ")");
+        }
+
+        Player result;
+        do {
+            result = playersArray[playerIndex++ % playersArray.length];
+        } while (result == null);
+
+        return result;
+    }
+
+    /**
+     * Get a player by its index. Index must be at [0, size()-1]<br/>
+     * This method, unlike {@link #getPlayer(int)}, makes sure that the player at the specified index differs from null.
+     * In case it refers to null, we will go around the table until finding a player. In addition, we ensure the player is playing.
+     * @param playerIndex The index of the player to get
+     * @return The player at the specified index
+     * @throws IndexOutOfBoundsException in case the specified index was out of bounds. [0, size()-1]
+     */
+    public Player getAvailablePlayingPlayer(int playerIndex) throws IndexOutOfBoundsException {
+        if (playerIndex < 0) {
+            throw new IndexOutOfBoundsException("There is no player at: " + playerIndex + ". Try: [0, " + players.size() + ")");
+        }
+
+        Player result = null;
+        do {
+            result = getAvailablePlayer(result == null ? playerIndex : (result.getPosition() + 1));
+        } while ((result == null) || (!result.isPlaying()));
+
+        return result;
     }
 
     /**
@@ -165,6 +235,7 @@ public class Players {
      * We depend on {@link #getCurrentPlayerIndex()} to know which player is the active one.
      * @return A reference to the current player.
      */
+    @JsonIgnore
     public Player getCurrentPlayer() {
         return getPlayer(getCurrentPlayerIndex());
     }
@@ -174,6 +245,7 @@ public class Players {
      * We depend on {@link #getPrevPlayerIndex()} to know which player it is.
      * @return A reference to the previous player.
      */
+    @JsonIgnore
     public Player getPreviousPlayer() {
         return getPlayer(getPrevPlayerIndex());
     }
@@ -188,6 +260,7 @@ public class Players {
     /**
      * @return A new set containing the players in this holder
      */
+    @JsonIgnore
     public Set<Player> getPlayers() {
         return new HashSet<>(players.keySet());
     }
@@ -225,6 +298,7 @@ public class Players {
      * Use this method at the end of a round, to collect all players that are in. ({@link Player#isPlaying()}
      * @return A set of involved players, to send to {@link Pot#applyWinning(Set, Board)}
      */
+    @JsonIgnore
     public Set<Player> getInvolvedPlayers() {
         return players.keySet().stream().filter(Player::isPlaying).collect(Collectors.toSet());
     }

@@ -121,6 +121,16 @@
                 app:hint="@string/amount_of_coins"
                 app:inputType="numberSigned" />
 
+            <org.hit.android.haim.texasholdem.view.custom.EditTextGuidedView
+                android:id="@+id/editTextTurnTimeout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                app:guide="Enter player turn timeout in seconds"
+                app:hint="@string/turn_timeout"
+                app:inputType="numberSigned" />
+
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/buttonCreateGame"
                 style="@style/ButtonBlueNoBorderStyle"

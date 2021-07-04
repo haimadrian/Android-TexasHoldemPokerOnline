@@ -56,6 +56,8 @@
     <string name="game_hash">Game Identifier (hash)</string>
     <string name="join">JOIN</string>
     <string name="create">CREATE</string>
+    <string name="turn_timeout">Turn timeout (seconds)</string>
+    <string name="default_timeout">60</string>
 
     <!-- Game -->
     <string name="action_start">START</string>
@@ -68,9 +70,10 @@
     <string name="log">LOG</string>
     <string name="player_name">Player</string>
     <string name="zero">0</string>
+    <string name="game_id">Game ID: %s</string>
+    <string name="raise_with">Raise with:</string>
 
     <!-- Chat -->
     <string name="write_something">Write something…</string>
     <string name="participants">Participants: %d</string>
-    <string name="raise_with">Raise with:</string>
 </resources>

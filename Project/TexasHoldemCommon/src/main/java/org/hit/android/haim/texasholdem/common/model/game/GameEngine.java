@@ -6,9 +6,7 @@ import org.hit.android.haim.texasholdem.common.model.bean.chat.Channel;
 import org.hit.android.haim.texasholdem.common.model.bean.game.*;
 import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
 
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +70,21 @@ public class GameEngine {
     private Player dealer;
 
     /**
+     * The player assigned the small blind role.<br/>
+     * This is the first player to speak during a game, hence we keep a reference to this player.
+     */
+    @JsonIgnore
+    private Player smallBlindPlayer;
+
+    /**
+     * The player assigned the bing blind role.<br/>
+     * Before the flop, this is the last player to speak, so we need to check that this player
+     * did not raise, in order to show the flop.
+     */
+    @JsonIgnore
+    private Player bigBlindPlayer;
+
+    /**
      * The chat of current game.
      * @see Channel
      */
@@ -119,6 +132,13 @@ public class GameEngine {
     private PlayerActionKind lastActionKind;
 
     /**
+     * Map between every player to his last action, so we will be able to detect the case when
+     * current player calls and next player raised. In this case, next player cannot raise again.
+     * Instead, we should open next card.
+     */
+    private Map<String, PlayerAction> playerToHisLastAction;
+
+    /**
      * Keep a reference to the last (previous) active player, so clients can draw indications
      * on this player without having to lookup for a previous active player.
      */
@@ -139,7 +159,9 @@ public class GameEngine {
      * After several seconds, a new round will be started automatically.<br/>
      * Note that as long as this variable differs from null, all player actions are ignored.
      */
-    private Map<Player, Pot.PlayerWinning> playerToEarnings;
+    //@JsonSerialize(keyUsing = Player.PlayerKeySerializer.class)
+    //@JsonDeserialize(keyUsing = Player.PlayerKeyDeserializer.class)
+    private Map<String, Pot.PlayerWinning> playerToEarnings;
 
     /**
      * When this engine was created, time is in milliseconds since epoch.<br/>
@@ -179,6 +201,7 @@ public class GameEngine {
         pot = new Pot();
         playerTurnTimer = gameSettings.isNetwork() ? new PlayerTurnTimer(this::onPlayerTurnTimeout, gameSettings.getTurnTime()) : null;
         gameState = new AtomicReference<>(GameState.READY);
+        playerToHisLastAction = new HashMap<>();
 
         info("GameEngine created: " + this);
     }
@@ -255,8 +278,10 @@ public class GameEngine {
             info(getId() + " - Starting new game.");
 
             // Generate random dealer
-            int dealerIndex = new Random().nextInt(players.size());
-            dealer = players.getPlayer(dealerIndex);
+            List<Integer> availablePlayers = new ArrayList<>(players.size());
+            players.getPlayers().forEach(p -> availablePlayers.add(p.getPosition()));
+            int dealerIndex = new Random().nextInt(availablePlayers.size());
+            dealer = players.getPlayer(availablePlayers.get(dealerIndex));
 
             // Start the round. (Set min player as the current player, and take mandatory bets)
             startRound();
@@ -284,7 +309,8 @@ public class GameEngine {
         Player currPlayer = players.getCurrentPlayer();
         switch (action.getActionKind()) {
             case CALL: {
-                long chips = pot.bet(currPlayer, pot.getLastBet() == null ? action.getChips().get() : pot.getLastBet());
+                long amount = pot.getLastBet() == null ? action.getChips().get() : pot.getLastBet();
+                long chips = pot.bet(currPlayer, amount - pot.getPotOfPlayer(currPlayer));
                 action.setChips(chips);
 
                 // Update listener about update of chips
@@ -309,21 +335,72 @@ public class GameEngine {
 
         gameLog.logAction(action);
         lastActionKind = action.getActionKind();
+        playerToHisLastAction.put(currPlayer.getId(), action);
 
         // Everytime it is the dealer's turn we can continue to next game stage, unless the dealer is raising
-        if (currPlayer.equals(dealer) && (action.getActionKind() != PlayerActionKind.RAISE)) {
+        // Another option is before the flop is shown. In this case, big blind player is the last to act.
+        boolean isBetRoundOver = (action.getActionKind() != PlayerActionKind.RAISE) &&
+            ((board.getFlop1().isPresent() && currPlayer.equals(dealer)) || (!board.getFlop1().isPresent() && currPlayer.equals(bigBlindPlayer)));
+
+        // Another option for bet round to over is in case the current action is CALL, and the next player
+        // is the one with the highest raise.
+        Player playerWithHighestRaise = findPlayerWithHighestRaise();
+        if ((action.getActionKind() == PlayerActionKind.CALL) &&
+            (playerWithHighestRaise != null) &&
+            playerWithHighestRaise.equals(players.getAvailablePlayingPlayer(currPlayer.getPosition() + 1))) {
+            isBetRoundOver = true;
+        }
+
+        // If it is last player standing, he won.
+        if (players.getInvolvedPlayers().size() == 1) {
+            isBetRoundOver = true;
+        }
+
+        if (isBetRoundOver) {
             // If we opened a new card, clear last bet to start a new bet round.
             // When the river card is already opened we do not want to clear last bet, so we will be
             // able to recognize that the game has finished.
             if (showNextCard()) {
                 pot.clearLastBet();
+                pot.clearPotsOfRound();
+                playerToHisLastAction.clear();
+
+                // Set dealer as the current player, so we will move to small blind player down below.
+                players.setCurrentPlayerIndex(dealer.getPosition());
+
+                // Reset last action, as we start a new round of bets
+                lastActionKind = null;
+            } else {
+                applyWinIfNeeded();
             }
         }
 
-        applyWinIfNeeded();
         if (playerToEarnings == null) {
             moveTurnForward();
         }
+    }
+
+    /**
+     * Use this method to find the player that raised the highest amount of chips.<br/>
+     * This is needed so we can know at which player we should stop a round of bets. Meaning that
+     * if current player calls, and the next player is the one who started a raise, then we should open
+     * a card and not let the next player raise again.<br/>
+     * We lookup for the highest because there might be re-raise operations.
+     * @return Player with highest raise, or null in case no one raised.
+     */
+    private Player findPlayerWithHighestRaise() {
+        Set<Player> involvedPlayers = players.getInvolvedPlayers();
+        Player highestRaise = null;
+        for (Player player : involvedPlayers) {
+            PlayerAction lastAction = playerToHisLastAction.get(player.getId());
+            if ((lastAction != null) && (lastAction.getActionKind() == PlayerActionKind.RAISE)) {
+                if ((highestRaise == null) || (pot.getPotOfPlayer(highestRaise) < pot.getPotOfPlayer(player))) {
+                    highestRaise = player;
+                }
+            }
+        }
+
+        return highestRaise;
     }
 
     /**
@@ -343,7 +420,9 @@ public class GameEngine {
         }
 
         if (!action.getActionKind().canComeAfter(lastActionKind)) {
-            throw new IllegalArgumentException(action.getActionKind().name() + " is not allowed after " + lastActionKind);
+            // Big blind player is allowed to check in case last call was same as the big blind.
+            if (!player.equals(bigBlindPlayer) || (action.getActionKind() != PlayerActionKind.CHECK) || (pot.getLastBet() != gameSettings.getBigBet()))
+                throw new IllegalArgumentException(action.getActionKind().name() + " is not allowed after " + lastActionKind);
         }
 
         // In case of a RAISE with sum equals to the last bet, fix it to CALL.
@@ -394,12 +473,9 @@ public class GameEngine {
      */
     private void applyWinIfNeeded() {
         // When there is a single active player, or we arrived to the dealer after River is shown, end the round.
+        // Check also last bet cause if it is null, it means we have just shown a new card
         Set<Player> involvedPlayers = players.getInvolvedPlayers();
-        if ((involvedPlayers.stream().filter(player -> player.getChips().get() > 0).count() == 1) ||
-            (board.hasRiver() &&
-                players.getCurrentPlayer().equals(dealer) &&
-                (lastActionKind != PlayerActionKind.RAISE) &&
-                (pot.getLastBet() != null))) {
+        if ((involvedPlayers.stream().filter(player -> player.getChips().get() > 0).count() == 1) || board.hasRiver()) {
             // Sign that we are ready to restart a round, letting new players to join now
             gameState.set(GameState.RESTART);
 
@@ -408,7 +484,8 @@ public class GameEngine {
             info(getId() + " - The winners: " + playerToEarnings);
 
             // Log winners and listener about changes in chips due to win
-            playerToEarnings.forEach((player, earning) -> {
+            playerToEarnings.forEach((playerId, earning) -> {
+                Player player = players.getPlayerById(playerId);
                 notifier.notifyPlayerChipsUpdated(player, earning.getSum());
                 gameLog.logAction(PlayerAction.builder()
                     .name(player.getName())
@@ -427,7 +504,8 @@ public class GameEngine {
                 }
 
                 // Move the dealer forward
-                dealer = players.getPlayer(players.indexOfPlayer(dealer) + 1);
+                dealer = players.getAvailablePlayer(players.indexOfPlayer(dealer) + 1);
+                players.setCurrentPlayerIndex(dealer.getPosition());
                 startRound();
                 service.shutdown();
             });
@@ -462,10 +540,12 @@ public class GameEngine {
         // Current must to bet player is the one after the dealer. This player has to add small bet.
         pot.clearLastBet();
         players.setCurrentPlayerIndex(players.indexOfPlayer(dealer) + 1);
-        pot.bet(players.getCurrentPlayer(), gameSettings.getSmallBet());
+        smallBlindPlayer = players.getCurrentPlayer();
+        pot.bet(smallBlindPlayer, gameSettings.getSmallBet());
 
         // Move to next player and take big bet from it.
-        pot.bet(players.nextPlayer(), gameSettings.getBigBet());
+        bigBlindPlayer = players.nextPlayer();
+        pot.bet(bigBlindPlayer, gameSettings.getBigBet());
 
         // Now the game is officially started and we are waiting for the next player to play.
         moveTurnForward();
@@ -478,15 +558,21 @@ public class GameEngine {
      * in a circle, until all players own 2 cards.
      */
     private void dealCards() {
-        players.getPlayers().forEach(p -> p.getHand().clear());
+        players.getPlayers().forEach(p -> {
+            if (p.getHand() == null) {
+                p.setHand(new Hand());
+            } else {
+                p.getHand().clear();
+            }
+        });
 
         int currPlayerIndex = players.indexOfPlayer(dealer) + 1;
-        for (int i = 0; i < players.size() * 2; i++) {
+        for (int i = 0; i < players.getMaxAmountOfPlayers() * 2; i++) {
             // It might be that some player exited while we are dealing cards, in this
             // case we might deal too many cards. So protect this case and break the loop.
             Player currPlayer = players.getPlayer(currPlayerIndex++);
 
-            if (currPlayer.getHand().size() < 2) {
+            if ((currPlayer != null) && (currPlayer.getHand().size() < 2)) {
                 currPlayer.getHand().addCard(deck.popCard());
             }
         }
@@ -541,7 +627,7 @@ public class GameEngine {
             lastActionKind = null;
 
             // In case there are pots, return the chips back to their owners.
-            Map<Player, Long> pots = pot.getPots();
+            Map<Player, Long> pots = pot.getPlayerPots();
             pots.forEach((player, chips) -> {
                 player.getChips().add(chips);
 
@@ -556,6 +642,7 @@ public class GameEngine {
      * Tests whether this game is currently active. A game does not accept new players when it is active.
      * @return Whether current game engine is active (during a round) or not.
      */
+    @JsonIgnore
     public boolean isActive() {
         return gameState.get() == GameState.STARTED;
     }

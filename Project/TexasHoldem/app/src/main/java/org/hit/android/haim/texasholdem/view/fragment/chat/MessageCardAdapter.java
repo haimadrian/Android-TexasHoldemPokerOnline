@@ -95,7 +95,7 @@ public class MessageCardAdapter extends RecyclerView.Adapter<MessageCardAdapter.
             String userName = message.getUser().getName();
             userName = TextUtils.isEmpty(userName) ? message.getUser().getId().substring(0, message.getUser().getId().indexOf('@')) : userName;
             holder.getTextViewSenderName().setText(userName);
-            holder.getTextViewSenderMessage().setText(message.getMessage().substring(1, message.getMessage().length() - 1).replaceAll("\\\\n", System.lineSeparator()));
+            holder.getTextViewSenderMessage().setText(message.getMessage().replaceAll("\\\\n", System.lineSeparator()));
             holder.getTextViewSenderTime().setText(message.getDateTimeSent().format(timeFormat));
         } catch (Exception e) {
             Log.e(LOGGER, "Error has occurred in onBindViewHolder: " + e.getMessage(), e);

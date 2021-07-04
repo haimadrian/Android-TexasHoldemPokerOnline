@@ -2,6 +2,7 @@ package org.hit.android.haim.texasholdem.view.fragment.chat;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
@@ -23,6 +24,7 @@ import org.hit.android.haim.texasholdem.model.game.Game;
 import org.hit.android.haim.texasholdem.view.activity.MainActivity;
 import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
@@ -61,6 +63,12 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
     private View fragmentView;
 
     /**
+     * Hold a handler as a data member, cause it might be garbage collected before executing tasks that we submit.<br/>
+     * When handler refers to null, it means the view is destroyed, and a post action should be discarded.
+     */
+    private Handler handler;
+
+    /**
      * Constructs a new {@link ChatFragment}, using the game hash as channel name, so we can
      * work with backend on the messages in a game's chat.
      */
@@ -86,6 +94,7 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        handler = new Handler(Looper.myLooper());
 
         if ((savedInstanceState != null) && savedInstanceState.containsKey(STORED_CHANNEL_NAME_KEY)) {
             channelName = savedInstanceState.getString(STORED_CHANNEL_NAME_KEY);
@@ -109,7 +118,7 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
         getBinding().messagesRecyclerView.setItemAnimator(new FlipInBottomXAnimator(new OvershootInterpolator()));
 
         // When we start, make sure we get all messages in channel to display old messages
-        List<Message> data = Game.getInstance().getChat().getMessages();
+        List<Message> data = new ArrayList<>(Game.getInstance().getChat().getMessages());
         initializeMessagesCardAdapter(data, getBinding().messagesRecyclerView);
 
         // Register chat listener, so we will receive updates on new messages
@@ -125,6 +134,10 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
         // in case onCreateView is raised more than once.
         Game.getInstance().getChat().removeChatListener(this);
 
+        fragmentView = null;
+        messageCardAdapter = null;
+        handler = null;
+
         super.onDestroyView();
     }
 
@@ -136,20 +149,30 @@ public class ChatFragment extends ViewBindedFragment<FragmentChatBinding> implem
 
     @Override
     public void onMessageArrived(Message message) {
-        new Handler().post(() -> {
-            int messagePosition = messageCardAdapter.getItemCount();
-            messageCardAdapter.getMessages().add(message);
-            messageCardAdapter.notifyItemInserted(messagePosition);
-            messageCardAdapter.notifyItemRangeChanged(messagePosition, messageCardAdapter.getMessages().size());
-            getBinding().messagesRecyclerView.scrollToPosition(messagePosition);
+        if (handler != null) {
+            handler.post(() -> {
+                if (handler != null) {
+                    int messagePosition = messageCardAdapter.getItemCount();
+                    messageCardAdapter.getMessages().add(message);
+                    messageCardAdapter.notifyItemInserted(messagePosition);
+                    messageCardAdapter.notifyItemRangeChanged(messagePosition, messageCardAdapter.getMessages().size());
+                    getBinding().messagesRecyclerView.scrollToPosition(messagePosition);
 
-            updateChatParticipantsTextView();
-        });
+                    updateChatParticipantsTextView();
+                }
+            });
+        }
     }
 
     @Override
     public void onChatError(String errorMessage) {
-        new Handler().post(() -> Snackbar.make(fragmentView, errorMessage, Snackbar.LENGTH_LONG).show());
+        if (handler != null) {
+            handler.post(() -> {
+                if (handler != null) {
+                    Snackbar.make(fragmentView, errorMessage, Snackbar.LENGTH_LONG).show();
+                }
+            });
+        }
     }
 
     /**

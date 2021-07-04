@@ -125,6 +125,12 @@ public class PlayerView extends LinearLayout {
         LinearLayout container = (LinearLayout) nameAndChipsContainer.getChildAt(1);
         playerChipsTextView = (TextView) container.getChildAt(1);
 
+        if (orientation == VERTICAL) {
+            nameAndChipsContainer.setGravity(Gravity.CENTER);
+        } else {
+            nameAndChipsContainer.setGravity(Gravity.START);
+        }
+
         if (isReversed) {
             // Backup children
             List<View> views = new ArrayList<>();

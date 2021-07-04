@@ -1,8 +1,7 @@
 package org.hit.android.haim.texasholdem.common.model.bean.chat;
 
-import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
-
 import lombok.*;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
 
 import java.util.ArrayList;
 import java.util.HashSet;

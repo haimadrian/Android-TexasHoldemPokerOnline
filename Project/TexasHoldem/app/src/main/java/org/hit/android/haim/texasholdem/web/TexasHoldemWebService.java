@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.hit.android.haim.texasholdem.R;
+import org.hit.android.haim.texasholdem.common.util.JsonUtils;
 import org.hit.android.haim.texasholdem.web.services.ChatService;
 import org.hit.android.haim.texasholdem.web.services.GameService;
 import org.hit.android.haim.texasholdem.web.services.UserService;
@@ -98,7 +99,7 @@ public class TexasHoldemWebService {
     public void init(Context context) {
         // Make sure we do this once.
         if (userService == null) {
-            objectMapper = new ObjectMapper();
+            objectMapper = JsonUtils.createObjectMapper();
 
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);

@@ -2,6 +2,8 @@ package org.hit.android.haim.texasholdem.web;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -18,7 +20,7 @@ public abstract class SimpleCallback<T> implements Callback<T> {
 
     @Override
     @EverythingIsNonNull
-    public void onFailure(Call<T> call, Throwable t) {
+    public void onFailure(@NonNull Call<T> call, @NonNull Throwable t) {
         Log.e(LOGGER, "Error has occurred while sending HTTP request: " + call.request().toString(), t);
     }
 }

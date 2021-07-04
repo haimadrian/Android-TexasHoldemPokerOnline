@@ -101,6 +101,12 @@ public class Game {
      */
     private Set<Player> playersInGame;
 
+    /**
+     * When we join a game, we will leave it at {@link #stop()}.<br/>
+     * If we have not joined a game, then there is nothing to leave.
+     */
+    private boolean isJoinedGame = false;
+
     // Hide ctor - Singleton
     private Game() {
         gameListeners = new HashSet<>(2);
@@ -136,7 +142,7 @@ public class Game {
 
             // Refresh seats availability every 500 milliseconds, to get "realtime" updates.
             seatsAvailabilityRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("SeatsAvailabilityRefreshThread"));
-            seatsAvailabilityRefreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 500, TimeUnit.MILLISECONDS);
+            seatsAvailabilityRefreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 1, TimeUnit.SECONDS);
 
             // Refresh game state once a second, this isn't a realtime update, but good enough without
             // flooding the server with requests.
@@ -153,15 +159,24 @@ public class Game {
      * Start the game.<br/>
      * This will change the game state to active. Use this method when all players are ready, to
      * start the game and get notified upon game steps / refreshes.
+     * @param runLater Task to run upon success. It will receive empty string in case of success. Otherwise, the error message
      */
-    public void start() {
+    public void start(Consumer<String> runLater) {
         if (gameHash != null) {
             TexasHoldemWebService.getInstance().getGameService().startGame(gameHash).enqueue(new SimpleCallback<JsonNode>() {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
                     if (!response.isSuccessful()) {
-                        notifyGameError(TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
+                        runLater.accept(TexasHoldemWebService.getInstance().readHttpErrorResponse(response));
+                    } else {
+                        runLater.accept("");
                     }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<JsonNode> call, @NonNull Throwable t) {
+                    Log.e(LOGGER, "Failed to send START request", t);
+                    runLater.accept("");
                 }
             });
         }
@@ -176,7 +191,7 @@ public class Game {
             chat.stop();
         }
 
-        if (gameEngine != null) {
+        if (isJoinedGame) {
             TexasHoldemWebService.getInstance().getGameService().leaveGame(gameHash).enqueue(new SimpleCallback<JsonNode>() {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
@@ -217,6 +232,7 @@ public class Game {
                         Log.e(LOGGER, "Failed to join game: " + errorMessage);
                         notifyGameError(errorMessage);
                     } else {
+                        isJoinedGame = true;
                         JsonNode body = response.body();
                         try {
                             Player player = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), Player.class);
@@ -389,6 +405,14 @@ public class Game {
                 }
             }
         });
+    }
+
+    public Set<Player> getPlayers() {
+        if (gameEngine != null) {
+            return gameEngine.getPlayers().getPlayers();
+        }
+
+        return playersInGame;
     }
 
     /**

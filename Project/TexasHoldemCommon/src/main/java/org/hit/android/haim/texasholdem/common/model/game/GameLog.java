@@ -1,5 +1,6 @@
 package org.hit.android.haim.texasholdem.common.model.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import org.hit.android.haim.texasholdem.common.model.bean.game.PlayerAction;
 
@@ -47,6 +48,7 @@ public class GameLog {
     /**
      * @return The most recent player action
      */
+    @JsonIgnore
     public PlayerAction getLastPlayerAction() {
         if (playerActions.isEmpty()) {
             return null;

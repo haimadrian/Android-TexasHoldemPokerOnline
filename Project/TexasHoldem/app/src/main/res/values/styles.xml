@@ -2,6 +2,9 @@
     <style name="ButtonStyle" parent="TextAppearance.MaterialComponents.Button">
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/white</item>
+        <item name="android:textColorHighlight">@color/white</item> <!-- Must use or it will fail at TextView.readTextAppearance -> TypedArray.getColor:528 -->
+        <item name="android:textColorHint">@color/white</item> <!-- Must use or it will fail at TextView.readTextAppearance -> TypedArray.getColor:528 -->
+        <item name="android:textColorLink">@color/white</item> <!-- Must use or it will fail at TextView.readTextAppearance -> TypedArray.getColor:528 -->
         <item name="android:gravity">center</item>
     </style>
 

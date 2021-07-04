@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-
-import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hit.android.haim.texasholdem.common.model.bean.game.Player;
 
 import java.time.LocalDateTime;
 
@@ -41,7 +39,7 @@ public class Message {
     /**
      * To which channel the message was sent
      */
-    private Channel channel;
+    private String channelId;
 
     /**
      * The user sent the message

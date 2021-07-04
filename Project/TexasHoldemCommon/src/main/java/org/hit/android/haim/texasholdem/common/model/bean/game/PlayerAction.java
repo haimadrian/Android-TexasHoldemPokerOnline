@@ -1,8 +1,12 @@
 package org.hit.android.haim.texasholdem.common.model.bean.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hit.android.haim.texasholdem.common.model.game.Chips;
 import org.hit.android.haim.texasholdem.common.model.game.rank.HandRankCalculatorResult;
 
@@ -16,6 +20,8 @@ import org.hit.android.haim.texasholdem.common.model.game.rank.HandRankCalculato
  */
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlayerAction {
     /**
      * What move a player took
@@ -46,6 +52,7 @@ public class PlayerAction {
      * @param chips The amount of chips to set
      * @throws IllegalArgumentException in case the action kind is one that does not involve chips
      */
+    @JsonIgnore
     public PlayerAction setChips(long chips) throws IllegalArgumentException {
         if ((actionKind == PlayerActionKind.CHECK) || (actionKind == PlayerActionKind.FOLD)) {
             throw new IllegalArgumentException("Cannot set chips when taking " + actionKind + " move.");
@@ -75,7 +82,7 @@ public class PlayerAction {
                     sb.append(" called ").append(chips.toShorthand()).append(".");
                     break;
                 case RAISE:
-                    sb.append(" raised to ").append(chips.toShorthand()).append(".");
+                    sb.append(" raised by ").append(chips.toShorthand()).append(".");
                     break;
                 case FOLD:
                     sb.append(" folded.");

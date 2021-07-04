@@ -96,7 +96,7 @@ public class MessageService {
             throw new IllegalArgumentException("Player not found: " + userId);
         }
 
-        Message message = new Message(messageContent, LocalDateTime.now(), game.get().getChat(), player);
+        Message message = new Message(messageContent, LocalDateTime.now(), game.get().getChat().getName(), player);
         game.get().getChat().getMessages().add(message);
         return message;
     }

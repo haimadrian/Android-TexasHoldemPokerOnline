@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.hit.android.haim.texasholdem.common.model.bean.chat.Channel;
 import org.hit.android.haim.texasholdem.common.model.bean.chat.Message;
@@ -13,6 +14,7 @@ import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.InterruptedIOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -193,6 +195,8 @@ public class Chat {
                     Log.e(LOGGER, "Error has occurred while trying to read channel", e);
                 }
             }
+        } catch (InterruptedIOException ignore) {
+            // Don't care
         } catch (Exception e) {
             Log.e(LOGGER, "Error has occurred while trying to read channel info", e);
         }
@@ -212,7 +216,7 @@ public class Chat {
      * @param errorConsumer A consumer which will get notified in case of failures
      */
     public void sendMessage(String userId, String message, Consumer<String> errorConsumer) {
-        TexasHoldemWebService.getInstance().getChatService().sendMessage(chatId, userId, message).enqueue(new Callback<JsonNode>() {
+        TexasHoldemWebService.getInstance().getChatService().sendMessage(chatId, userId, new TextNode(message)).enqueue(new Callback<JsonNode>() {
             @Override
             public void onResponse(@NotNull Call<JsonNode> call, @NotNull Response<JsonNode> response) {
                 if (!response.isSuccessful()) {

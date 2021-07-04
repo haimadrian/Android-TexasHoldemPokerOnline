@@ -1,7 +1,8 @@
 package org.hit.android.haim.texasholdem.common.model.game;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hit.android.haim.texasholdem.common.model.bean.game.GameSettings;
 import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
@@ -18,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Haim Adrian
  * @since 22-Jun-21
  */
-@RequiredArgsConstructor
+@NoArgsConstructor // For Jackson
 @ToString(onlyExplicitlyIncluded = true)
 public class PlayerTurnTimer {
     /**
@@ -26,13 +27,13 @@ public class PlayerTurnTimer {
      * manage turn timeouts.
      */
     @JsonIgnore
-    private final PlayerTurnTimerListener listener;
+    private PlayerTurnTimerListener listener;
 
     /**
      * How much time to wait before raising a timeout event.
      */
     @ToString.Include
-    private final long timeoutMillis;
+    private long timeoutMillis;
 
     /**
      * Keep the time (since epoch) that a player turn has started at, to make sure we
@@ -42,6 +43,7 @@ public class PlayerTurnTimer {
      * Yet, when game mode is versus the AI, and not network, there is no timeout.
      */
     @ToString.Include
+    @JsonProperty
     private final AtomicLong turnStartedAt = new AtomicLong();
 
     /**
@@ -53,6 +55,16 @@ public class PlayerTurnTimer {
      */
     @JsonIgnore
     private ScheduledExecutorService turnTimeCounter;
+
+    /**
+     * Constructs a new {@link PlayerTurnTimer}
+     * @param listener Listener to be notified about timeout
+     * @param timeoutMillis How much time to wait before raising a timeout event.
+     */
+    public PlayerTurnTimer(PlayerTurnTimerListener listener, long timeoutMillis) {
+        this.listener = listener;
+        this.timeoutMillis = timeoutMillis;
+    }
 
     /**
      * Call this method whenever a turn is started.<br/>
@@ -69,7 +81,7 @@ public class PlayerTurnTimer {
                         turnStartedAt.set(System.currentTimeMillis());
                     }
                 },
-                timeoutMillis, timeoutMillis, TimeUnit.MILLISECONDS);
+                3, 3, TimeUnit.SECONDS);
         }
     }
 
@@ -87,6 +99,7 @@ public class PlayerTurnTimer {
     /**
      * @return The time that player started playing at
      */
+    @JsonIgnore
     public long getTurnStartTime() {
         return turnStartedAt.get();
     }

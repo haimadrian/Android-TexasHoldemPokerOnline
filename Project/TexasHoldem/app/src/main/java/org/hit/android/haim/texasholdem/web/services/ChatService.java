@@ -1,6 +1,7 @@
 package org.hit.android.haim.texasholdem.web.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,7 +28,7 @@ public interface ChatService {
     /* ***************************** Message Controller ***************************** */
     /** @return Message or Error */
     @POST("/message/{channelName}/{userId}")
-    Call<JsonNode> sendMessage(@Path("channelName") String channelName, @Path("userId") String userId, @Body String message);
+    Call<JsonNode> sendMessage(@Path("channelName") String channelName, @Path("userId") String userId, @Body TextNode message);
 
     /** @return {@code List<Message>} or Error */
     @GET("/message/{channelName}")
