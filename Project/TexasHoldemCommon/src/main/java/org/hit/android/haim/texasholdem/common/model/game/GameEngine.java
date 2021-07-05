@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * A class that represents a game between several players<br/>
@@ -348,8 +349,8 @@ public class GameEngine {
         }
 
         // If it is last player standing, he won.
-        int playersLeft = (int)players.getInvolvedPlayers().stream().filter(p -> p.getChips().get() > 0).count();
-        if (playersLeft <= 1) {
+        List<Player> playersLeft = players.getInvolvedPlayers().stream().filter(p -> p.getChips().get() > 0).collect(Collectors.toList());
+        if ((playersLeft.size() == 0) || ((playersLeft.size() == 1) && (currPlayer.getId().equals(playersLeft.get(0).getId()) || (action.getActionKind() == PlayerActionKind.FOLD)))) {
             isBetRoundOver = true;
         }
 
@@ -357,7 +358,7 @@ public class GameEngine {
             // If we opened a new card, clear last bet to start a new bet round.
             // When the river card is already opened we do not want to clear last bet, so we will be
             // able to recognize that the game has finished.
-            if ((playersLeft > 1) && showNextCard()) {
+            if ((playersLeft.size() > 1) && showNextCard()) {
                 pot.clearLastBet();
                 pot.clearPotsOfRound();
                 playerToHisLastAction.clear();
@@ -532,6 +533,9 @@ public class GameEngine {
         // Reset game log
         gameLog.clear();
 
+        // Reset board
+        board.clear();
+
         // Shuffle cards
         deck.shuffle();
 
@@ -539,7 +543,7 @@ public class GameEngine {
         dealCards();
 
         // Current must to bet player is the one after the dealer. This player has to add small bet.
-        pot.clearLastBet();
+        pot.clear();
         players.setCurrentPlayerIndex(players.indexOfPlayer(dealer) + 1);
         smallBlindPlayer = players.getCurrentPlayer();
         executePlayerAction(smallBlindPlayer, PlayerAction.builder().name(smallBlindPlayer.getName()).actionKind(PlayerActionKind.RAISE).chips(new Chips(gameSettings.getSmallBet())).build());

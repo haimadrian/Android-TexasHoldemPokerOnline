@@ -1,0 +1,12 @@
+<resources>
+    <!--
+        Support custom attributes to HandView:
+        1. firstCardSrc - Image resource to be used as the first card in a hand
+        2. secondCardSrc - Image resource to be used as the second card in a hand
+        3. dealerPosition - Where to locate the dealer image (left, right or bottom)
+     -->
+    <declare-styleable name="CardView">
+        <!-- Sets a drawable as the content of this ImageView. -->
+        <attr name="cardSrc" format="reference|color" />
+    </declare-styleable>
+</resources>

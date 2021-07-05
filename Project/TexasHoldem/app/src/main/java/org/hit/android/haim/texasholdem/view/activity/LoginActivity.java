@@ -13,6 +13,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.hit.android.haim.texasholdem.R;
 import org.hit.android.haim.texasholdem.databinding.ActivityLoginBinding;
@@ -82,7 +83,7 @@ public class LoginActivity extends AppCompatActivity {
      * @param context The context for initializing an intent with.
      */
     public static void doSignOut(ContextWrapper context) {
-        TexasHoldemWebService.getInstance().getUserService().signOut().enqueue(new Callback<JsonNode>() {
+        TexasHoldemWebService.getInstance().getUserService().signOut(new TextNode("")).enqueue(new Callback<JsonNode>() {
             @Override
             @EverythingIsNonNull
             public void onResponse(Call<JsonNode> call, Response<JsonNode> response) {

@@ -48,7 +48,7 @@ public interface UserService {
      * @return String or Error
      */
     @PUT("/user/signout")
-    Call<JsonNode> signOut();
+    Call<JsonNode> signOut(@Body JsonNode bodyForRetrofit);
 
     /** @return User or Error */
     @GET("/user/{userId}/info")

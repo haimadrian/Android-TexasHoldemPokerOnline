@@ -3,7 +3,7 @@
 
     <ImageView
         android:id="@+id/dealer"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="24dp"
         android:layout_weight="0.8"
         android:padding="2dp"
@@ -16,7 +16,7 @@
         android:layout_weight="0.2"
         android:orientation="horizontal">
 
-        <ImageView
+        <org.hit.android.haim.texasholdem.view.custom.CardView
             android:id="@+id/firstCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -27,11 +27,11 @@
             android:src="@drawable/pack"
             tools:ignore="ContentDescription" />
 
-        <ImageView
+        <org.hit.android.haim.texasholdem.view.custom.CardView
             android:id="@+id/secondCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginStart="-55dp"
+            android:layout_marginStart="-65dp"
             android:paddingTop="10dp"
             android:paddingEnd="10dp"
             android:paddingBottom="0dp"

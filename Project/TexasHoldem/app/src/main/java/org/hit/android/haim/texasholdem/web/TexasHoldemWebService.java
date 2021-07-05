@@ -102,7 +102,8 @@ public class TexasHoldemWebService {
             objectMapper = JsonUtils.createObjectMapper();
 
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            //interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
             OkHttpClient httpClient;
             try {

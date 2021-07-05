@@ -6,6 +6,7 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -24,13 +25,13 @@ public class HandView extends LinearLayout {
      * First card in hand
      */
     @Getter
-    private ImageView firstCardImageView;
+    private CardView firstCardView;
 
     /**
      * Second card in hand
      */
     @Getter
-    private ImageView secondCardImageView;
+    private CardView secondCardView;
 
     /**
      * Dealer image, to let outside world to show/hide it
@@ -90,12 +91,12 @@ public class HandView extends LinearLayout {
         inflater.inflate(R.layout.view_hand, this, true);
 
         dealerImageView = (ImageView) getChildAt(0);
-        LinearLayout cardsContainer = (LinearLayout) getChildAt(1);
-        firstCardImageView = (ImageView) cardsContainer.getChildAt(0);
-        secondCardImageView = (ImageView) cardsContainer.getChildAt(1);
+        ViewGroup cardsContainer = (ViewGroup) getChildAt(1);
+        firstCardView = (CardView) cardsContainer.getChildAt(0);
+        secondCardView = (CardView) cardsContainer.getChildAt(1);
 
-        firstCardImageView.setImageResource(firstCard);
-        secondCardImageView.setImageResource(secondCard);
+        firstCardView.getCardImageView().setImageResource(firstCard);
+        secondCardView.getCardImageView().setImageResource(secondCard);
 
         // Now remove all views so we will re-arrange them based on dealer location
         removeAllViews();

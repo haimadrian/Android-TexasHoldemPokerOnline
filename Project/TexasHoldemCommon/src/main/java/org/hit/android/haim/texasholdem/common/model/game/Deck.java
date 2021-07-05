@@ -49,6 +49,8 @@ public class Deck extends CardsHolder {
      * Shuffles the deck
      */
     public void shuffle() {
+        super.clear();
+        super.addCards(AllCardsRef.ALL_CARDS);
         Collections.shuffle(getCards(), new SecureRandom());
     }
 

@@ -174,6 +174,11 @@ public class GameRepository {
             if (existingGame.getPlayers().getPlayerById(player.getId()) != null) {
                 playerToGame.remove(player.getId());
                 existingGame.removePlayer(player);
+
+                // If no players left, discard that game.
+                if (existingGame.getPlayers().size() == 0) {
+                    stopGame(gameId);
+                }
             }
         }
     }

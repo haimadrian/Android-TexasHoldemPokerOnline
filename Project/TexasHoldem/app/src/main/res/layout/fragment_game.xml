@@ -307,47 +307,42 @@
                 app:layout_constraintTop_toTopOf="parent"
                 tools:ignore="UselessParent">
 
-                <ImageView
+                <org.hit.android.haim.texasholdem.view.custom.CardView
                     android:id="@+id/card0"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="1dp"
                     android:layout_weight="0.8"
                     android:src="@drawable/pack"
                     tools:ignore="ContentDescription" />
 
-                <ImageView
+                <org.hit.android.haim.texasholdem.view.custom.CardView
                     android:id="@+id/card1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="1dp"
                     android:layout_weight="0.8"
                     android:src="@drawable/pack"
                     tools:ignore="ContentDescription" />
 
-                <ImageView
+                <org.hit.android.haim.texasholdem.view.custom.CardView
                     android:id="@+id/card2"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="1dp"
                     android:layout_weight="0.8"
                     android:src="@drawable/pack"
                     tools:ignore="ContentDescription" />
 
-                <ImageView
+                <org.hit.android.haim.texasholdem.view.custom.CardView
                     android:id="@+id/card3"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="1dp"
                     android:layout_weight="0.8"
                     android:src="@drawable/pack"
                     tools:ignore="ContentDescription" />
 
-                <ImageView
+                <org.hit.android.haim.texasholdem.view.custom.CardView
                     android:id="@+id/card4"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="1dp"
                     android:layout_weight="0.8"
                     android:src="@drawable/pack"
                     tools:ignore="ContentDescription" />

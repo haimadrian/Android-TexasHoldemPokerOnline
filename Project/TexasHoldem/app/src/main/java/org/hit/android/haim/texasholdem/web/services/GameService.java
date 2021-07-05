@@ -26,11 +26,11 @@ public interface GameService {
 
     /** @return void (200 OK) or Error */
     @PUT("/game/{gameHash}/start")
-    Call<JsonNode> startGame(@Path("gameHash") String gameHash);
+    Call<JsonNode> startGame(@Path("gameHash") String gameHash, @Body JsonNode bodyForRetrofit);
 
     /** @return void (200 OK) or Error */
     @PUT("/game/{gameHash}/stop")
-    Call<JsonNode> stopGame(@Path("gameHash") String gameHash);
+    Call<JsonNode> stopGame(@Path("gameHash") String gameHash, @Body JsonNode bodyForRetrofit);
 
     /** @return String (game hash) or Error */
     @GET("/game/leader/hash")
@@ -46,7 +46,7 @@ public interface GameService {
 
     /** @return void (200 OK) or Error */
     @PUT("/game/{gameHash}/leave")
-    Call<JsonNode> leaveGame(@Path("gameHash") String gameHash);
+    Call<JsonNode> leaveGame(@Path("gameHash") String gameHash, @Body JsonNode bodyForRetrofit);
 
     /** @return {@code Set<Player>} or Error */
     @GET("/game/{gameHash}/players")

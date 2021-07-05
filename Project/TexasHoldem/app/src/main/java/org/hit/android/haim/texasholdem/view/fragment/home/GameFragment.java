@@ -2,7 +2,6 @@ package org.hit.android.haim.texasholdem.view.fragment.home;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -14,7 +13,6 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -50,6 +48,7 @@ import org.hit.android.haim.texasholdem.model.chat.Chat;
 import org.hit.android.haim.texasholdem.model.game.Game;
 import org.hit.android.haim.texasholdem.view.GameSoundService;
 import org.hit.android.haim.texasholdem.view.activity.MainActivity;
+import org.hit.android.haim.texasholdem.view.custom.CardView;
 import org.hit.android.haim.texasholdem.view.custom.HandView;
 import org.hit.android.haim.texasholdem.view.custom.PlayerView;
 import org.hit.android.haim.texasholdem.view.fragment.ViewBindedFragment;
@@ -124,6 +123,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * When handler refers to null, it means the view is destroyed, and a post action should be discarded.
      */
     private Handler handler;
+
+    /**
+     * Keep this flag so we will not flicker highlights during refresh. We want to highlight once and keep it
+     * constant without flickers. So we use this flag to exit for {@link #highlightWinnersIfNecessary(GameEngine)}
+     * if cards were already highlighted.
+     */
+    private boolean isHighlighted = false;
 
     /**
      * Constructs a new {@link GameFragment}
@@ -211,6 +217,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
         // Display the game hash so players can communicate with their friends
         getBinding().gameHash.setText(String.format(getString(R.string.game_id), game.getGameHash()));
+        getBinding().winAnimation.setVisibility(View.INVISIBLE);
 
         // Refresh the view based on current game engine.
         // In case there is no game engine yet, it means we have just entered. Then select a seat
@@ -218,7 +225,6 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         if (gameEngine != null) {
             // In case fragment was recreated during a game, mark seat selection as done.
             isSeatSelected = true;
-
             ((MainActivity)getActivity()).refreshGameMenuVisibility(); // Should be visible now
             refresh(gameEngine);
         } else if (game.isJoinedGame()) {
@@ -260,20 +266,34 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     public void onStep(GameEngine gameEngine, Game.GameStepType step) {
         Log.d(LOGGER, "Game Step: " + step);
 
-        try {
-            switch (step) {
-                case CALL:
-                case RAISE:
-                case ALL_IN:
-                    getBinding().buttonCheck.setText(R.string.action_call);
-                    break;
-                case WIN:
-                    getBinding().winAnimation.setVisibility(View.VISIBLE);
-                default:
-                    getBinding().buttonCheck.setText(R.string.action_check);
-            }
-        } catch (Throwable t) {
-            Log.e(LOGGER, "Error during onStep", t);
+        if (handler != null) {
+            handler.post(() -> {
+               if (handler != null) {
+                   if (step == Game.GameStepType.FLIP_CARD) {
+                       updateBoardVisibility();
+                   } else {
+                       try {
+                           switch (step) {
+                               case CALL:
+                               case RAISE:
+                               case ALL_IN:
+                                   getBinding().winAnimation.setVisibility(View.INVISIBLE);
+                                   getBinding().buttonCheck.setText(R.string.action_call);
+                                   break;
+                               case WIN:
+                                   getBinding().winAnimation.setVisibility(View.VISIBLE);
+                                   getBinding().buttonCheck.setText(R.string.action_check);
+                                   break;
+                               default:
+                                   getBinding().winAnimation.setVisibility(View.INVISIBLE);
+                                   getBinding().buttonCheck.setText(R.string.action_check);
+                           }
+                       } catch (Throwable t) {
+                           Log.e(LOGGER, "Error during onStep", t);
+                       }
+                   }
+               }
+            });
         }
     }
 
@@ -284,6 +304,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             handler.post(() -> {
                 if (handler != null) {
                     try {
+                        // When players exit game by killing the app, we get into illegal state. Do quit.
+                        Player currentPlayer = gameEngine.getPlayers().getCurrentPlayer();
+                        if (currentPlayer == null) {
+                            doQuitGame();
+                            return;
+                        }
+
                         updateBoardVisibility();
                         updateHandsAndDealer(gameEngine);
                         updateProgressBar(gameEngine);
@@ -319,27 +346,39 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         Set<Player> involvedPlayers = gameEngine.getPlayers().getInvolvedPlayers();
         Player dealer = gameEngine.getDealer();
         for (Map.Entry<Integer, PlayerViewAccessor> currPlayer : players.entrySet()) {
-            // Show or hide player's and, based on player activity in the game
-            if ((currPlayer.getValue().player == null) || !involvedPlayers.contains(currPlayer.getValue().player)) {
-                currPlayer.getValue().handView.setVisibility(View.INVISIBLE);
+            // If player left the game, clear its view.
+            if ((currPlayer.getValue().player == null) || (gameEngine.getPlayers().getPlayerById(currPlayer.getValue().player.getId()) == null)) {
+                currPlayer.getValue().hide();
             } else {
-                currPlayer.getValue().handView.setVisibility(View.VISIBLE);
-            }
+                // Show or hide player's hand, based on player activity in the game
+                if ((currPlayer.getValue().player == null) || !involvedPlayers.contains(currPlayer.getValue().player)) {
+                    currPlayer.getValue().handView.setVisibility(View.INVISIBLE);
+                } else {
+                    // Make sure we hide other player hands. (After their won for example)
+                    // Do this only in case we do not show the winner
+                    if ((gameEngine.getPlayerToEarnings() == null) && !currPlayer.getValue().player.getId().equals(game.getThisPlayer().getId())) {
+                        currPlayer.getValue().handView.getFirstCardView().getCardImageView().setImageResource(R.drawable.pack);
+                        currPlayer.getValue().handView.getSecondCardView().getCardImageView().setImageResource(R.drawable.pack);
+                    }
 
-            // Update dealer image
-            if (dealer != null) {
-                boolean isDealer = dealer.equals(currPlayer.getValue().player);
-                currPlayer.getValue().handView.getDealerImageView().setVisibility(isDealer ? View.VISIBLE : View.INVISIBLE);
-            }
+                    currPlayer.getValue().handView.setVisibility(View.VISIBLE);
+                }
 
-            // Update amount of chips
-            Player player = gameEngine.getPlayers().getPlayer(currPlayer.getKey());
-            if (player != null) {
-                currPlayer.getValue().playerView.getPlayerChipsTextView().setText(player.getChips().getFormatted());
+                // Update dealer image
+                if (dealer != null) {
+                    boolean isDealer = dealer.equals(currPlayer.getValue().player);
+                    currPlayer.getValue().handView.getDealerImageView().setVisibility(isDealer ? View.VISIBLE : View.INVISIBLE);
+                }
 
-                // Update player's bet
-                long playerPot = gameEngine.getPot().getPotOfPlayer(player);
-                currPlayer.getValue().setBet(playerPot);
+                // Update amount of chips
+                Player player = gameEngine.getPlayers().getPlayer(currPlayer.getKey());
+                if (player != null) {
+                    currPlayer.getValue().playerView.getPlayerChipsTextView().setText(player.getChips().getFormatted());
+
+                    // Update player's bet
+                    long playerPot = gameEngine.getPot().getPotOfPlayer(player);
+                    currPlayer.getValue().setBet(playerPot);
+                }
             }
         }
     }
@@ -354,12 +393,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         PlayerViewAccessor playerViewAccessor = players.get(currentPlayer.getPosition());
 
         // Hide last progress bar and reset it back to 60, when we detect a player switch.
+        int totalProgress = (int)TimeUnit.MILLISECONDS.toSeconds(gameEngine.getGameSettings().getTurnTime());
         if (lastActivePlayer != null) {
             if (!currentPlayer.getId().equals(lastActivePlayer.getId())) {
                 Log.d(LOGGER, "Turn moved to another player. Was: " + lastActivePlayer.getName() + ", and now: " + currentPlayer.getName());
                 ProgressBar playerProgressBar = players.get(lastActivePlayer.getPosition()).playerView.getPlayerProgressBar();
                 playerProgressBar.setVisibility(View.INVISIBLE);
-                playerProgressBar.setProgress(60);
+                playerProgressBar.setProgress(totalProgress);
             }
         }
 
@@ -367,33 +407,45 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
         long timePassed = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - gameEngine.getPlayerTurnTimer().getTurnStartTime());
         ProgressBar playerProgressBar = playerViewAccessor.playerView.getPlayerProgressBar();
+        playerProgressBar.setMax(totalProgress);
+        playerProgressBar.setMin(0);
         playerProgressBar.setVisibility(View.VISIBLE);
-        playerProgressBar.setProgress((int) Math.abs(60 - timePassed), true);
+        playerProgressBar.setProgress((int) Math.abs(totalProgress - timePassed), true);
     }
 
     /**
-     * Helper method to highlight winners hand, such that it will be clear who won and with what hand
+     * Helper method to highlight winners hand, such that it will be clear who won and with what hand.<br/>
+     * We leave the winner hand un-highlighted so it will be clear, and we highlight with black overlay those that we
+     * want to hide.
      * @param gameEngine Game engine to get details from
      */
     private void highlightWinnersIfNecessary(GameEngine gameEngine) {
-        // Remove any highlighting
-        setImageHighlight(getBinding().card0, false);
-        setImageHighlight(getBinding().card1, false);
-        setImageHighlight(getBinding().card2, false);
-        setImageHighlight(getBinding().card3, false);
-        setImageHighlight(getBinding().card4, false);
-        for (PlayerViewAccessor currPlayerView : players.values()) {
-            if ((currPlayerView.playerView.getVisibility() == View.VISIBLE) &&
-                (currPlayerView.handView.getFirstCardImageView().getVisibility() == View.VISIBLE)) {
-                    setImageHighlight(currPlayerView.handView.getFirstCardImageView(), false);
-                    setImageHighlight(currPlayerView.handView.getSecondCardImageView(), false);
-            }
-        }
-
         Map<String, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
-        if (playerToEarnings != null) {
+        if (playerToEarnings == null) {
+            if (isHighlighted) {
+                Log.d(LOGGER, "Clearing card highlights");
+                isHighlighted = false;
+
+                // Remove any highlighting
+                getBinding().card0.clearHighlight();
+                getBinding().card1.clearHighlight();
+                getBinding().card2.clearHighlight();
+                getBinding().card3.clearHighlight();
+                getBinding().card4.clearHighlight();
+                for (PlayerViewAccessor currPlayerView : players.values()) {
+                    if ((currPlayerView.playerView.getVisibility() == View.VISIBLE) &&
+                            (currPlayerView.handView.getFirstCardView().getVisibility() == View.VISIBLE)) {
+                        currPlayerView.handView.getFirstCardView().clearHighlight();
+                        currPlayerView.handView.getSecondCardView().clearHighlight();
+                    }
+                }
+            }
+        } else if (!isHighlighted) {
+            Log.d(LOGGER, "Drawing card highlights");
+            isHighlighted = true;
+
             // Map cards to their corresponding view, so we can highlight the selected cards of a winner
-            Map<Card, ImageView> cardsToTheirView = new HashMap<>();
+            Map<Card, CardView> cardsToTheirView = new HashMap<>();
             Board board = game.getGameEngine().getBoard();
             board.getFlop1().ifPresent(card -> cardsToTheirView.put(card, getBinding().card0));
             board.getFlop2().ifPresent(card -> cardsToTheirView.put(card, getBinding().card1));
@@ -404,35 +456,22 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             // Reveal winners hand and highlight it
             for (Map.Entry<String, Pot.PlayerWinning> currPlayer : playerToEarnings.entrySet()) {
                 PlayerViewAccessor currPlayerView = players.get(gameEngine.getPlayers().getPlayerById(currPlayer.getKey()).getPosition());
-                setImageHighlight(currPlayerView.playerView.getPlayerImageView(), true);
 
                 // Reveal winner's hand
                 Hand currPlayerHand = currPlayer.getValue().getHandRank().getHand();
                 revealHand(currPlayerView.handView, currPlayerHand);
-                cardsToTheirView.put(currPlayerHand.getCardAt(0).get(), currPlayerView.handView.getFirstCardImageView());
-                cardsToTheirView.put(currPlayerHand.getCardAt(1).get(), currPlayerView.handView.getSecondCardImageView());
+                cardsToTheirView.put(currPlayerHand.getCardAt(0).get(), currPlayerView.handView.getFirstCardView());
+                cardsToTheirView.put(currPlayerHand.getCardAt(1).get(), currPlayerView.handView.getSecondCardView());
 
-                for (Card selectedCard : currPlayer.getValue().getHandRank().getSelectedCards()) {
-                    setImageHighlight(cardsToTheirView.get(selectedCard), true);
+                Card[] selectedCards = currPlayer.getValue().getHandRank().getSelectedCards();
+                for (Card selectedCard : selectedCards) {
+                    CardView cardView = cardsToTheirView.get(selectedCard);
+                    if (cardView != null) {
+                        cardView.highlight();
+                    }
                 }
             }
         }
-    }
-
-    /**
-     * Highlight or remove highlight of an image view.<br/>
-     * We highlight winners and their hand
-     * @param image The image to highlight
-     * @param isHighlight Whether to highlight the image or remove its highlight
-     */
-    private static void setImageHighlight(ImageView image, boolean isHighlight) {
-        if (isHighlight) {
-            image.getDrawable().setColorFilter(0x77000000, PorterDuff.Mode.SRC_ATOP);
-        } else {
-            image.getDrawable().clearColorFilter();
-        }
-
-        image.invalidate();
     }
 
     /**
@@ -441,8 +480,8 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * @param hand Hand to know what cards to set
      */
     private void revealHand(HandView handView, Hand hand) {
-        hand.getCardAt(0).ifPresent(card -> handView.getFirstCardImageView().setImageResource(cardsResource.cardToResource.get(card)));
-        hand.getCardAt(1).ifPresent(card -> handView.getSecondCardImageView().setImageResource(cardsResource.cardToResource.get(card)));
+        hand.getCardAt(0).ifPresent(card -> handView.getFirstCardView().getCardImageView().setImageResource(cardsResource.cardToResource.get(card)));
+        hand.getCardAt(1).ifPresent(card -> handView.getSecondCardView().getCardImageView().setImageResource(cardsResource.cardToResource.get(card)));
     }
 
     @Override
@@ -460,7 +499,8 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                             refreshPlayerViewFromPlayer(playerViewAccessor, p);
                         });
 
-                        getBinding().winAnimation.setVisibility(View.GONE);
+                        Log.d(LOGGER, "Players refresh (hiding win animation)");
+                        getBinding().winAnimation.setVisibility(View.INVISIBLE);
 
                         // Make sure animations are visible
                         if (!isSeatSelected) {
@@ -522,11 +562,28 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
             // Update pot
             getBinding().potAmount.setText(new Chips(game.getGameEngine().getPot().sum()).toShorthand());
+            getBinding().potAmount.setVisibility(View.VISIBLE);
 
             // Switch button text based on last action
             PlayerActionKind lastActionKind = game.getGameEngine().getLastActionKind();
-            if ((lastActionKind == PlayerActionKind.CALL) || (lastActionKind == PlayerActionKind.RAISE)) {
+            if (lastActionKind == PlayerActionKind.RAISE) {
                 getBinding().buttonCheck.setText(R.string.action_call);
+            } else if (lastActionKind == PlayerActionKind.CALL) {
+                Pot pot = game.getGameEngine().getPot();
+
+                // If for some reason there is no pot, just show call after call.
+                if (pot == null) {
+                    getBinding().buttonCheck.setText(R.string.action_call);
+                } else {
+                    // Check if our player is the one who started a bet, and the last call was equal to
+                    // our player's bet. If so, out player should see "check" and not "call".
+                    long potOfPlayer = pot.getPotOfPlayer(game.getThisPlayer());
+                    if (potOfPlayer == pot.getLastBet()) {
+                        getBinding().buttonCheck.setText(R.string.action_check);
+                    } else {
+                        getBinding().buttonCheck.setText(R.string.action_call);
+                    }
+                }
             } else {
                 getBinding().buttonCheck.setText(R.string.action_check);
             }
@@ -539,18 +596,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * @param cardView Card view to update
      * @param card The card to show
      */
-    private void updateCard(ImageView cardView, Card card) {
+    private void updateCard(CardView cardView, Card card) {
         if (card == null) {
             cardView.setVisibility(View.INVISIBLE);
         } else {
-            // If card was invisible, and now visible, we want to play flip sound effect
-            if (cardView.getVisibility() == View.INVISIBLE) {
-                game.notifyGameStep(game.getGameEngine(), Game.GameStepType.FLIP_CARD, this);
-            }
-
             handler.postDelayed(() -> {
                 cardView.setVisibility(View.VISIBLE);
-                cardView.setImageResource(cardsResource.cardToResource.getOrDefault(card, R.drawable.pack));
+                cardView.getCardImageView().setImageResource(cardsResource.cardToResource.getOrDefault(card, R.drawable.pack));
             }, 150);
         }
     }

@@ -1,0 +1,24 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/card"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:padding="4dp"
+        android:src="@drawable/pack"
+        tools:ignore="ContentDescription" />
+
+    <ImageView
+        android:id="@+id/cardHighlight"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:visibility="invisible"
+        android:src="@drawable/card_highlight"
+        tools:ignore="ContentDescription" />
+
+</FrameLayout>

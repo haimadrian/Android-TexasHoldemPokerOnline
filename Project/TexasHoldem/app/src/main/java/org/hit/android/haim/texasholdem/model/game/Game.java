@@ -20,6 +20,7 @@ import org.hit.android.haim.texasholdem.view.GameSoundService;
 import org.hit.android.haim.texasholdem.web.HttpStatus;
 import org.hit.android.haim.texasholdem.web.SimpleCallback;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -186,7 +187,7 @@ public class Game {
      */
     public void start(Consumer<String> runLater) {
         if (gameHash != null) {
-            TexasHoldemWebService.getInstance().getGameService().startGame(gameHash).enqueue(new SimpleCallback<JsonNode>() {
+            TexasHoldemWebService.getInstance().getGameService().startGame(gameHash, new TextNode("")).enqueue(new SimpleCallback<JsonNode>() {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
                     if (!response.isSuccessful()) {
@@ -218,9 +219,17 @@ public class Game {
 
         if (isJoinedGame) {
             isRunLaterExecuted = true;
-            TexasHoldemWebService.getInstance().getGameService().leaveGame(gameHash).enqueue(new SimpleCallback<JsonNode>() {
+            TexasHoldemWebService.getInstance().getGameService().leaveGame(gameHash, new TextNode("")).enqueue(new SimpleCallback<JsonNode>() {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
+                    Log.d(LOGGER, "Left game.");
+                    if (runLater != null) {
+                        runLater.run();
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull @NotNull Call<JsonNode> call, @NonNull @NotNull Throwable t) {
                     Log.d(LOGGER, "Left game.");
                     if (runLater != null) {
                         runLater.run();
@@ -517,6 +526,11 @@ public class Game {
                 gameStep = playerToEarnings.containsKey(thisPlayer.getId()) ? GameStepType.WIN : GameStepType.LOSE;
             }
 
+            // Game step is null when dealer show new card.
+            if (gameStep == null) {
+                gameStep = GameStepType.FLIP_CARD;
+            }
+            
             GameStepNotificationInfo newNotification = new GameStepNotificationInfo();
             newNotification.player = player;
             newNotification.gameStepType = gameStep;

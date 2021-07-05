@@ -53,6 +53,7 @@ public class GameSoundService extends Service implements Game.GameListener {
         mediaPlayers.put(Game.GameStepType.FLIP_CARD, MediaPlayer.create(this, R.raw.flip_card));
         mediaPlayers.put(Game.GameStepType.WIN, MediaPlayer.create(this, R.raw.success));
         mediaPlayers.put(Game.GameStepType.LOSE, MediaPlayer.create(this, R.raw.fail));
+        mediaPlayers.put(Game.GameStepType.FOLD, MediaPlayer.create(this, R.raw.dealing_card));
 
         // Listen to game steps so we can play sound effects for each step
         Game.getInstance().addGameListener(this);
@@ -94,9 +95,12 @@ public class GameSoundService extends Service implements Game.GameListener {
 
     @Override
     public void onStep(GameEngine gameEngine, Game.GameStepType step) {
-        MediaPlayer mediaPlayer = mediaPlayers.get(step);
-        if (mediaPlayer != null) {
-            restartMediaPlayer(mediaPlayer);
+        if (step != null) {
+            Log.d(LOGGER, "onStep: " + step);
+            MediaPlayer mediaPlayer = mediaPlayers.get(step);
+            if (mediaPlayer != null) {
+                restartMediaPlayer(mediaPlayer);
+            }
         }
     }
 
