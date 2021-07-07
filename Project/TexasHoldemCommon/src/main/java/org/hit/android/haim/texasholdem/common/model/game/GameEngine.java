@@ -128,9 +128,11 @@ public class GameEngine {
     /**
      * Keep a reference to the last action kind, so we can make sure there are no illegal
      * actions. For example, a CHECK is not allowed after CALL or RAISE.<br/>
-     * This reference is set to {@code null} when a bet round is started, to allow any action.
+     * This reference is set to {@code null} when a bet round is started, to allow any action.<br/>
+     * This variable is used as a stack to hold "history" of last actions, such that we let clients
+     * to search for the last non FOLD action
      */
-    private PlayerActionKind lastActionKind;
+    private ArrayDeque<PlayerActionKind> lastActionKind; // ArrayDeque and not Deque, so we will have access to clone()
 
     /**
      * Map between every player to his last action, so we will be able to detect the case when
@@ -257,9 +259,31 @@ public class GameEngine {
      * @param player The player to add
      */
     public void removePlayer(Player player) {
+        if (player == null) {
+            return;
+        }
+
         info(getId() + " - Removing player: " + player);
-        players.removePlayer(player);
-        chat.getUsers().remove(player);
+
+        // If it is the current player who leaves, execute FOLD action
+        Player playerById = players.getPlayerById(player.getId());
+        if (playerById != null) {
+            try {
+                if (players.getCurrentPlayerIndex() == players.indexOfPlayer(playerById)) {
+                    executePlayerAction(playerById, PlayerAction.builder().name(playerById.getName()).actionKind(PlayerActionKind.FOLD).build());
+                }
+            } catch (Exception ignore) {
+
+            }
+
+            playersLock.lock();
+            try {
+                players.removePlayer(playerById);
+                chat.getUsers().remove(playerById);
+            } finally {
+                playersLock.unlock();
+            }
+        }
     }
 
     /**
@@ -329,23 +353,28 @@ public class GameEngine {
         }
 
         gameLog.logAction(action);
-        lastActionKind = action.getActionKind();
+        if (action.getActionKind() != null) {
+            lastActionKind.push(action.getActionKind());
+        }
+
         playerToHisLastAction.put(currPlayer.getId(), action);
 
         // Everytime it is the dealer's turn we can continue to next game stage, unless the dealer is raising
         // Another option is before the flop is shown. In this case, big blind player is the last to act.
+        Player activeDealer = players.getAvailablePlayingPlayerReversed(players.indexOfPlayer(dealer));
         boolean isBetRoundOver = (action.getActionKind() != PlayerActionKind.RAISE) &&
-            ((board.getFlop1().isPresent() && currPlayer.equals(dealer)) || (!board.getFlop1().isPresent() && currPlayer.equals(bigBlindPlayer)));
+            ((board.getFlop1().isPresent() && currPlayer.equals(activeDealer)) || (!board.getFlop1().isPresent() && currPlayer.equals(bigBlindPlayer)));
 
         // Another option for bet round to over is in case the current action is CALL, and the next player
         // is the one with the highest raise. Of course this is irrelevant before the flop, since the bigBlind player
         // by default is the highest raise, though he is the last to act.
+        // There might be another case when the last player to speak folds. In this case, we set true to isBetRoundOver above,
+        // but it might be that there was a raise that we need to continue to scan the board until we get to that player who raised.
         Player playerWithHighestRaise = findPlayerWithHighestRaise();
-        if ((action.getActionKind() == PlayerActionKind.CALL) &&
+        if (((action.getActionKind() == PlayerActionKind.CALL) || (action.getActionKind() == PlayerActionKind.FOLD)) &&
             (playerWithHighestRaise != null) &&
-            board.getFlop1().isPresent() &&
-            playerWithHighestRaise.equals(players.getAvailablePlayingPlayer(currPlayer.getPosition() + 1))) {
-            isBetRoundOver = true;
+            board.getFlop1().isPresent()) {
+            isBetRoundOver = playerWithHighestRaise.equals(players.getAvailablePlayingPlayer(currPlayer.getPosition() + 1));
         }
 
         // If it is last player standing, he won.
@@ -367,7 +396,7 @@ public class GameEngine {
                 players.setCurrentPlayerIndex(dealer.getPosition());
 
                 // Reset last action, as we start a new round of bets
-                lastActionKind = null;
+                lastActionKind.clear();
             } else {
                 applyWinIfNeeded();
             }
@@ -376,6 +405,30 @@ public class GameEngine {
         if (playerToEarnings == null) {
             moveTurnForward();
         }
+    }
+
+    /**
+     * Use this method to find the latest non FOLD action.<br/>
+     * We need this so client will not assume latest action was fold, and display a CHECK button, although
+     * the latest non fold action was RAISE/CALL.
+     * @return Latest non FOLD action, or {@link null}
+     */
+    public PlayerActionKind findLastNonFoldAction() {
+        PlayerActionKind action = null;
+
+        if ((lastActionKind != null) && !lastActionKind.isEmpty()) {
+            // Work on a copy so we will not affect the original stack.
+            Deque<PlayerActionKind> copyOfLastActionKind = lastActionKind.clone();
+
+            while ((action == null) && (!copyOfLastActionKind.isEmpty())) {
+                PlayerActionKind currActionToTry = copyOfLastActionKind.pop();
+                if (currActionToTry != PlayerActionKind.FOLD) {
+                    action = currActionToTry;
+                }
+            }
+        }
+
+        return action;
     }
 
     /**
@@ -420,15 +473,35 @@ public class GameEngine {
             throw new IllegalArgumentException("Player is not playing.");
         }
 
-        if (!action.getActionKind().canComeAfter(lastActionKind)) {
+        if (!action.getActionKind().canComeAfter(lastActionKind.isEmpty() ? null : lastActionKind.getFirst())) {
             // Big blind player is allowed to check in case last call was same as the big blind.
             if (!player.equals(bigBlindPlayer) || (action.getActionKind() != PlayerActionKind.CHECK) || (pot.getLastBet() != gameSettings.getBigBet()))
                 throw new IllegalArgumentException(action.getActionKind().name() + " is not allowed after " + lastActionKind);
         }
 
-        // In case of a RAISE with sum equals to the last bet, fix it to CALL.
-        if ((action.getActionKind() == PlayerActionKind.RAISE) && (pot.getLastBet() != null) && (action.getChips().get() == pot.getLastBet())) {
-            action.setActionKind(PlayerActionKind.CALL);
+        if (pot.getLastBet() != null) {
+            // We might get here with a CHECK after FOLD, though there could be a bet before the FOLD, hence fix this.
+            if (action.getActionKind() == PlayerActionKind.CHECK) {
+                PlayerAction prevPlayerAction = playerToHisLastAction.get(player.getId());
+
+                // CHECK is ok when player raised last time we visited him. Otherwise, we need to fix it to CALL.
+                // In addition, cannot check in case there is a "future" player that raised over current player.
+                Player playerWithHighestRaise = findPlayerWithHighestRaise();
+                if ((prevPlayerAction == null) ||
+                    (prevPlayerAction.getActionKind() != PlayerActionKind.RAISE) ||
+                    (playerWithHighestRaise != null)) {
+                    action.setActionKind(PlayerActionKind.CALL);
+                    action.setChips(pot.getLastBet());
+                }
+            }
+            // In case of a RAISE with sum equals to the last bet, fix it to CALL.
+            else if ((action.getActionKind() == PlayerActionKind.RAISE) && (action.getChips().get() == pot.getLastBet())) {
+                action.setActionKind(PlayerActionKind.CALL);
+            }
+        }
+        // If CALL arrived but there is no last bet, use big blind
+        else if ((action.getActionKind() == PlayerActionKind.CALL) && (action.getChips().get() < gameSettings.getBigBet())) {
+            action.setChips(gameSettings.getBigBet());
         }
     }
 
@@ -544,6 +617,7 @@ public class GameEngine {
 
         // Current must to bet player is the one after the dealer. This player has to add small bet.
         pot.clear();
+        lastActionKind = new ArrayDeque<>();
         players.setCurrentPlayerIndex(players.indexOfPlayer(dealer) + 1);
         smallBlindPlayer = players.getCurrentPlayer();
         executePlayerAction(smallBlindPlayer, PlayerAction.builder().name(smallBlindPlayer.getName()).actionKind(PlayerActionKind.RAISE).chips(new Chips(gameSettings.getSmallBet())).build());

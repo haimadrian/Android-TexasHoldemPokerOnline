@@ -253,6 +253,9 @@ public class Game {
             notifierThread = null;
         }
 
+        gameEngine = null;
+        gameHash = null;
+
         if (!isRunLaterExecuted && (runLater != null)) {
             runLater.run();
         }
@@ -328,7 +331,10 @@ public class Game {
                         try {
                             String gameHash = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), TextNode.class).asText();
                             Log.d(LOGGER, "Received game hash: " + gameHash);
-                            run.run();
+
+                            if (Game.this.gameHash.equals(gameHash)) {
+                                run.run();
+                            }
                         } catch (Exception e) {
                             Log.e(LOGGER, "Failed parsing response. Response was: " + body, e);
                         }
@@ -483,8 +489,8 @@ public class Game {
             GameStepType gameStep = null;
             Player player = gameEngine.getPlayers().getPreviousPlayer();
 
-            if (gameEngine.getLastActionKind() != null) {
-                switch (gameEngine.getLastActionKind()) {
+            if ((gameEngine.getLastActionKind() != null) && (!gameEngine.getLastActionKind().isEmpty())) {
+                switch (gameEngine.getLastActionKind().getFirst()) {
                     case FOLD:
                         gameStep = GameStepType.FOLD;
                         break;

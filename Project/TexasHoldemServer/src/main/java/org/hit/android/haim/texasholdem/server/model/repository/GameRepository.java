@@ -175,6 +175,12 @@ public class GameRepository {
                 playerToGame.remove(player.getId());
                 existingGame.removePlayer(player);
 
+                // Check if it was the owner, to remove it from owners map.
+                GameEngine gameEngine = ownerToGame.get(player.getId());
+                if ((gameEngine != null) && (gameEngine.getId() == gameId)) {
+                    ownerToGame.remove(player.getId());
+                }
+
                 // If no players left, discard that game.
                 if (existingGame.getPlayers().size() == 0) {
                     stopGame(gameId);

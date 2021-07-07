@@ -189,6 +189,31 @@ public class Players {
     }
 
     /**
+     * Get a player by its index. Index must be at [0, size()-1]<br/>
+     * This method, unlike {@link #getPlayer(int)}, makes sure that the player at the specified index differs from null.
+     * In case it refers to null, we will go around the table, <b>counter clockwise</b> until finding a player.
+     * In addition, we ensure the player is playing.
+     * @param playerIndex The index of the player to get
+     * @return The player at the specified index
+     * @throws IndexOutOfBoundsException in case the specified index was out of bounds. [0, size()-1]
+     */
+    public Player getAvailablePlayingPlayerReversed(int playerIndex) throws IndexOutOfBoundsException {
+        if (playerIndex < 0) {
+            throw new IndexOutOfBoundsException("There is no player at: " + playerIndex + ". Try: [0, " + players.size() + ")");
+        }
+
+        Player result;
+        do {
+            result = playersArray[playerIndex-- % playersArray.length];
+            if (playerIndex < 0) {
+                playerIndex = playersArray.length - 1;
+            }
+        } while ((result == null) || (!result.isPlaying()));
+
+        return result;
+    }
+
+    /**
      * Add a player to this game.
      * @param player The player to add
      */
@@ -197,6 +222,11 @@ public class Players {
             int index = players.remove(player);
             playersArray[index] = null;
             playersById.remove(player.getId());
+
+            // In case we remove the current player, update the index to the next player.
+            if (currentPlayerIndex == index) {
+                nextPlayer(false);
+            }
         }
     }
 
@@ -280,7 +310,18 @@ public class Players {
      * @return The new player
      */
     public Player nextPlayer() {
-        prevPlayerIndex = currentPlayerIndex;
+        return nextPlayer(true);
+    }
+
+    /**
+     * Move the turn to the next player in the list, and return this player.<br/>
+     * Note that the player must be active, which means he is part of the game. (Not folded / went all-in)
+     * @return The new player
+     */
+    private Player nextPlayer(boolean updatePrevious) {
+        if (updatePrevious) {
+            prevPlayerIndex = currentPlayerIndex;
+        }
 
         // Continue looking for next available player, and protect the loop such that we avoid of
         // going in circle. In case we have reached the player we started from, we break.

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 
 import org.hit.android.haim.texasholdem.common.model.bean.chat.Channel;
 import org.hit.android.haim.texasholdem.common.model.bean.chat.Message;
+import org.hit.android.haim.texasholdem.common.model.game.GameEngine;
 import org.hit.android.haim.texasholdem.common.util.CustomThreadFactory;
 import org.hit.android.haim.texasholdem.web.TexasHoldemWebService;
 import org.jetbrains.annotations.NotNull;
@@ -191,14 +192,19 @@ public class Chat {
         }
 
         try {
-            Response<JsonNode> channelInfoResponse = TexasHoldemWebService.getInstance().getChatService().getChannel(chatId).execute();
-            if (!channelInfoResponse.isSuccessful()) {
-                Log.e(LOGGER, "Error has occurred while trying to read channel info: " + TexasHoldemWebService.getInstance().readHttpErrorResponse(channelInfoResponse));
-            } else {
-                try {
-                    channelInfo.set(TexasHoldemWebService.getInstance().getObjectMapper().readValue(channelInfoResponse.body().toString(), Channel.class));
-                } catch (JsonProcessingException e) {
-                    Log.e(LOGGER, "Error has occurred while trying to read channel", e);
+            if ((chatId != null) && (!chatId.isEmpty())) {
+                Response<JsonNode> channelInfoResponse = TexasHoldemWebService.getInstance().getGameService().getGameInfo(chatId).execute();
+                if (!channelInfoResponse.isSuccessful()) {
+                    Log.e(LOGGER, "Error has occurred while trying to read channel info: " + TexasHoldemWebService.getInstance().readHttpErrorResponse(channelInfoResponse));
+                } else {
+                    try {
+                        GameEngine gameEngine = TexasHoldemWebService.getInstance().getObjectMapper().readValue(channelInfoResponse.body().toString(), GameEngine.class);
+                        if (gameEngine != null) {
+                            channelInfo.set(gameEngine.getChat());
+                        }
+                    } catch (JsonProcessingException e) {
+                        Log.e(LOGGER, "Error has occurred while trying to read channel", e);
+                    }
                 }
             }
         } catch (InterruptedIOException ignore) {

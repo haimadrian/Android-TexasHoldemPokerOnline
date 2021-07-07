@@ -19,12 +19,6 @@ import retrofit2.http.Path;
  * @see org.hit.android.haim.texasholdem.web.TexasHoldemWebService
  */
 public interface ChatService {
-    /* ***************************** Channel Controller ***************************** */
-    /** @return Channel or Error */
-    @GET("/channel/{channelName}")
-    Call<JsonNode> getChannel(@Path("channelName") String channelName);
-
-
     /* ***************************** Message Controller ***************************** */
     /** @return Message or Error */
     @POST("/message/{channelName}/{userId}")

@@ -41,7 +41,15 @@ public class HomeController {
     @GetMapping(value = "/", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     public String homePage() {
-        return HTML_PAGE.replace("##", "You have to sign in using Texas Holdem application in order to access services.");
+        return "<!DOCTYPE html>\n" +
+            "<html lang=\"en\">\n" +
+            "<body>\n" +
+            "<div class=\"content\">\n" +
+            "    <h1>Welcome</h1>\n" +
+            "</div>\n" +
+            "</body>\n" +
+            "</html>";
+        //return HTML_PAGE.replace("##", "You have to sign in using Texas Holdem application in order to access services.");
     }
 
     @GetMapping(path = "/favicon.ico", produces = "image/ico")

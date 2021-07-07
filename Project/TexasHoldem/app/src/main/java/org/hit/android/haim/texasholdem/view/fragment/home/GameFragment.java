@@ -222,15 +222,12 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         // Refresh the view based on current game engine.
         // In case there is no game engine yet, it means we have just entered. Then select a seat
         GameEngine gameEngine = game.getGameEngine();
-        if (gameEngine != null) {
+        if ((gameEngine != null) || game.isJoinedGame()) {
             // In case fragment was recreated during a game, mark seat selection as done.
             isSeatSelected = true;
             ((MainActivity)getActivity()).refreshGameMenuVisibility(); // Should be visible now
-            refresh(gameEngine);
-        } else if (game.isJoinedGame()) {
-            isSeatSelected = true;
-            ((MainActivity)getActivity()).refreshGameMenuVisibility(); // Should be visible now
             playersRefresh(game.getPlayers());
+            refresh(gameEngine);
         } else {
             // It might be that player quited the app without logout of game.
             // Try to detect such a case now, and just skip seat selection if needed
@@ -273,21 +270,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                        updateBoardVisibility();
                    } else {
                        try {
-                           switch (step) {
-                               case CALL:
-                               case RAISE:
-                               case ALL_IN:
-                                   getBinding().winAnimation.setVisibility(View.INVISIBLE);
-                                   getBinding().buttonCheck.setText(R.string.action_call);
-                                   break;
-                               case WIN:
-                                   getBinding().winAnimation.setVisibility(View.VISIBLE);
-                                   getBinding().buttonCheck.setText(R.string.action_check);
-                                   break;
-                               default:
-                                   getBinding().winAnimation.setVisibility(View.INVISIBLE);
-                                   getBinding().buttonCheck.setText(R.string.action_check);
-                           }
+                           getBinding().winAnimation.setVisibility(step == Game.GameStepType.WIN ? View.VISIBLE : View.INVISIBLE);
                        } catch (Throwable t) {
                            Log.e(LOGGER, "Error during onStep", t);
                        }
@@ -300,14 +283,15 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
     // Here we draw the game based on game info.
     @Override
     public void refresh(GameEngine gameEngine) {
-        if (handler != null) {
+        if ((handler != null) && (gameEngine != null)) {
             handler.post(() -> {
                 if (handler != null) {
                     try {
-                        // When players exit game by killing the app, we get into illegal state. Do quit.
+                        // When players exit game by killing the app, we get into illegal state. skip this refresh.
                         Player currentPlayer = gameEngine.getPlayers().getCurrentPlayer();
                         if (currentPlayer == null) {
-                            doQuitGame();
+                            // Refresh players cause player left
+                            playersRefresh(gameEngine.getPlayers().getPlayers());
                             return;
                         }
 
@@ -321,8 +305,10 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                         Hand myHand = thisPlayer.getHand();
                         revealHand(thisPlayerView.handView, myHand);
 
-                        // Update action buttons
-                        boolean isActionButtonEnabled = thisPlayer.equals(gameEngine.getPlayers().getCurrentPlayer());
+                        // Update action buttons.
+                        // Buttons should be disabled during a RESTART (win) and when it is not put player's turn.
+                        boolean isActionButtonEnabled = thisPlayer.equals(gameEngine.getPlayers().getCurrentPlayer()) &&
+                                (gameEngine.getPlayerToEarnings() == null);
                         getBinding().buttonRaise.setEnabled(isActionButtonEnabled);
                         getBinding().buttonCheck.setEnabled(isActionButtonEnabled);
                         getBinding().buttonFold.setEnabled(isActionButtonEnabled);
@@ -565,28 +551,36 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             getBinding().potAmount.setVisibility(View.VISIBLE);
 
             // Switch button text based on last action
-            PlayerActionKind lastActionKind = game.getGameEngine().getLastActionKind();
-            if (lastActionKind == PlayerActionKind.RAISE) {
-                getBinding().buttonCheck.setText(R.string.action_call);
-            } else if (lastActionKind == PlayerActionKind.CALL) {
-                Pot pot = game.getGameEngine().getPot();
+            updateCheckButtonText();
+        }
+    }
 
-                // If for some reason there is no pot, just show call after call.
-                if (pot == null) {
-                    getBinding().buttonCheck.setText(R.string.action_call);
-                } else {
-                    // Check if our player is the one who started a bet, and the last call was equal to
-                    // our player's bet. If so, out player should see "check" and not "call".
-                    long potOfPlayer = pot.getPotOfPlayer(game.getThisPlayer());
-                    if (potOfPlayer == pot.getLastBet()) {
-                        getBinding().buttonCheck.setText(R.string.action_check);
-                    } else {
-                        getBinding().buttonCheck.setText(R.string.action_call);
-                    }
-                }
+    /**
+     * Based on last action, we will update the text of the check button.<br/>
+     * It can be either CHECK or CALL, depends on last action.
+     */
+    private void updateCheckButtonText() {
+        PlayerActionKind lastActionKind = game.getGameEngine().findLastNonFoldAction();
+        if (lastActionKind == PlayerActionKind.RAISE) {
+            getBinding().buttonCheck.setText(R.string.action_call);
+        } else if (lastActionKind == PlayerActionKind.CALL) {
+            Pot pot = game.getGameEngine().getPot();
+
+            // If for some reason there is no pot, just show call after call.
+            if (pot == null) {
+                getBinding().buttonCheck.setText(R.string.action_call);
             } else {
-                getBinding().buttonCheck.setText(R.string.action_check);
+                // Check if our player is the one who started a bet, and the last call was equal to
+                // our player's bet. If so, out player should see "check" and not "call".
+                long potOfPlayer = pot.getPotOfPlayer(game.getThisPlayer());
+                if (potOfPlayer == pot.getLastBet()) {
+                    getBinding().buttonCheck.setText(R.string.action_check);
+                } else {
+                    getBinding().buttonCheck.setText(R.string.action_call);
+                }
             }
+        } else {
+            getBinding().buttonCheck.setText(R.string.action_check);
         }
     }
 
