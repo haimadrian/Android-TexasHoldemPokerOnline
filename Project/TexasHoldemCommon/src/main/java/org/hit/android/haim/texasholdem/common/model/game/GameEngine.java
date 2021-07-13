@@ -337,7 +337,9 @@ public class GameEngine {
                 break;
             }
             case RAISE: {
-                long chips = pot.bet(currPlayer, action.getChips().get());
+                // In case of a RAISE, make sure player does not raise with more chips than he has.
+                long validatedChips = Math.min(player.getChips().get(), action.getChips().get());
+                long chips = pot.bet(currPlayer, validatedChips);
                 action.setChips(chips);
 
                 // Update listener about update of chips
@@ -495,7 +497,7 @@ public class GameEngine {
                 }
             }
             // In case of a RAISE with sum equals to the last bet, fix it to CALL.
-            else if ((action.getActionKind() == PlayerActionKind.RAISE) && (action.getChips().get() == pot.getLastBet())) {
+            else if ((action.getActionKind() == PlayerActionKind.RAISE) && (action.getChips().get() <= pot.getLastBet())) {
                 action.setActionKind(PlayerActionKind.CALL);
             }
         }

@@ -218,6 +218,9 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         // Display the game hash so players can communicate with their friends
         getBinding().gameHash.setText(String.format(getString(R.string.game_id), game.getGameHash()));
         getBinding().winAnimation.setVisibility(View.INVISIBLE);
+        getBinding().buttonRaise.setEnabled(false);
+        getBinding().buttonCheck.setEnabled(false);
+        getBinding().buttonFold.setEnabled(false);
 
         // Refresh the view based on current game engine.
         // In case there is no game engine yet, it means we have just entered. Then select a seat
