@@ -120,6 +120,12 @@ public class Game {
      */
     private GameStepNotificationInfo lastNotification = null;
 
+    /**
+     * In order to make sure game is always in sync, we keep the last time players were refreshed,
+     * so in case out optimization made us not to refresh players for more than 10 seconds, force refresh.
+     */
+    private long lastPlayersRefresh;
+
     // Hide ctor - Singleton
     private Game() {
         gameListeners = new HashSet<>(2);
@@ -166,8 +172,7 @@ public class Game {
         notifierThread = Executors.newFixedThreadPool(2, new CustomThreadFactory("GameNotifier"));
 
         // Refresh seats availability every 500 milliseconds, to get "realtime" updates.
-        seatsAvailabilityRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("SeatsAvailabilityRefreshThread"));
-        seatsAvailabilityRefreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 1, TimeUnit.SECONDS);
+        initSeatsAvailabilityThread();
 
         // Refresh game state once a second, this isn't a realtime update, but good enough without
         // flooding the server with requests.
@@ -177,6 +182,11 @@ public class Game {
         // Start the chat so we will get messages from server
         chat = new Chat(gameHash);
         chat.start();
+    }
+
+    private void initSeatsAvailabilityThread() {
+        seatsAvailabilityRefreshThread = Executors.newSingleThreadScheduledExecutor(new CustomThreadFactory("SeatsAvailabilityRefreshThread"));
+        seatsAvailabilityRefreshThread.scheduleAtFixedRate(this::refreshPlayers, 0, 1, TimeUnit.SECONDS);
     }
 
     /**
@@ -255,6 +265,7 @@ public class Game {
 
         gameEngine = null;
         gameHash = null;
+        isJoinedGame = false;
 
         if (!isRunLaterExecuted && (runLater != null)) {
             runLater.run();
@@ -368,9 +379,13 @@ public class Game {
                         try {
                             GameEngine gameEngine = TexasHoldemWebService.getInstance().getObjectMapper().readValue(body.toString(), GameEngine.class);
                             if (gameEngine != null) {
+                                Player player = gameEngine.getPlayers().getPlayerById(playerId);
+                                if (player == null) {
+                                    return;
+                                }
+
                                 gameHash = gameEngine.getGameHash();
                                 isJoinedGame = true;
-                                Player player = gameEngine.getPlayers().getPlayerById(playerId);
 
                                 if (thisPlayer == null) {
                                     thisPlayer = Player.builder().id(player.getId())
@@ -415,7 +430,9 @@ public class Game {
                             });
                             Log.d(LOGGER, "Received players: " + players);
 
-                            if ((Game.this.playersInGame == null) || (!Game.this.playersInGame.equals(players))) {
+                            if ((Game.this.playersInGame == null) || (!Game.this.playersInGame.equals(players)) ||
+                                    ((System.currentTimeMillis() - lastPlayersRefresh) >= TimeUnit.SECONDS.toMillis(10))) {
+                                lastPlayersRefresh = System.currentTimeMillis();
                                 notifyPlayersRefresh(players);
                             }
 
@@ -441,11 +458,13 @@ public class Game {
                 @Override
                 public void onResponse(@NonNull Call<JsonNode> call, @NonNull Response<JsonNode> response) {
                     if (!response.isSuccessful()) {
-                        // Before user joins a game, we get bad request cause use that not part of
+                        // Before user joins a game, we get bad request cause user that not part of
                         // a game cannot receive game updates. Just ignore those failures.
                         if ((response.code() != HttpStatus.BAD_REQUEST.getCode()) && (response.code() != HttpStatus.NOT_FOUND.getCode())) {
                             Log.e(LOGGER, "Failed to get game update");
                             notifyGameError("Game is Out of Sync");
+                        } else if (seatsAvailabilityRefreshThread == null) {
+                            notifyGameError("Disconnect");
                         }
                     } else {
                         JsonNode body = response.body();
@@ -469,6 +488,14 @@ public class Game {
 
                                     notifyGameRefresh(gameEngine);
                                     detectAndNotifyAboutGameStep();
+                                } else if (seatsAvailabilityRefreshThread == null) {
+                                    // Update game engine so we will have its up to dae state
+                                    Game.this.gameEngine = gameEngine;
+
+                                    // When there is one player left in a game, the game enters into
+                                    // READY state and waits for admin to start it. hence we refresh
+                                    // seats availability, to wait for players to join
+                                    initSeatsAvailabilityThread();
                                 }
                             }
                         } catch (Exception e) {
@@ -626,8 +653,10 @@ public class Game {
      * @param players The players to notify about
      */
     private void notifyPlayersRefresh(Set<Player> players) {
-        for (GameListener listener : gameListeners) {
-            notifierThread.submit(() -> listener.playersRefresh(players));
+        if (notifierThread != null) {
+            for (GameListener listener : gameListeners) {
+                notifierThread.submit(() -> listener.playersRefresh(players));
+            }
         }
     }
 
@@ -636,8 +665,10 @@ public class Game {
      * @param errorMessage An error to notify about
      */
     private void notifyGameError(String errorMessage) {
-        for (GameListener listener : gameListeners) {
-            notifierThread.submit(() -> listener.onGameError(errorMessage));
+        if (notifierThread != null) {
+            for (GameListener listener : gameListeners) {
+                notifierThread.submit(() -> listener.onGameError(errorMessage));
+            }
         }
     }
 

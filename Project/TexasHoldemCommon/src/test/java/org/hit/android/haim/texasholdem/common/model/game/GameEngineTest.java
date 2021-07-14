@@ -157,7 +157,7 @@ public class GameEngineTest {
             try {
                 // Wait enough time so current player will fold.
                 // Double the time because the scheduler runs every 3 seconds
-                Thread.sleep(turnTimeMillis * 2);
+                Thread.sleep((long)(turnTimeMillis * 1.5));
             } catch (InterruptedException ignore) {
             }
             Assertions.assertFalse(currPlayer.isPlaying(), "Player supposed to fold due to time out");
@@ -418,6 +418,52 @@ public class GameEngineTest {
                 Assertions.assertNotNull(playerToEarnings.get(player3.getId()).getHandRank().getHand(), "Hand supposed to be available");
                 Assertions.assertTrue(playerToEarnings.get(player3.getId()).getSum() > actualEarning, "Sum supposed to contain earning and own bet");
             }
+        } finally {
+            if (gameEngine != null) {
+                gameEngine.stop();
+            }
+        }
+    }
+
+    @Test
+    public void simulateFullGameFlowUntilTurnRound_allIn_gameShouldShowAllBoard() {
+        GameEngine gameEngine = null;
+        try {
+            gameEngine = simulateFullGameFlowUntilTurnRound();
+
+            // Raise (small blind player)
+            Player currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+            long chipsBeforeCall = currPlayer.getChips().get();
+            long allIn = chipsBeforeCall;
+            gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.RAISE).chips(new Chips(currPlayer.getChips().get())).build());
+            Assertions.assertFalse(gameEngine.getBoard().hasTurn(), "Turn was not supposed to be displayed yet");
+            Assertions.assertFalse(gameEngine.getBoard().hasRiver(), "River was not supposed to be displayed");
+            Assertions.assertEquals(0, currPlayer.getChips().get(), "Player raised 20 chips");
+            Assertions.assertEquals(currPlayer.getName() + " raised by " + chipsBeforeCall + ".", gameEngine.getGameLog().getLastPlayerAction().toString());
+
+            // Call (big blind calls)
+            currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+            chipsBeforeCall = currPlayer.getChips().get();
+            gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.CALL).build());
+            Assertions.assertFalse(gameEngine.getBoard().hasTurn(), "Turn was not supposed to be displayed yet");
+            Assertions.assertEquals(Math.max(chipsBeforeCall - allIn, 0), currPlayer.getChips().get(), "Player called");
+            Assertions.assertEquals(currPlayer.getName() + " called " + Math.min(allIn, chipsBeforeCall) + ".", gameEngine.getGameLog().getLastPlayerAction().toString());
+
+            // Dealer folds. As there is one active player and another all-in, we should see all board
+            currPlayer = gameEngine.getPlayers().getCurrentPlayer();
+            chipsBeforeCall = currPlayer.getChips().get();
+            gameEngine.executePlayerAction(currPlayer, PlayerAction.builder().name(currPlayer.getName()).actionKind(PlayerActionKind.FOLD).build());
+            Assertions.assertTrue(gameEngine.getBoard().hasTurn(), "Turn supposed to be displayed");
+            Assertions.assertTrue(gameEngine.getBoard().hasRiver(), "River supposed to be displayed");
+            Assertions.assertEquals(chipsBeforeCall, currPlayer.getChips().get(), "No chips should be removed when FOLD.");
+
+            Map<String, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
+            Assertions.assertEquals(GameEngine.GameState.RESTART, gameEngine.getGameState(), "Game supposed to be in RESTART state");
+            Assertions.assertNotNull(playerToEarnings, "Game supposed to end");
+            Assertions.assertFalse(playerToEarnings.isEmpty(), "There should be a winner");
+            Assertions.assertNotEquals(500, player1.getChips().get(), "Chips must be modified");
+            Assertions.assertNotEquals(300, player2.getChips().get(), "Chips must be modified");
+            Assertions.assertNotEquals(1000, player3.getChips().get(), "Chips must be modified");
         } finally {
             if (gameEngine != null) {
                 gameEngine.stop();

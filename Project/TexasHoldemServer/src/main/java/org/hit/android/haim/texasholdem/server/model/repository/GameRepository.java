@@ -108,7 +108,15 @@ public class GameRepository {
             return Optional.empty();
         }
 
-        return Optional.of(playerToGame.get(playerId));
+        GameEngine game = playerToGame.get(playerId);
+
+        // In case the map is out of sync, sync now.
+        if (game.getPlayers().getPlayerById(playerId) == null) {
+            leaveGame(game.getId(), playerId);
+            return Optional.empty();
+        }
+
+        return Optional.of(game);
     }
 
     /**
@@ -155,7 +163,7 @@ public class GameRepository {
             // Check if user joins another game while he is part of a game already
             GameEngine gameEngine = playerToGame.get(player.getId());
             if ((gameEngine != null) && (gameId != gameEngine.getId())) {
-                leaveGame(gameEngine.getId(), player);
+                leaveGame(gameEngine.getId(), player.getId());
             }
 
             existingGame.addPlayer(player);
@@ -166,26 +174,30 @@ public class GameRepository {
     /**
      * Remove player from a game
      * @param gameId The identifier of a game
-     * @param player The player that leaves
+     * @param userId The player that leaves
      */
-    public void leaveGame(int gameId, Player player) {
+    public void leaveGame(int gameId, String userId) {
         GameEngine existingGame = games.get(gameId);
         if (existingGame != null) {
-            if (existingGame.getPlayers().getPlayerById(player.getId()) != null) {
-                playerToGame.remove(player.getId());
-                existingGame.removePlayer(player);
-
-                // Check if it was the owner, to remove it from owners map.
-                GameEngine gameEngine = ownerToGame.get(player.getId());
-                if ((gameEngine != null) && (gameEngine.getId() == gameId)) {
-                    ownerToGame.remove(player.getId());
-                }
-
-                // If no players left, discard that game.
-                if (existingGame.getPlayers().size() == 0) {
-                    stopGame(gameId);
-                }
+            GameEngine playersGame = playerToGame.remove(userId);
+            if ((existingGame.getPlayers().getPlayerById(userId) == null) && (playersGame != null)) {
+                existingGame = playersGame;
             }
+
+            Player player = existingGame.getPlayers().getPlayerById(userId);
+            if (player != null) {
+                existingGame.removePlayer(player);
+            }
+
+            // If no players left, discard that game.
+            if (existingGame.getPlayers().size() == 0) {
+                stopGame(gameId);
+            }
+        } else {
+            // It might be that game was stopped, though we have not cleared references.
+            // For example, when user loses all of his chips, GameEngine disconnects it,
+            // but we still have our maps out of date. So remove the player here.
+            playerToGame.remove(userId);
         }
     }
 

@@ -290,6 +290,21 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             handler.post(() -> {
                 if (handler != null) {
                     try {
+                        updateBoardVisibility();
+                        updateHandsAndDealer(gameEngine);
+
+                        // Update our hand. (this player is the signed in user on this device)
+                        Player thisPlayer = gameEngine.getPlayers().getPlayerById(game.getThisPlayer().getId());
+
+                        // When player puts all-in and lose, he is kicked out of the game.
+                        // So detect this case here to execute leaveGame
+                        if (gameEngine.getPlayers().getPlayerById(thisPlayer.getId()) == null) {
+                            handler.postDelayed(() -> {
+                                Toast.makeText(getActivity(), "No chips left. Please re-join.", Toast.LENGTH_LONG).show();
+                            }, 250);
+                            doQuitGame();
+                        }
+
                         // When players exit game by killing the app, we get into illegal state. skip this refresh.
                         Player currentPlayer = gameEngine.getPlayers().getCurrentPlayer();
                         if (currentPlayer == null) {
@@ -298,12 +313,8 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                             return;
                         }
 
-                        updateBoardVisibility();
-                        updateHandsAndDealer(gameEngine);
                         updateProgressBar(gameEngine);
 
-                        // Update our hand. (this player is the signed in user on this device)
-                        Player thisPlayer = gameEngine.getPlayers().getPlayerById(game.getThisPlayer().getId());
                         PlayerViewAccessor thisPlayerView = players.get(thisPlayer.getPosition());
                         Hand myHand = thisPlayer.getHand();
                         revealHand(thisPlayerView.handView, myHand);
@@ -338,9 +349,13 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             // If player left the game, clear its view.
             if ((currPlayer.getValue().player == null) || (gameEngine.getPlayers().getPlayerById(currPlayer.getValue().player.getId()) == null)) {
                 currPlayer.getValue().hide();
+                currPlayer.getValue().player = null;
             } else {
+                // In case there is a player at this view, make sure it is visible.
+                currPlayer.getValue().playerView.setVisibility(View.VISIBLE);
+
                 // Show or hide player's hand, based on player activity in the game
-                if ((currPlayer.getValue().player == null) || !involvedPlayers.contains(currPlayer.getValue().player)) {
+                if (!involvedPlayers.contains(currPlayer.getValue().player)) {
                     currPlayer.getValue().handView.setVisibility(View.INVISIBLE);
                 } else {
                     // Make sure we hide other player hands. (After their won for example)
@@ -367,6 +382,9 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                     // Update player's bet
                     long playerPot = gameEngine.getPot().getPotOfPlayer(player);
                     currPlayer.getValue().setBet(playerPot);
+                } else {
+                    // Hide it
+                    currPlayer.getValue().setBet(0);
                 }
             }
         }
@@ -410,7 +428,10 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      */
     private void highlightWinnersIfNecessary(GameEngine gameEngine) {
         Map<String, Pot.PlayerWinning> playerToEarnings = gameEngine.getPlayerToEarnings();
-        if (playerToEarnings == null) {
+
+        // In case there is no winner data, or no involved player, we do not reveal player hand.
+        // For example, in case players fold and there is one winner, they do not deserve to see his hand. Otherwise we would reveal bluffs.
+        if ((playerToEarnings == null) || (gameEngine.getPlayers().getInvolvedPlayers().size() <= 1)) {
             if (isHighlighted) {
                 Log.d(LOGGER, "Clearing card highlights");
                 isHighlighted = false;
@@ -480,6 +501,11 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
             handler.post(() -> {
                 if (handler != null) {
                     try {
+                        // Update board visibility here, in case we've got here after players lost
+                        // all of their chips, and got disconnected. In this case we need to update board
+                        // and display startButton cause the game is in READY state.
+                        updateBoardVisibility();
+
                         // Keep available seats
                         Set<Integer> availableSeats = new HashSet<>(SEATS);
                         playersToWorkWith.forEach(p -> {
@@ -490,6 +516,12 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
 
                         Log.d(LOGGER, "Players refresh (hiding win animation)");
                         getBinding().winAnimation.setVisibility(View.INVISIBLE);
+
+                        // Remove players view above empty seats
+                        availableSeats.forEach(seat -> {
+                            PlayerViewAccessor playerViewAccessor = GameFragment.this.players.get(seat);
+                            playerViewAccessor.hide();
+                        });
 
                         // Make sure animations are visible
                         if (!isSeatSelected) {
@@ -510,7 +542,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
      * Hide the cards from board, and show a START button in case current player is the organizer.
      */
     private void updateBoardVisibility() {
-        if (!game.isActive()) {
+        if (!game.isActive() || (game.getGameEngine().getGameState() == GameEngine.GameState.READY)) {
             getBinding().card0.setVisibility(View.INVISIBLE);
             getBinding().card1.setVisibility(View.INVISIBLE);
             getBinding().card2.setVisibility(View.INVISIBLE);
@@ -531,6 +563,7 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
                                 if (errorMessage.isEmpty()) {
                                     startGameButton.setVisibility(View.GONE);
                                     getBinding().cardsContainer.removeView(startGameButton);
+                                    startGameButton = null;
                                 } else {
                                     Snackbar.make(GameFragment.this.getView(), errorMessage, Snackbar.LENGTH_LONG).show();
                                 }
@@ -637,7 +670,11 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         if (handler != null) {
             handler.post(() -> {
                 if (handler != null) {
-                    Snackbar.make(getView(), errorMessage, BaseTransientBottomBar.LENGTH_LONG).show();
+                    if ("Disconnect".equalsIgnoreCase(errorMessage)) {
+                        doQuitGame();
+                    } else {
+                        Snackbar.make(getView(), errorMessage, BaseTransientBottomBar.LENGTH_LONG).show();
+                    }
                 }
             });
         }

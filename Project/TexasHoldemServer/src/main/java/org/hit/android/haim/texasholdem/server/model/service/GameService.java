@@ -129,10 +129,7 @@ public class GameService {
         }
 
         // Find a player by its identifier, and remove him from game, in case he is part of the specified game.
-        Player player = game.get().getPlayers().getPlayerById(userId);
-        if (player != null) {
-            gameRepository.leaveGame(game.get().getId(), player);
-        }
+        gameRepository.leaveGame(game.get().getId(), userId);
     }
 
     /**

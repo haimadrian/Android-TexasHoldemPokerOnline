@@ -553,6 +553,16 @@ public class GameEngine {
         Set<Player> involvedPlayers = players.getInvolvedPlayers();
         int playersLeft = (int)involvedPlayers.stream().filter(player -> player.getChips().get() > 0).count();
         if ((playersLeft <= 1) || board.hasRiver()) {
+            // In case there is more than single player in, but one player at most left with chips, make sure
+            // we open all of the cards in a board.
+            if ((involvedPlayers.size() > 1) && (playersLeft <= 1)) {
+                while (!board.hasRiver()) {
+                    if (!showNextCard()) {
+                        break;
+                    }
+                }
+            }
+
             // Sign that we are ready to restart a round, letting new players to join now
             gameState.set(GameState.RESTART);
 
@@ -580,10 +590,20 @@ public class GameEngine {
                 } catch (InterruptedException ignore) {
                 }
 
-                // Move the dealer forward
-                dealer = players.getAvailablePlayer(players.indexOfPlayer(dealer) + 1);
-                players.setCurrentPlayerIndex(dealer.getPosition());
-                startRound();
+                // Disconnect all players that have no chips to play with
+                players.getPlayers().stream().filter(p -> p.getChips().get() <= 0).forEach(this::removePlayer);
+
+                if (players.getPlayers().size() <= 1) {
+                    playerToEarnings = null;
+                    dealer = null;
+                    gameState.set(GameState.READY);
+                } else {
+                    // Move the dealer forward
+                    dealer = players.getAvailablePlayer(players.indexOfPlayer(dealer) + 1);
+                    players.setCurrentPlayerIndex(dealer.getPosition());
+                    startRound();
+                }
+
                 service.shutdown();
             });
         }
