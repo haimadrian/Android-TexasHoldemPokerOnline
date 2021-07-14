@@ -346,8 +346,10 @@ public class GameFragment extends ViewBindedFragment<FragmentGameBinding> implem
         Set<Player> involvedPlayers = gameEngine.getPlayers().getInvolvedPlayers();
         Player dealer = gameEngine.getDealer();
         for (Map.Entry<Integer, PlayerViewAccessor> currPlayer : players.entrySet()) {
-            // If player left the game, clear its view.
-            if ((currPlayer.getValue().player == null) || (gameEngine.getPlayers().getPlayerById(currPlayer.getValue().player.getId()) == null)) {
+            // If player left the game, clear its view. Note that player might reconnect and select another seat.
+            if ((currPlayer.getValue().player == null) ||
+                (gameEngine.getPlayers().getPlayerById(currPlayer.getValue().player.getId()) == null) ||
+                (gameEngine.getPlayers().getPlayer(currPlayer.getValue().player.getPosition()) == null)) {
                 currPlayer.getValue().hide();
                 currPlayer.getValue().player = null;
             } else {
