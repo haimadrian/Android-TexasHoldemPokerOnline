@@ -40,7 +40,7 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
  */
 public class TexasHoldemWebService {
     private static final String LOGGER = TexasHoldemWebService.class.getSimpleName();
-    private static final String BACKEND_URL = "https://ec2-34-224-135-87.compute-1.amazonaws.com:8443"; // EC2
+    private static final String BACKEND_URL = "********"; // EC2
 
     /** @see UserService */
     @Getter
